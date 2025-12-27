@@ -63,13 +63,17 @@ export const eventsService = {
 };
 
 function mapToFrontend(row: any): Event {
-    const startDate = new Date(row.start_date);
+    // Extract date and time directly from string to avoid timezone shifts
+    const dateTimeParts = row.start_date?.split('T') || [];
+    const date = dateTimeParts[0] || '';
+    const time = dateTimeParts[1]?.substring(0, 5) || '00:00';
+
     return {
         id: row.id,
         title: row.title,
         description: row.description,
-        date: row.start_date?.split('T')[0] || '',
-        time: startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        date: date,
+        time: time,
         location: row.location,
         type: row.type as any,
         confirmed: 0,
@@ -81,7 +85,7 @@ function mapToFrontend(row: any): Event {
 function mapToDb(event: Partial<Event>): any {
     const dbRow: any = {};
     if (event.title !== undefined) dbRow.title = event.title;
-    // if (event.description !== undefined) dbRow.description = event.description; // Column might not exist
+    if (event.description !== undefined) dbRow.description = event.description;
 
     if (event.date !== undefined && event.time !== undefined) {
         dbRow.start_date = `${event.date}T${event.time}:00`;
@@ -91,5 +95,6 @@ function mapToDb(event: Partial<Event>): any {
 
     if (event.location !== undefined) dbRow.location = event.location;
     if (event.type !== undefined) dbRow.type = event.type;
+    // status and visibility might not exist in the DB, so we omit them for now
     return dbRow;
 }
