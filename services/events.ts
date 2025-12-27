@@ -20,7 +20,7 @@ export const eventsService = {
         const dbRow = mapToDb(event);
         const { data, error } = await supabase
             .from('events')
-            .insert({ ...dbRow, status: event.status || 'ACTIVE', visibility: event.visibility || 'PUBLIC' })
+            .insert(dbRow)
             .select()
             .single();
 
@@ -81,7 +81,7 @@ function mapToFrontend(row: any): Event {
 function mapToDb(event: Partial<Event>): any {
     const dbRow: any = {};
     if (event.title !== undefined) dbRow.title = event.title;
-    if (event.description !== undefined) dbRow.description = event.description;
+    // if (event.description !== undefined) dbRow.description = event.description; // Column might not exist
 
     if (event.date !== undefined && event.time !== undefined) {
         dbRow.start_date = `${event.date}T${event.time}:00`;
@@ -91,8 +91,5 @@ function mapToDb(event: Partial<Event>): any {
 
     if (event.location !== undefined) dbRow.location = event.location;
     if (event.type !== undefined) dbRow.type = event.type;
-    if (event.status !== undefined) dbRow.status = event.status;
-    if (event.visibility !== undefined) dbRow.visibility = event.visibility;
-
     return dbRow;
 }

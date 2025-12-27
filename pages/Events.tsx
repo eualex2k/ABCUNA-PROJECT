@@ -103,9 +103,9 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user }) => {
       setIsModalOpen(false);
       setFormEvent(initialFormState);
       setEditingId(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving event:', error);
-      alert('Erro ao salvar evento. Certifique-se de que todos os campos estão corretos.');
+      alert('Erro ao salvar evento: ' + (error.message || 'Verifique se todos os campos estão preenchidos corretamente.'));
     }
   };
 
@@ -190,28 +190,24 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user }) => {
                   </div>
                   {canEdit && (
                     <div className="flex gap-2">
-                      {event.status === 'ACTIVE' && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 h-9"
-                            onClick={() => handleFinish(event)}
-                            title="Finalizar Evento"
-                          >
-                            <CheckCircle size={18} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-brand-600 border-brand-200 hover:bg-brand-50 h-9"
-                            onClick={() => handleEdit(event)}
-                            title="Editar Evento"
-                          >
-                            <Edit3 size={18} />
-                          </Button>
-                        </>
-                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 h-9"
+                        onClick={() => handleFinish(event)}
+                        title="Finalizar Evento"
+                      >
+                        <CheckCircle size={18} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-brand-600 border-brand-200 hover:bg-brand-50 h-9"
+                        onClick={() => handleEdit(event)}
+                        title="Editar Evento"
+                      >
+                        <Edit3 size={18} />
+                      </Button>
                       <Button variant="ghost" size="sm" className="text-slate-400 hover:text-red-500 h-9" onClick={() => handleDelete(event.id)} title="Excluir Evento">
                         <Trash2 size={18} />
                       </Button>
