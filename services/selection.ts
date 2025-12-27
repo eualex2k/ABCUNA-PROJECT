@@ -136,5 +136,23 @@ export const selectionService = {
 
         if (error) throw error;
         return data;
+    },
+
+    async promoteCandidate(candidateId: string): Promise<void> {
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                role: 'ASSOCIATE',
+                operational_role: 'Bombeiro Civil',
+                status: 'ACTIVE',
+                join_date: new Date().toISOString().split('T')[0],
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', candidateId);
+
+        if (error) {
+            console.error('Error promoting candidate:', error);
+            throw error;
+        }
     }
 };

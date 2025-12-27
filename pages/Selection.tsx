@@ -199,6 +199,19 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
     }
   };
 
+  const handlePromoteCandidate = async (candidate: Candidate) => {
+    if (!confirm(`Tem certeza que deseja tornar ${candidate.name} um Associado e Bombeiro Civil?`)) return;
+
+    try {
+      await selectionService.promoteCandidate(candidate.id);
+      setCandidates(prev => prev.filter(c => c.id !== candidate.id));
+      alert(`${candidate.name} agora é um Associado e Bombeiro Civil!`);
+    } catch (error) {
+      console.error('Error promoting candidate:', error);
+      alert('Erro ao promover candidato.');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
@@ -480,13 +493,26 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
 
                         {/* Grading Button - Admin Only */}
                         {isAdmin && (
-                          <Button
-                            size="sm"
-                            className="bg-brand-600 hover:bg-brand-700 text-white flex items-center gap-2"
-                            onClick={() => handleOpenGradeModal(c)}
-                          >
-                            <Edit3 size={14} /> Lançar
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            {c.status === 'APPROVED' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-green-600 text-green-600 hover:bg-green-50 flex items-center gap-2"
+                                onClick={() => handlePromoteCandidate(c)}
+                                title="Tornar este candidato um associado"
+                              >
+                                <UserPlus size={14} /> Tornar Associado
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              className="bg-brand-600 hover:bg-brand-700 text-white flex items-center gap-2"
+                              onClick={() => handleOpenGradeModal(c)}
+                            >
+                              <Edit3 size={14} /> Lançar
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </td>
