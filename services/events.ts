@@ -95,6 +95,8 @@ function mapToDb(event: Partial<Event>): any {
 
     if (event.location !== undefined) dbRow.location = event.location;
     if (event.type !== undefined) dbRow.type = event.type;
-    // status and visibility might not exist in the DB, so we omit them for now
+    if (event.status !== undefined) dbRow.status = event.status;
+    if (event.visibility !== undefined) dbRow.visibility = event.visibility;
+
     return dbRow;
 }
