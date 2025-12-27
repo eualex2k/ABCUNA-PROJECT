@@ -113,6 +113,8 @@ export interface Event {
   location: string;
   type: 'TRAINING' | 'MEETING' | 'OPERATION' | 'EVENT';
   confirmed: number;
+  status: 'ACTIVE' | 'FINISHED';
+  visibility: 'PUBLIC' | 'BOARD';
 }
 
 export interface CompanyInfo {

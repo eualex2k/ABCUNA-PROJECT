@@ -20,12 +20,29 @@ export const eventsService = {
         const dbRow = mapToDb(event);
         const { data, error } = await supabase
             .from('events')
-            .insert(dbRow)
+            .insert({ ...dbRow, status: event.status || 'ACTIVE', visibility: event.visibility || 'PUBLIC' })
             .select()
             .single();
 
         if (error) {
             console.error('Error creating event:', error);
+            throw error;
+        }
+
+        return mapToFrontend(data);
+    },
+
+    async update(id: string, updates: Partial<Event>): Promise<Event> {
+        const dbRow = mapToDb(updates);
+        const { data, error } = await supabase
+            .from('events')
+            .update(dbRow)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error updating event:', error);
             throw error;
         }
 
@@ -50,20 +67,23 @@ function mapToFrontend(row: any): Event {
     return {
         id: row.id,
         title: row.title,
+        description: row.description,
         date: row.start_date?.split('T')[0] || '',
         time: startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         location: row.location,
         type: row.type as any,
-        confirmed: 0 // Logic for confirmation count would be separate
+        confirmed: 0,
+        status: row.status || 'ACTIVE',
+        visibility: row.visibility || 'PUBLIC'
     };
 }
 
 function mapToDb(event: Partial<Event>): any {
     const dbRow: any = {};
     if (event.title !== undefined) dbRow.title = event.title;
+    if (event.description !== undefined) dbRow.description = event.description;
 
     if (event.date !== undefined && event.time !== undefined) {
-        // Merge date (YYYY-MM-DD) and time (HH:mm) into a single timestamp
         dbRow.start_date = `${event.date}T${event.time}:00`;
     } else if (event.date !== undefined) {
         dbRow.start_date = `${event.date}T00:00:00`;
@@ -71,5 +91,8 @@ function mapToDb(event: Partial<Event>): any {
 
     if (event.location !== undefined) dbRow.location = event.location;
     if (event.type !== undefined) dbRow.type = event.type;
+    if (event.status !== undefined) dbRow.status = event.status;
+    if (event.visibility !== undefined) dbRow.visibility = event.visibility;
+
     return dbRow;
 }
