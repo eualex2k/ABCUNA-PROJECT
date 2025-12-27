@@ -10,7 +10,7 @@ interface EventsPageProps {
 }
 
 export const EventsPage: React.FC<EventsPageProps> = ({ user }) => {
-  const canEdit = [UserRole.ADMIN, UserRole.SECRETARY].includes(user.role);
+  const canEdit = [UserRole.ADMIN, UserRole.SECRETARY, UserRole.INSTRUCTOR].includes(user.role);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -68,38 +68,44 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user }) => {
 
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formEvent.title && formEvent.date) {
-      try {
-        const eventData: any = {
-          title: formEvent.title!,
-          description: formEvent.description || '',
-          date: formEvent.date!,
-          time: formEvent.time || '00:00',
-          location: formEvent.location || 'Sede',
-          type: formEvent.type || 'EVENT',
-          visibility: formEvent.visibility || 'PUBLIC',
-          status: formEvent.status || 'ACTIVE'
-        };
+    if (!formEvent.title || !formEvent.date) {
+      alert('Título e Data são obrigatórios.');
+      return;
+    }
 
-        if (editingId) {
-          await eventsService.update(editingId, eventData);
-        } else {
-          await eventsService.create(eventData);
-          notificationService.add({
-            title: 'Novo Evento Criado',
-            message: `${formEvent.title} agendado para ${new Date(formEvent.date).toLocaleDateString()}.`,
-            type: 'EVENT',
-            link: '/events'
-          });
-        }
+    try {
+      const eventData: any = {
+        title: formEvent.title,
+        description: formEvent.description || '',
+        date: formEvent.date,
+        time: formEvent.time || '00:00',
+        location: formEvent.location || 'Sede',
+        type: formEvent.type || 'EVENT',
+        visibility: formEvent.visibility || 'PUBLIC',
+        status: formEvent.status || 'ACTIVE'
+      };
 
-        loadEvents();
-        setIsModalOpen(false);
-        setFormEvent(initialFormState);
-        setEditingId(null);
-      } catch (error) {
-        alert('Erro ao salvar evento.');
+      if (editingId) {
+        await eventsService.update(editingId, eventData);
+        alert('Evento atualizado com sucesso!');
+      } else {
+        await eventsService.create(eventData);
+        notificationService.add({
+          title: 'Novo Evento Criado',
+          message: `${formEvent.title} agendado para ${new Date(formEvent.date).toLocaleDateString()}.`,
+          type: 'EVENT',
+          link: '/events'
+        });
+        alert('Evento criado com sucesso!');
       }
+
+      await loadEvents();
+      setIsModalOpen(false);
+      setFormEvent(initialFormState);
+      setEditingId(null);
+    } catch (error) {
+      console.error('Error saving event:', error);
+      alert('Erro ao salvar evento. Certifique-se de que todos os campos estão corretos.');
     }
   };
 
