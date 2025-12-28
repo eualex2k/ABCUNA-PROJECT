@@ -116,8 +116,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
         setIsModalOpen(false);
         setFormItem(initialFormState);
         setEditingId(null);
-      } catch (error) {
-        alert('Erro ao salvar item.');
+      } catch (error: any) {
+        console.error('Error saving inventory item:', error);
+        alert('Erro ao salvar item: ' + (error.message || 'Verifique os campos e tente novamente.'));
       }
     }
   };
