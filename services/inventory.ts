@@ -76,6 +76,7 @@ function mapToFrontend(row: any): InventoryItem {
         supplier: row.supplier,
         description: row.description,
         expirationDate: row.expiration_date,
+        itemType: row.item_type as any, // DB uses 'item_type'
     };
 }
 
@@ -92,5 +93,6 @@ function mapToDb(item: Partial<InventoryItem>): any {
     if (item.supplier !== undefined) dbRow.supplier = item.supplier;
     if (item.description !== undefined) dbRow.description = item.description;
     if (item.expirationDate !== undefined) dbRow.expiration_date = item.expirationDate;
+    if (item.itemType !== undefined) dbRow.item_type = item.itemType;
     return dbRow;
 }

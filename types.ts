@@ -93,7 +93,7 @@ export interface InventoryItem {
   name: string;
   quantity: number;
   category: string;
-  condition: 'AVAILABLE' | 'MAINTENANCE' | 'LOW_STOCK';
+  condition: 'AVAILABLE' | 'MAINTENANCE' | 'LOW_STOCK' | 'CRITICAL' | 'ADEQUATE';
   location: string;
   lastInspection: string;
   unit?: string;
@@ -102,6 +102,7 @@ export interface InventoryItem {
   description?: string;
   expirationDate?: string;
   entryDate?: string;
+  itemType?: 'REUSABLE' | 'DISPOSABLE';
 }
 
 export interface Event {
