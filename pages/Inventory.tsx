@@ -224,71 +224,72 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
           const isExpired = item.expirationDate ? new Date(item.expirationDate) < new Date() : false;
 
           return (
-            <Card key={item.id} className="group hover:border-brand-500 transition-all border-slate-200 overflow-hidden flex flex-col">
-              <div className="p-5 flex-1">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
-                      <Package size={22} />
+            <Card key={item.id} className="group hover:ring-1 hover:ring-brand-500/20 transition-all border-slate-200 overflow-hidden flex flex-col bg-white">
+              <div className="p-6 flex-1">
+                {/* Header Section */}
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 shadow-sm group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
+                      <Package size={28} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 leading-tight text-lg">{item.name}</h3>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.category}</p>
+                      <h3 className="font-black text-slate-900 leading-tight text-xl tracking-tight">{item.name}</h3>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em]">{item.category}</p>
                         <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                        <p className={`text-[10px] font-black uppercase tracking-widest ${item.itemType === 'REUSABLE' ? 'text-blue-500' : 'text-amber-500'}`}>
+                        <p className={`text-[11px] font-black uppercase tracking-[0.1em] ${item.itemType === 'REUSABLE' ? 'text-blue-500' : 'text-amber-500'}`}>
                           {item.itemType === 'REUSABLE' ? 'Reutilizável' : 'Descartável'}
                         </p>
                       </div>
                     </div>
                   </div>
-                  <Badge variant={
-                    item.condition === 'ADEQUATE' || item.condition === 'AVAILABLE' ? 'success' :
-                      item.condition === 'LOW_STOCK' || item.condition === 'MAINTENANCE' ? 'warning' : 'danger'
-                  }>
+                  <div className={`px-4 py-3 rounded-full text-xs font-bold shadow-sm whitespace-nowrap ${item.condition === 'ADEQUATE' || item.condition === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                      item.condition === 'LOW_STOCK' || item.condition === 'MAINTENANCE' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
+                    }`}>
                     {item.condition === 'AVAILABLE' ? 'Disponível' :
                       item.condition === 'ADEQUATE' ? 'Estoque OK' :
                         item.condition === 'LOW_STOCK' ? 'Estoque Baixo' :
                           item.condition === 'MAINTENANCE' ? 'Manutenção' : 'Crítico'}
-                  </Badge>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 py-5 border-t border-slate-100 mt-4">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quantidade</p>
-                    <p className="font-black text-slate-900 text-2xl flex items-baseline gap-1">
+                <div className="border-t border-slate-100 -mx-6"></div>
+
+                {/* Info Grid Section */}
+                <div className="grid grid-cols-2 gap-4 py-8">
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Quantidade</p>
+                    <p className="font-black text-slate-900 text-3xl flex items-baseline gap-1.5">
                       {item.quantity}
-                      <span className="text-xs font-bold text-slate-400">{item.unit || 'un'}</span>
+                      <span className="text-xs font-bold text-slate-400 lowercase tracking-normal">{item.unit || 'un'}</span>
                     </p>
                   </div>
-                  <div className="space-y-1 text-right">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Localização</p>
-                    <p className="font-bold text-slate-700 flex items-center justify-end gap-1.5">
-                      <MapPin size={14} className="text-red-500" /> {item.location}
+                  <div className="space-y-2 text-right">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Localização</p>
+                    <p className="font-black text-slate-900 text-xl flex items-center justify-end gap-2">
+                      <MapPin size={18} className="text-red-500" /> {item.location}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <Calendar size={14} className="text-slate-400" />
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Auditado: {item.lastInspection ? new Date(item.lastInspection).toLocaleDateString('pt-BR') : 'Pendente'}</span>
-                  </div>
-                  {item.expirationDate && (
-                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${isExpired ? 'bg-red-50 text-red-600 border-red-100 animate-pulse' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
-                      <AlertCircle size={14} />
-                      <span className="text-[10px] font-bold uppercase tracking-tight">Val: {new Date(item.expirationDate).toLocaleDateString('pt-BR')}</span>
-                    </div>
-                  )}
+                <div className="border-t border-slate-100 -mx-6 mb-6"></div>
+
+                {/* Audit Pill Section */}
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50/50 rounded-2xl border border-slate-100 w-fit">
+                  <Calendar size={16} className="text-slate-400" />
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Auditado: <span className="text-slate-800 ml-1">{item.lastInspection ? new Date(item.lastInspection).toLocaleDateString('pt-BR') : 'Pendente'}</span>
+                  </span>
                 </div>
               </div>
 
-              <div className="bg-slate-50/50 backdrop-blur-sm border-t border-slate-100 p-3 flex justify-between items-center px-4">
+              {/* Footer Section */}
+              <div className="bg-slate-50/80 backdrop-blur-md border-t border-slate-100 p-4 flex justify-between items-center px-6">
                 <button
                   onClick={() => handleOpenView(item)}
-                  className="text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-brand-600 transition-colors flex items-center gap-1.5"
+                  className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-brand-600 transition-colors flex items-center gap-2 group/btn"
                 >
-                  <Info size={14} /> Detalhes
+                  <Info size={14} className="group-hover/btn:translate-x-0.5 transition-transform" /> Detalhes
                 </button>
 
                 <div className="flex items-center gap-1">
@@ -296,32 +297,32 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                     <>
                       <button
                         onClick={() => handleOpenAddQty(item)}
-                        className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
+                        className="p-2.5 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all active:scale-95"
                         title="Adicionar Estoque"
                       >
-                        <PlusSquare size={20} />
+                        <PlusSquare size={22} />
                       </button>
                       <button
                         onClick={() => handleOpenEdit(item)}
-                        className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                        className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all active:scale-95"
                         title="Editar Item"
                       >
-                        <Edit2 size={19} />
+                        <Edit2 size={20} />
                       </button>
                       <button
                         onClick={() => toggleStatus(item)}
-                        className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+                        className="p-2.5 text-amber-500 hover:bg-amber-50 rounded-xl transition-all active:scale-95"
                         title="Alternar Manutenção"
                       >
-                        <Wrench size={19} />
+                        <Wrench size={20} />
                       </button>
-                      <div className="w-px h-4 bg-slate-200 mx-2"></div>
+                      <div className="w-px h-5 bg-slate-200 mx-2"></div>
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="p-2 text-slate-300 hover:text-red-600 transition-colors"
-                        title="remover"
+                        className="p-2.5 text-slate-300 hover:text-red-600 transition-all active:scale-95"
+                        title="Remover"
                       >
-                        <Trash2 size={19} />
+                        <Trash2 size={20} />
                       </button>
                     </>
                   )}
