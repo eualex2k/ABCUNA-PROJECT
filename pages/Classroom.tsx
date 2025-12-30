@@ -72,7 +72,8 @@ export const ClassroomPage: React.FC<ClassroomPageProps> = ({ user }) => {
         title: 'Novo Material de Estudo',
         message: `O arquivo "${newMaterial.title}" foi disponibilizado na sala de aula virtual.`,
         type: 'CLASSROOM',
-        link: '/classroom'
+        link: '/classroom',
+        broadcast: true
       });
 
       setIsMaterialModalOpen(false);
@@ -95,7 +96,8 @@ export const ClassroomPage: React.FC<ClassroomPageProps> = ({ user }) => {
         title: 'Nova Vídeo Aula',
         message: `Novo vídeo adicionado na categoria ${newVideo.category}: ${newVideo.title}`,
         type: 'CLASSROOM',
-        link: '/classroom'
+        link: '/classroom',
+        broadcast: true
       });
 
       setIsVideoModalOpen(false);

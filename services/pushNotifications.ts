@@ -1,6 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { notificationService } from './notifications';
-import { pushNotificationService } from './pushNotifications';
 
 export const pushNotificationService = {
     /**
