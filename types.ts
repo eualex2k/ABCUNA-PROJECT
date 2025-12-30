@@ -32,6 +32,81 @@ export const translateRole = (role: UserRole | string): string => {
   }
 };
 
+export const translateStatus = (status: string): string => {
+  switch (status) {
+    case 'ACTIVE': return 'Ativo';
+    case 'INACTIVE': return 'Inativo';
+    case 'PENDING': return 'Pendente';
+    case 'FINISHED': return 'Concluído';
+    case 'COMPLETED': return 'Concluído';
+    case 'CONFIRMED': return 'Confirmado';
+    case 'APPROVED': return 'Aprovado';
+    case 'REJECTED': return 'Reprovado';
+    case 'VOLUNTEER': return 'Voluntário';
+    case 'PAID': return 'Pago';
+    case 'OPEN': return 'Aberto';
+    case 'LATE': return 'Em Atraso';
+    default: return status;
+  }
+};
+
+export const translatePaymentStatus = (status: string): string => {
+  switch (status) {
+    case 'UP_TO_DATE': return 'Em Dia';
+    case 'LATE': return 'Em Atraso';
+    case 'PENDING': return 'Pendente';
+    default: return status;
+  }
+};
+
+export const translateVisibility = (visibility: string): string => {
+  switch (visibility) {
+    case 'PUBLIC': return 'Público';
+    case 'BOARD': return 'Diretoria';
+    default: return visibility;
+  }
+};
+
+export const translateCondition = (condition: string): string => {
+  switch (condition) {
+    case 'AVAILABLE': return 'Disponível';
+    case 'MAINTENANCE': return 'Manutenção';
+    case 'LOW_STOCK': return 'Estoque Baixo';
+    case 'CRITICAL': return 'Crítico';
+    case 'ADEQUATE': return 'Adequado';
+    default: return condition;
+  }
+};
+
+export const translateEventType = (type: string): string => {
+  switch (type) {
+    case 'TRAINING': return 'Treinamento';
+    case 'MEETING': return 'Reunião';
+    case 'OPERATION': return 'Operação';
+    case 'EVENT': return 'Evento';
+    default: return type;
+  }
+};
+
+export const translateTransactionType = (type: string): string => {
+  switch (type) {
+    case 'INCOME': return 'Entrada';
+    case 'EXPENSE': return 'Saída';
+    default: return type;
+  }
+};
+
+export const translateCategory = (category: string): string => {
+  switch (category) {
+    case 'Donation': return 'Doação';
+    case 'Membership': return 'Mensalidade';
+    case 'Maintenance': return 'Manutenção';
+    case 'Equipment': return 'Equipamento';
+    case 'Other': return 'Outro';
+    default: return category;
+  }
+};
+
 export interface User {
   id: string;
   name: string;

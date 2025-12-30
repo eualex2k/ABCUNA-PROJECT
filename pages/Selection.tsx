@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { UserPlus, Check, X, Search, FileText, List, Calendar, Trophy, Target, Clock, AlertCircle, Edit3, Calculator, Save, Eye, Info, Plus } from 'lucide-react';
 import { Card, Button, Input, Badge, Avatar, Modal } from '../components/ui';
-import { User, UserRole, Candidate, SelectionStage, SelectionScheduleItem } from '../types';
+import { User, UserRole, Candidate, SelectionStage, SelectionScheduleItem, translateStatus } from '../types';
 import { selectionService } from '../services/selection';
 
 interface SelectionPageProps {
@@ -306,7 +306,7 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
                     <Target size={20} />
                   </div>
                   <Badge variant={stage.status === 'COMPLETED' ? 'success' : stage.status === 'IN_PROGRESS' ? 'info' : 'neutral'}>
-                    {stage.status === 'COMPLETED' ? 'Concluído' : stage.status === 'IN_PROGRESS' ? 'Em Andamento' : 'Pendente'}
+                    {translateStatus(stage.status)}
                   </Badge>
                 </div>
                 <h3 className="font-bold text-slate-900 text-base mb-1">{stage.id}. {stage.title}</h3>
@@ -473,9 +473,7 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
                           c.status === 'VOLUNTEER' ? 'info' :
                             c.status === 'REJECTED' ? 'danger' : 'warning'
                       }>
-                        {c.status === 'APPROVED' ? 'Aprovado' :
-                          c.status === 'VOLUNTEER' ? 'Voluntário' :
-                            c.status === 'REJECTED' ? 'Reprovado' : 'Em Análise'}
+                        {translateStatus(c.status)}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -522,7 +520,8 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
             </table>
           </div>
         </Card>
-      )}
+      )
+      }
 
       {/* --- MODAL: LANÇAMENTO DE NOTAS (ADMIN) --- */}
       <Modal isOpen={isGradeModalOpen} onClose={() => setIsGradeModalOpen(false)} title="Lançamento de Notas">
@@ -626,9 +625,7 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
                   selectedCandidate.status === 'VOLUNTEER' ? 'info' :
                     selectedCandidate.status === 'REJECTED' ? 'danger' : 'warning'
               }>
-                {selectedCandidate.status === 'APPROVED' ? 'Aprovado' :
-                  selectedCandidate.status === 'VOLUNTEER' ? 'Voluntário' :
-                    selectedCandidate.status === 'REJECTED' ? 'Reprovado' : 'Em Análise'}
+                {translateStatus(selectedCandidate.status)}
               </Badge>
             </div>
 
@@ -736,6 +733,6 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
           </div>
         </form>
       </Modal>
-    </div>
+    </div >
   );
 };

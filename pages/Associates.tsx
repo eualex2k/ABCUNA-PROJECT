@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Plus, Download, Trash2, Edit2, X, FileText, Calendar, DollarSign, Clock, Save, AlertCircle, ArrowRight, Users, Shield, MapPin } from 'lucide-react';
 import { Card, Button, Input, Badge, Avatar, Modal } from '../components/ui';
-import { Associate, Transaction, User, UserRole, translateRole } from '../types';
+import { Associate, Transaction, User, UserRole, translateRole, translateStatus, translatePaymentStatus } from '../types';
 import { associatesService } from '../services/associates';
 import { scheduleService } from '../services/schedule';
 import { financialService } from '../services/financial';
@@ -63,12 +63,14 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
   };
 
   const [formData, setFormData] = useState<Partial<Associate>>(initialFormState);
+  const [isCustomRole, setIsCustomRole] = useState(false);
 
   // --- Actions ---
 
   const handleOpenNew = () => {
     setEditingId(null);
     setFormData(initialFormState);
+    setIsCustomRole(false);
     setIsModalOpen(true);
   };
 
@@ -82,6 +84,8 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
       status: associate.status,
       paymentStatus: associate.paymentStatus
     });
+    const standardRoles = ['Bombeiro Civil', 'Recruta', 'Presidente', 'Secretário(a)', 'Tesoureiro(a)', 'Vice presidente', 'Instrutor(a)'];
+    setIsCustomRole(!standardRoles.includes(associate.role));
     setIsModalOpen(true);
   };
 
@@ -127,7 +131,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
   const handleExport = () => {
     const csvContent = "data:text/csv;charset=utf-8,"
       + "Nome,Email,Função,Status\n"
-      + associates.map(e => `${e.name},${e.email},${e.role},${e.status}`).join("\n");
+      + associates.map(e => `${e.name},${e.email},${e.role},${e.status} `).join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -258,7 +262,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                           <td className="px-4 py-3 font-medium">
                             {(() => {
                               const [y, m, d] = fee.date.split('-');
-                              return `${d}/${m}/${y}`;
+                              return `${d} /${m}/${y} `;
                             })()}
                           </td>
                           <td className="px-4 py-3">
@@ -443,12 +447,15 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ativo
                       </span>
                     ) : (
-                      <Badge variant="warning">{associate.status}</Badge>
+                      <Badge variant="warning">{translateStatus(associate.status)}</Badge>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant={associate.paymentStatus === 'UP_TO_DATE' ? 'success' : 'danger'}>
-                      {associate.paymentStatus === 'UP_TO_DATE' ? 'Em dia' : 'Atrasado'}
+                    <Badge variant={
+                      associate.paymentStatus === 'UP_TO_DATE' ? 'success' :
+                        associate.paymentStatus === 'LATE' ? 'danger' : 'warning'
+                    }>
+                      {translatePaymentStatus(associate.paymentStatus)}
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
@@ -490,18 +497,43 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Cargo</label>
               <select
                 className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base font-bold text-slate-700 focus:border-brand-500 outline-none"
-                value={formData.role}
-                onChange={e => setFormData({ ...formData, role: e.target.value })}
+                value={isCustomRole ? 'CUSTOM' : formData.role}
+                onChange={e => {
+                  if (e.target.value === 'CUSTOM') {
+                    setIsCustomRole(true);
+                    setFormData({ ...formData, role: '' });
+                  } else {
+                    setIsCustomRole(false);
+                    setFormData({ ...formData, role: e.target.value });
+                  }
+                }}
               >
                 <option value="Bombeiro Civil">Bombeiro Civil</option>
-                <option value="Bombeiro Líder">Bombeiro Líder</option>
-                <option value="Socorrista">Socorrista</option>
-                <option value="Motorista">Motorista</option>
-                <option value="Estagiário">Estagiário</option>
-                <option value="Diretoria">Diretoria</option>
+                <option value="Recruta">Recruta</option>
+                <option value="Presidente">Presidente</option>
+                <option value="Secretário(a)">Secretário(a)</option>
+                <option value="Tesoureiro(a)">Tesoureiro(a)</option>
+                <option value="Vice presidente">Vice presidente</option>
+                <option value="Instrutor(a)">Instrutor(a)</option>
+                <option value="CUSTOM">Outra função...</option>
               </select>
             </div>
-            <div>
+          </div>
+
+          {isCustomRole && (
+            <div className="animate-in slide-in-from-top-2 duration-200">
+              <Input
+                label="Nome da Nova Função"
+                placeholder="Digite o cargo customizado"
+                value={formData.role === 'CUSTOM' ? '' : formData.role}
+                onChange={e => setFormData({ ...formData, role: e.target.value })}
+                required
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Status</label>
               <select
                 className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base font-bold text-slate-700 focus:border-brand-500 outline-none"

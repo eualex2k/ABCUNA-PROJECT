@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DollarSign, ArrowUpCircle, ArrowDownCircle, PieChart, Download, Users, ChevronLeft, Calendar, Wallet, BellRing, CheckCircle2, AlertTriangle, X, CreditCard, Search, Banknote, Filter, Send, Edit3, Plus, RotateCcw, ArrowUpRight, Shield, TrendingUp, Trash2 } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input, Avatar, Textarea, StatCard } from '../components/ui';
-import { Transaction, Associate, User, UserRole } from '../types';
+import { Transaction, Associate, User, UserRole, translateStatus, translateTransactionType, translateCategory } from '../types';
 import { associatesService } from '../services/associates';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { notificationService } from '../services/notifications';
@@ -526,7 +526,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-bold text-slate-900">{fee.associateName}</span>
                       <Badge variant={fee.status === 'LATE' ? 'danger' : 'warning'}>
-                        {fee.status === 'LATE' ? 'Em Atraso' : 'A Vencer'}
+                        {translateStatus(fee.status)}
                       </Badge>
                     </div>
                     <div className="text-xs text-slate-500 flex gap-3">
@@ -1318,15 +1318,20 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                     <div className="font-medium text-slate-900">{tx.description}</div>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant="neutral">{tx.category}</Badge>
+                    <Badge variant="neutral">{translateCategory(tx.category)}</Badge>
                   </td>
                   <td className="px-4 py-3 text-slate-500">
                     {tx.date?.split('-').reverse().join('/')}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={tx.status === 'COMPLETED' ? 'success' : 'warning'}>
-                      {tx.status === 'COMPLETED' ? 'Confirmado' : 'Pendente'}
-                    </Badge>
+                    <div className="flex flex-col gap-1">
+                      <Badge variant={tx.type === 'INCOME' ? 'success' : 'neutral'}>
+                        {translateTransactionType(tx.type)}
+                      </Badge>
+                      <Badge variant={tx.status === 'COMPLETED' ? 'success' : 'warning'}>
+                        {translateStatus(tx.status)}
+                      </Badge>
+                    </div>
                   </td>
                   <td className={`px-4 py-3 text-right font-bold ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900'}`}>
                     {tx.type === 'EXPENSE' ? '- ' : ''}{formatCurrency(tx.amount)}
