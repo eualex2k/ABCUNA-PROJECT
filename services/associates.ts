@@ -43,6 +43,16 @@ export const associatesService = {
             console.error('Error deleting associate:', error);
             throw error;
         }
+    },
+
+    async getNotificationTargets(roles?: string[]): Promise<string[]> {
+        let query = supabase.from('profiles').select('id');
+        if (roles && roles.length > 0) {
+            query = query.in('role', roles);
+        }
+        const { data, error } = await query;
+        if (error) return [];
+        return data.map(r => r.id);
     }
 };
 

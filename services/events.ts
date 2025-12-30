@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Event } from '../types';
+import { notificationService } from './notifications';
+import { associatesService } from './associates';
 
 export const eventsService = {
     async getAll(): Promise<Event[]> {
@@ -29,7 +31,19 @@ export const eventsService = {
             throw error;
         }
 
-        return mapToFrontend(data);
+        const newEvent = mapToFrontend(data);
+
+        // Notificar todos os associados e acima
+        const targetIds = await associatesService.getNotificationTargets();
+        await notificationService.add({
+            title: 'Novo Evento Criado',
+            message: `O evento "${newEvent.title}" foi agendado para ${newEvent.date}.`,
+            type: 'EVENT',
+            link: '/events',
+            targetUserIds: targetIds
+        });
+
+        return newEvent;
     },
 
     async update(id: string, updates: Partial<Event>): Promise<Event> {

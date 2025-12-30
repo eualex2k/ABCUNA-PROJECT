@@ -53,3 +53,16 @@ root.render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+// Registra o Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('SW registrado com sucesso:', registration.scope);
+      })
+      .catch(err => {
+        console.error('Falha ao registrar SW:', err);
+      });
+  });
+}

@@ -187,6 +187,8 @@ export interface Notification {
   date: string; // ISO String
   read: boolean;
   link?: string;
+  userId?: string;
+  notificationId?: string; // Original ID in notifications table
 }
 
 export interface InventoryItem {

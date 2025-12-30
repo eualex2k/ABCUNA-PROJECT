@@ -18,6 +18,8 @@ import { SelectionPage } from './pages/Selection';
 import { ProfilePage } from './pages/Profile';
 import { CompanyPage } from './pages/Company';
 import { User, UserRole } from './types';
+import { notificationService } from './services/notifications';
+import { pushNotificationService } from './services/pushNotifications';
 
 // --- Route Protection ---
 interface ProtectedRouteProps {
@@ -85,6 +87,9 @@ const App: React.FC = () => {
               bio: profile.bio
             };
             setUser(appUser);
+            notificationService.setCurrentUser(profile.id);
+            // Opt-in automático para push (pode ser movido para um botão se preferir)
+            pushNotificationService.subscribeUser(profile.id).catch(console.error);
           }
         }
       } catch (error) {
@@ -122,6 +127,8 @@ const App: React.FC = () => {
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
+    notificationService.setCurrentUser(loggedInUser.id);
+    pushNotificationService.subscribeUser(loggedInUser.id).catch(console.error);
   };
 
   const handleLogout = () => {

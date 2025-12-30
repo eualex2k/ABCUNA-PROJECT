@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { User, UserRole, translateRole } from '../types';
 import { Card, Button, Input, Avatar, Badge } from '../components/ui';
-import { Camera, Save, Mail, Phone, MapPin, FileText, Activity, CreditCard, User as UserIcon } from 'lucide-react';
+import { Camera, Save, Mail, Phone, MapPin, FileText, Activity, CreditCard, User as UserIcon, Bell } from 'lucide-react';
 import { notificationService } from '../services/notifications';
 import { profileService } from '../services/profile';
+import { pushNotificationService } from '../services/pushNotifications';
 
 interface ProfilePageProps {
   user: User;
@@ -218,7 +219,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
           </div>
         </Card>
 
-        {/* Contato - Ocupa 2 colunas */}
+        {/* Contato e Endereço */}
         <Card className="p-6 md:col-span-2">
           <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-lg border-b border-slate-100 pb-3">
             <MapPin size={20} className="text-brand-600" /> Contato e Endereço
@@ -249,6 +250,35 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                 onChange={handleInputChange}
                 placeholder="Rua, Número, Bairro"
               />
+            </div>
+          </div>
+        </Card>
+
+        {/* Preferências de Notificação */}
+        <Card className="p-6 md:col-span-2 border-brand-100 bg-brand-50/10">
+          <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-lg border-b border-brand-100 pb-3">
+            <Bell size={20} className="text-brand-600" /> Preferências de Notificação
+          </h3>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+              <p className="font-semibold text-slate-900">Notificações Push no Navegador</p>
+              <p className="text-sm text-slate-500">Receba alertas de novas escalas, materiais e eventos mesmo com o sistema fechado.</p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => pushNotificationService.subscribeUser(user.id)}
+                className="text-brand-600 border-brand-200"
+              >
+                Ativar Notificações
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => pushNotificationService.unsubscribeUser()}
+                className="text-slate-500"
+              >
+                Desativar
+              </Button>
             </div>
           </div>
         </Card>

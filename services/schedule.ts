@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Shift } from '../types';
+import { notificationService } from './notifications';
+import { associatesService } from './associates';
 
 export const scheduleService = {
     async getAll(): Promise<Shift[]> {
@@ -29,7 +31,19 @@ export const scheduleService = {
             throw error;
         }
 
-        return mapToFrontend(data);
+        const newShift = mapToFrontend(data);
+
+        // Notificar associados se for uma nova escala aberta
+        const targetIds = await associatesService.getNotificationTargets();
+        await notificationService.add({
+            title: 'Nova Escala Disponível',
+            message: `Uma nova escala "${newShift.team}" foi aberta. Inscreva-se!`,
+            type: 'SCHEDULE',
+            link: '/schedule',
+            targetUserIds: targetIds
+        });
+
+        return newShift;
     },
 
     async update(id: string, shift: Partial<Shift>): Promise<void> {
@@ -66,7 +80,7 @@ export const scheduleService = {
     async join(shiftId: string, memberName: string): Promise<void> {
         const { data: shift, error: fetchError } = await supabase
             .from('schedules')
-            .select('confirmed_members')
+            .select('id, title, confirmed_members')
             .eq('id', shiftId)
             .single();
 
@@ -80,6 +94,16 @@ export const scheduleService = {
                 .eq('id', shiftId);
 
             if (updateError) throw updateError;
+
+            // Notificar Admin/Secretaria
+            const adminIds = await associatesService.getNotificationTargets(['ADMIN', 'SECRETARY']);
+            await notificationService.add({
+                title: 'Novo Voluntário na Escala',
+                message: `${memberName} entrou na escala "${shift.title}".`,
+                type: 'SCHEDULE',
+                link: '/schedule',
+                targetUserIds: adminIds
+            });
         }
     }
 };

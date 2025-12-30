@@ -1,33 +1,11 @@
+import { supabase } from '../lib/supabase';
 import { Notification, NotificationType } from '../types';
-
-const STORAGE_KEY = 'ABCUNA_NOTIFICATIONS';
 
 class NotificationManager {
   private notifications: Notification[] = [];
   private listeners: (() => void)[] = [];
-
-  constructor() {
-    this.load();
-  }
-
-  private load() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      this.notifications = JSON.parse(stored);
-    } else {
-      // Initial welcome notification
-      this.add({
-        title: 'Bem-vindo ao ABCUNA',
-        message: 'Sistema de gestão integrado pronto para uso.',
-        type: 'SYSTEM'
-      });
-    }
-  }
-
-  private save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.notifications));
-    this.notifyListeners();
-  }
+  private currentUserId: string | null = null;
+  private channel: any = null;
 
   // Observer Pattern to update UI components
   subscribe(listener: () => void) {
@@ -41,44 +19,156 @@ class NotificationManager {
     this.listeners.forEach(l => l());
   }
 
+  setCurrentUser(userId: string) {
+    this.currentUserId = userId;
+    this.loadFromSupabase();
+    this.setupRealtime(userId);
+  }
+
+  private async loadFromSupabase() {
+    if (!this.currentUserId) return;
+
+    const { data, error } = await supabase
+      .from('user_notifications')
+      .select(`
+        id,
+        read,
+        created_at,
+        notification:notifications (
+          id,
+          title,
+          message,
+          type,
+          link
+        )
+      `)
+      .eq('user_id', this.currentUserId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading notifications:', error);
+      return;
+    }
+
+    this.notifications = data.map((item: any) => ({
+      id: item.id,
+      notificationId: item.notification.id,
+      title: item.notification.title,
+      message: item.notification.message,
+      type: item.notification.type as NotificationType,
+      date: item.created_at,
+      read: item.read,
+      link: item.notification.link,
+      userId: this.currentUserId!
+    }));
+
+    this.notifyListeners();
+  }
+
+  private setupRealtime(userId: string) {
+    if (this.channel) {
+      supabase.removeChannel(this.channel);
+    }
+
+    this.channel = supabase
+      .channel(`notifications-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'user_notifications',
+          filter: `user_id=eq.${userId}`
+        },
+        () => {
+          this.loadFromSupabase(); // Reload when new notification arrives
+        }
+      )
+      .subscribe();
+  }
+
   getAll(): Notification[] {
-    return [...this.notifications].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return this.notifications;
   }
 
   getUnreadCount(): number {
     return this.notifications.filter(n => !n.read).length;
   }
 
-  add(data: { title: string; message: string; type: NotificationType; link?: string }) {
-    const newNotification: Notification = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: data.title,
-      message: data.message,
-      type: data.type,
-      date: new Date().toISOString(),
-      read: false,
-      link: data.link
-    };
-    this.notifications.unshift(newNotification);
-    this.save();
-  }
+  /**
+   * Envia uma notificação (Cria no DB)
+   */
+  async add(data: { title: string; message: string; type: NotificationType; link?: string; targetUserIds?: string[]; broadcast?: boolean }) {
+    let targets = data.targetUserIds || [this.currentUserId].filter(Boolean) as string[];
 
-  markAsRead(id: string) {
-    const index = this.notifications.findIndex(n => n.id === id);
-    if (index !== -1) {
-      this.notifications[index].read = true;
-      this.save();
+    // Se for broadcast, busca todos os associados (exclui candidatos exceto se especificado)
+    if (data.broadcast) {
+      const { data: allUsers } = await supabase.from('profiles').select('id');
+      if (allUsers) targets = allUsers.map((u: any) => u.id);
+    }
+
+    if (targets.length === 0) return;
+
+    try {
+      // Chama a função RPC que criamos via SQL
+      const { error } = await supabase.rpc('notify_users', {
+        target_user_ids: targets,
+        notif_title: data.title,
+        notif_message: data.message,
+        notif_type: data.type,
+        notif_link: data.link || null
+      });
+
+      if (error) throw error;
+
+      // A atualização da UI acontecerá via Realtime
+    } catch (err) {
+      console.error('Failed to create notification:', err);
     }
   }
 
-  markAllAsRead() {
-    this.notifications.forEach(n => n.read = true);
-    this.save();
+  async markAsRead(id: string) {
+    const { error } = await supabase
+      .from('user_notifications')
+      .update({ read: true })
+      .eq('id', id);
+
+    if (!error) {
+      const index = this.notifications.findIndex(n => n.id === id);
+      if (index !== -1) {
+        this.notifications[index].read = true;
+        this.notifyListeners();
+      }
+    }
   }
 
-  clearAll() {
-    this.notifications = [];
-    this.save();
+  async markAllAsRead() {
+    if (!this.currentUserId) return;
+
+    const { error } = await supabase
+      .from('user_notifications')
+      .update({ read: true })
+      .eq('user_id', this.currentUserId)
+      .eq('read', false);
+
+    if (!error) {
+      this.notifications.forEach(n => n.read = true);
+      this.notifyListeners();
+    }
+  }
+
+  async clearAll() {
+    if (!this.currentUserId) return;
+
+    const { error } = await supabase
+      .from('user_notifications')
+      .delete()
+      .eq('user_id', this.currentUserId);
+
+    if (!error) {
+      this.notifications = [];
+      this.notifyListeners();
+    }
   }
 }
 
