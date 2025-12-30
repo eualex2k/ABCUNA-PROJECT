@@ -267,7 +267,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => pushNotificationService.subscribeUser(user.id)}
+                onClick={async () => {
+                  try {
+                    await pushNotificationService.subscribeUser(user.id);
+                    alert('Notificações ativadas com sucesso neste dispositivo!');
+                  } catch (err) {
+                    // Erro já é tratado no service
+                  }
+                }}
                 className="text-brand-600 border-brand-200"
               >
                 Ativar Notificações

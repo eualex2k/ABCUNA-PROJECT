@@ -57,7 +57,6 @@ export const pushNotificationService = {
 
             if (error) throw error;
 
-            alert('Notificações ativadas com sucesso!');
             return subscription;
         } catch (err: any) {
             console.error('Failed to subscribe to push notifications:', err);
