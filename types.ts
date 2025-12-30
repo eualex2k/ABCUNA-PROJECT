@@ -46,6 +46,7 @@ export const translateStatus = (status: string): string => {
     case 'PAID': return 'Pago';
     case 'OPEN': return 'Aberto';
     case 'LATE': return 'Em Atraso';
+    case 'CANCELLED': return 'Cancelado';
     default: return status;
   }
 };

@@ -267,7 +267,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                           </td>
                           <td className="px-4 py-3">
                             <Badge variant={fee.status === 'COMPLETED' ? 'success' : (isFeeOverdue ? 'danger' : 'warning')}>
-                              {fee.status === 'COMPLETED' ? 'PAGO' : (isFeeOverdue ? 'ATRASADO' : 'PENDENTE')}
+                              {fee.status === 'COMPLETED' ? 'Pago' : (isFeeOverdue ? 'Atrasado' : 'Pendente')}
                             </Badge>
                           </td>
                           <td className="px-4 py-3 text-right font-bold">R$ {fee.amount.toFixed(2)}</td>
@@ -564,7 +564,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                 <h3 className="text-xl font-bold text-slate-900">{selectedAssociate.name}</h3>
                 <p className="text-sm text-slate-500">{translateRole(selectedAssociate.role)}</p>
                 <Badge variant={selectedAssociate.status === 'ACTIVE' ? 'success' : 'neutral'} className="mt-1">
-                  {selectedAssociate.status}
+                  {translateStatus(selectedAssociate.status)}
                 </Badge>
               </div>
             </div>

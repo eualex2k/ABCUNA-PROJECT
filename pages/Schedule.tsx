@@ -286,7 +286,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                       <Avatar alt={m} fallback={m.substring(0, 2)} size="sm" />
                       <span className="text-sm font-bold text-slate-700">{m}</span>
                     </div>
-                    <Badge variant="neutral" className="text-[10px] opacity-0 group-hover:opacity-100">CONFIRMADO</Badge>
+                    <Badge variant="neutral" className="text-[10px] opacity-0 group-hover:opacity-100">Confirmado</Badge>
                   </div>
                 ))}
                 {selectedShift.confirmedMembers.length < selectedShift.vacancies && (

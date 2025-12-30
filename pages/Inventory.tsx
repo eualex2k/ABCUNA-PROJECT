@@ -244,7 +244,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                     </div>
                   </div>
                   <div className={`px-4 py-3 rounded-full text-xs font-bold shadow-sm whitespace-nowrap ${item.condition === 'ADEQUATE' || item.condition === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                      item.condition === 'LOW_STOCK' || item.condition === 'MAINTENANCE' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
+                    item.condition === 'LOW_STOCK' || item.condition === 'MAINTENANCE' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
                     }`}>
                     {item.condition === 'AVAILABLE' ? 'Disponível' :
                       item.condition === 'ADEQUATE' ? 'Estoque OK' :

@@ -36,10 +36,10 @@ export const MENU_ITEMS = [
 ];
 
 export const MOCK_ASSOCIATES: Associate[] = [
-  { id: '1', name: 'João Souza', email: 'joao@abcuna.org', phone: '(83) 99999-0001', role: 'Bombeiro Líder', status: 'ACTIVE', joinDate: '2023-01-15', paymentStatus: 'UP_TO_DATE' },
-  { id: '2', name: 'Maria Oliveira', email: 'maria@abcuna.org', phone: '(83) 99999-0002', role: 'Socorrista', status: 'ACTIVE', joinDate: '2023-03-10', paymentStatus: 'LATE' },
-  { id: '3', name: 'Pedro Santos', email: 'pedro@abcuna.org', phone: '(83) 99999-0003', role: 'Motorista', status: 'INACTIVE', joinDate: '2022-11-05', paymentStatus: 'PENDING' },
-  { id: '4', name: 'Ana Costa', email: 'ana@abcuna.org', phone: '(83) 99999-0004', role: 'Estagiário', status: 'PENDING', joinDate: '2024-01-20', paymentStatus: 'UP_TO_DATE' },
+  { id: '1', name: 'João Souza', email: 'joao@abcuna.org', phone: '(83) 99999-0001', role: 'Presidente', status: 'ACTIVE', joinDate: '2023-01-15', paymentStatus: 'UP_TO_DATE' },
+  { id: '2', name: 'Maria Oliveira', email: 'maria@abcuna.org', phone: '(83) 99999-0002', role: 'Secretário(a)', status: 'ACTIVE', joinDate: '2023-03-10', paymentStatus: 'LATE' },
+  { id: '3', name: 'Pedro Santos', email: 'pedro@abcuna.org', phone: '(83) 99999-0003', role: 'Tesoureiro(a)', status: 'INACTIVE', joinDate: '2022-11-05', paymentStatus: 'PENDING' },
+  { id: '4', name: 'Ana Costa', email: 'ana@abcuna.org', phone: '(83) 99999-0004', role: 'Recruta', status: 'PENDING', joinDate: '2024-01-20', paymentStatus: 'UP_TO_DATE' },
   { id: '5', name: 'Carlos Lima', email: 'carlos@abcuna.org', phone: '(83) 99999-0005', role: 'Bombeiro Civil', status: 'ACTIVE', joinDate: '2023-06-12', paymentStatus: 'UP_TO_DATE' },
 ];
 
