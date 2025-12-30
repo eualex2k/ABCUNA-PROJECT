@@ -84,7 +84,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
       status: associate.status,
       paymentStatus: associate.paymentStatus
     });
-    const standardRoles = ['Bombeiro Civil', 'Recruta', 'Presidente', 'Secretário(a)', 'Tesoureiro(a)', 'Vice presidente', 'Instrutor(a)'];
+    const standardRoles = ['Presidente', 'Vice presidente', 'Tesoureiro(a)', 'Secretário(a)', 'Instrutor(a)', 'Bombeiro Civil', 'Recruta'];
     setIsCustomRole(!standardRoles.includes(associate.role));
     setIsModalOpen(true);
   };
@@ -141,10 +141,27 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
     document.body.removeChild(link);
   };
 
-  const filtered = associates.filter(a =>
-    a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const ROLE_HIERARCHY: Record<string, number> = {
+    'Presidente': 1,
+    'Vice presidente': 2,
+    'Tesoureiro(a)': 3,
+    'Secretário(a)': 4,
+    'Instrutor(a)': 5,
+    'Bombeiro Civil': 6,
+    'Recruta': 7
+  };
+
+  const filtered = associates
+    .filter(a =>
+      a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.email.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const rankA = ROLE_HIERARCHY[a.role] || 99;
+      const rankB = ROLE_HIERARCHY[b.role] || 99;
+      if (rankA !== rankB) return rankA - rankB;
+      return a.name.localeCompare(b.name);
+    });
 
   // --- Render Helpers ---
 
@@ -488,15 +505,18 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
           <Input label="Nome Completo" placeholder="Ex: João da Silva" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
           <Input label="E-mail de Contato" type="email" placeholder="email@exemplo.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
 
-          <div className="grid grid-cols-1 gap-4">
-            <Input label="Telefone / Celular" mask="phone" placeholder="(00) 00000-0000" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Telefone / Celular"
+              mask="phone"
+              placeholder="(00) 00000-0000"
+              value={formData.phone}
+              onChange={e => setFormData({ ...formData, phone: e.target.value })}
+            />
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Cargo</label>
               <select
-                className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base font-bold text-slate-700 focus:border-brand-500 outline-none"
+                className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base font-bold text-slate-700 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all"
                 value={isCustomRole ? 'CUSTOM' : formData.role}
                 onChange={e => {
                   if (e.target.value === 'CUSTOM') {
@@ -508,14 +528,29 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                   }
                 }}
               >
+                <option value="Presidente">Presidente</option>
+                <option value="Vice presidente">Vice presidente</option>
+                <option value="Tesoureiro(a)">Tesoureiro(a)</option>
+                <option value="Secretário(a)">Secretário(a)</option>
+                <option value="Instrutor(a)">Instrutor(a)</option>
                 <option value="Bombeiro Civil">Bombeiro Civil</option>
                 <option value="Recruta">Recruta</option>
-                <option value="Presidente">Presidente</option>
-                <option value="Secretário(a)">Secretário(a)</option>
-                <option value="Tesoureiro(a)">Tesoureiro(a)</option>
-                <option value="Vice presidente">Vice presidente</option>
-                <option value="Instrutor(a)">Instrutor(a)</option>
                 <option value="CUSTOM">Outra função...</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Status</label>
+              <select
+                className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base font-bold text-slate-700 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all"
+                value={formData.status}
+                onChange={e => setFormData({ ...formData, status: e.target.value as any })}
+              >
+                <option value="ACTIVE">Ativo</option>
+                <option value="INACTIVE">Inativo</option>
+                <option value="PENDING">Pendente</option>
               </select>
             </div>
           </div>
@@ -532,20 +567,6 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Status</label>
-              <select
-                className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base font-bold text-slate-700 focus:border-brand-500 outline-none"
-                value={formData.status}
-                onChange={e => setFormData({ ...formData, status: e.target.value as any })}
-              >
-                <option value="ACTIVE">Ativo</option>
-                <option value="INACTIVE">Inativo</option>
-                <option value="PENDING">Pendente</option>
-              </select>
-            </div>
-          </div>
 
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
