@@ -13,10 +13,12 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddQtyModalOpen, setIsAddQtyModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [qtyToAdd, setQtyToAdd] = useState<number>(0);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [viewItem, setViewItem] = useState<InventoryItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
@@ -84,6 +86,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
     setSelectedItem(item);
     setQtyToAdd(0);
     setIsAddQtyModalOpen(true);
+  };
+
+  const handleOpenView = (item: InventoryItem) => {
+    setViewItem(item);
+    setIsViewModalOpen(true);
   };
 
   const handleSaveItem = async (e: React.FormEvent) => {
@@ -246,45 +253,45 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 py-4 border-y border-slate-50">
+                <div className="grid grid-cols-2 gap-4 py-5 border-t border-slate-100 mt-4">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantidade</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quantidade</p>
                     <p className="font-black text-slate-900 text-2xl flex items-baseline gap-1">
                       {item.quantity}
                       <span className="text-xs font-bold text-slate-400">{item.unit || 'un'}</span>
                     </p>
                   </div>
                   <div className="space-y-1 text-right">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Localização</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Localização</p>
                     <p className="font-bold text-slate-700 flex items-center justify-end gap-1.5">
-                      <MapPin size={14} className="text-brand-500" /> {item.location}
+                      <MapPin size={14} className="text-red-500" /> {item.location}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 px-2 py-1 bg-slate-50 rounded-lg border border-slate-100">
-                    <Calendar size={12} className="text-slate-400" />
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Auditado: {item.lastInspection ? new Date(item.lastInspection).toLocaleDateString('pt-BR') : 'Pendente'}</span>
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-100">
+                    <Calendar size={14} className="text-slate-400" />
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Auditado: {item.lastInspection ? new Date(item.lastInspection).toLocaleDateString('pt-BR') : 'Pendente'}</span>
                   </div>
                   {item.expirationDate && (
-                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${isExpired ? 'bg-red-50 text-red-600 border-red-100 animate-pulse' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
-                      <AlertCircle size={12} />
-                      <span className="text-[10px] font-bold uppercase">Val: {new Date(item.expirationDate).toLocaleDateString('pt-BR')}</span>
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${isExpired ? 'bg-red-50 text-red-600 border-red-100 animate-pulse' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
+                      <AlertCircle size={14} />
+                      <span className="text-[10px] font-bold uppercase tracking-tight">Val: {new Date(item.expirationDate).toLocaleDateString('pt-BR')}</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="bg-slate-50/80 backdrop-blur-sm border-t border-slate-100 p-3 flex justify-between items-center px-4">
+              <div className="bg-slate-50/50 backdrop-blur-sm border-t border-slate-100 p-3 flex justify-between items-center px-4">
                 <button
-                  onClick={() => handleOpenEdit(item)}
+                  onClick={() => handleOpenView(item)}
                   className="text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-brand-600 transition-colors flex items-center gap-1.5"
                 >
                   <Info size={14} /> Detalhes
                 </button>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   {canEdit && (
                     <>
                       <button
@@ -292,29 +299,29 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                         className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
                         title="Adicionar Estoque"
                       >
-                        <PlusSquare size={18} />
+                        <PlusSquare size={20} />
                       </button>
                       <button
                         onClick={() => handleOpenEdit(item)}
-                        className="p-2 text-brand-500 hover:bg-brand-50 rounded-lg transition-colors"
+                        className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                         title="Editar Item"
                       >
-                        <Edit2 size={18} />
+                        <Edit2 size={19} />
                       </button>
                       <button
                         onClick={() => toggleStatus(item)}
                         className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
                         title="Alternar Manutenção"
                       >
-                        <Wrench size={18} />
+                        <Wrench size={19} />
                       </button>
-                      <div className="w-px h-4 bg-slate-200 mx-1"></div>
+                      <div className="w-px h-4 bg-slate-200 mx-2"></div>
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="p-2 text-slate-300 hover:text-red-500 rounded-lg transition-colors"
+                        className="p-2 text-slate-300 hover:text-red-600 transition-colors"
                         title="remover"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={19} />
                       </button>
                     </>
                   )}
@@ -492,6 +499,105 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} title="Detalhes do Item" maxWidth="lg">
+        {viewItem && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="p-3 bg-white rounded-xl shadow-sm text-brand-600">
+                <Package size={32} />
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-slate-900">{viewItem.name}</h4>
+                <div className="flex items-center gap-2">
+                  <Badge variant="neutral">{viewItem.category}</Badge>
+                  <Badge variant={viewItem.itemType === 'REUSABLE' ? 'info' : 'warning'}>
+                    {viewItem.itemType === 'REUSABLE' ? 'Reutilizável' : 'Descartável'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-white border border-slate-100 rounded-xl">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status Atual</p>
+                <Badge variant={
+                  viewItem.condition === 'ADEQUATE' || viewItem.condition === 'AVAILABLE' ? 'success' :
+                    viewItem.condition === 'LOW_STOCK' || viewItem.condition === 'MAINTENANCE' ? 'warning' : 'danger'
+                }>
+                  {viewItem.condition === 'AVAILABLE' ? 'Disponível' :
+                    viewItem.condition === 'ADEQUATE' ? 'Estoque OK' :
+                      viewItem.condition === 'LOW_STOCK' ? 'Estoque Baixo' :
+                        viewItem.condition === 'MAINTENANCE' ? 'Manutenção' : 'Crítico'}
+                </Badge>
+              </div>
+              <div className="p-4 bg-white border border-slate-100 rounded-xl">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Quantidade</p>
+                <p className="text-xl font-bold text-slate-900">{viewItem.quantity} {viewItem.unit}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Localização</label>
+                  <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <MapPin size={16} className="text-brand-500" /> {viewItem.location}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Fornecedor</label>
+                  <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <Truck size={16} className="text-slate-400" /> {viewItem.supplier || 'Não informado'}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Preço de Aquisição</label>
+                  <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <DollarSign size={16} className="text-emerald-500" /> {viewItem.price ? formatCurrency(viewItem.price) : 'Não informado'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Última Auditoria</label>
+                  <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <Calendar size={16} className="text-slate-400" /> {viewItem.lastInspection ? new Date(viewItem.lastInspection).toLocaleDateString('pt-BR') : 'Pendente'}
+                  </p>
+                </div>
+                {viewItem.expirationDate && (
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Data de Validade</label>
+                    <p className={`text-sm font-bold flex items-center gap-2 ${new Date(viewItem.expirationDate) < new Date() ? 'text-red-600' : 'text-slate-700'}`}>
+                      <AlertCircle size={16} /> {new Date(viewItem.expirationDate).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {viewItem.description && (
+              <div className="p-4 bg-slate-50 rounded-xl border border-dotted border-slate-200">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Descrição e Notas</label>
+                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{viewItem.description}</p>
+              </div>
+            )}
+
+            <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
+              <Button onClick={() => setIsViewModalOpen(false)}>Fechar</Button>
+              {canEdit && (
+                <Button variant="outline" onClick={() => {
+                  setIsViewModalOpen(false);
+                  handleOpenEdit(viewItem);
+                }} className="gap-2">
+                  <Edit2 size={16} /> Editar Item
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
