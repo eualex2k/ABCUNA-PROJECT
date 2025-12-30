@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Plus, Download, Trash2, Edit2, X, FileText, Calendar, DollarSign, Clock, Save, AlertCircle, ArrowRight, Users, Shield, MapPin } from 'lucide-react';
 import { Card, Button, Input, Badge, Avatar, Modal } from '../components/ui';
-import { Associate, Transaction, User, UserRole } from '../types';
+import { Associate, Transaction, User, UserRole, translateRole } from '../types';
 import { associatesService } from '../services/associates';
 import { scheduleService } from '../services/schedule';
 import { financialService } from '../services/financial';
@@ -435,7 +435,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant="neutral">{associate.role}</Badge>
+                    <Badge variant="neutral">{translateRole(associate.role)}</Badge>
                   </td>
                   <td className="px-6 py-4">
                     {associate.status === 'ACTIVE' ? (
@@ -530,7 +530,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
               <Avatar src={selectedAssociate.avatar} alt={selectedAssociate.name} fallback={selectedAssociate.name.substring(0, 2)} size="lg" />
               <div>
                 <h3 className="text-xl font-bold text-slate-900">{selectedAssociate.name}</h3>
-                <p className="text-sm text-slate-500">{selectedAssociate.role}</p>
+                <p className="text-sm text-slate-500">{translateRole(selectedAssociate.role)}</p>
                 <Badge variant={selectedAssociate.status === 'ACTIVE' ? 'success' : 'neutral'} className="mt-1">
                   {selectedAssociate.status}
                 </Badge>

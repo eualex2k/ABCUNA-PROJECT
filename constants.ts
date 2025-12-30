@@ -30,7 +30,7 @@ export const MENU_ITEMS = [
   { label: 'Eventos', icon: CalendarDays, path: '/events', allowedRoles: [UserRole.ADMIN, UserRole.SECRETARY, UserRole.ASSOCIATE, UserRole.FINANCIAL] },
   { label: 'Escala', icon: RefreshCcw, path: '/schedule', allowedRoles: [UserRole.ADMIN, UserRole.SECRETARY, UserRole.ASSOCIATE, UserRole.FINANCIAL] },
   { label: 'Auditoria', icon: FileText, path: '/audit', allowedRoles: [UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL, UserRole.ASSOCIATE, UserRole.INSTRUCTOR, UserRole.CANDIDATE] },
-  { label: 'Sala de Aula', icon: GraduationCap, path: '/classroom', allowedRoles: [UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.ASSOCIATE] },
+  { label: 'Sala de Aula', icon: GraduationCap, path: '/classroom', allowedRoles: [UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.SECRETARY, UserRole.FINANCIAL] },
   { label: 'Processo Seletivo', icon: UserPlus, path: '/selection', allowedRoles: [UserRole.ADMIN, UserRole.CANDIDATE] },
   { label: 'Configurações', icon: Settings, path: '/settings/codes', allowedRoles: [UserRole.ADMIN] },
 ];

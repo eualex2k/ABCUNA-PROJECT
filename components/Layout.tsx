@@ -17,7 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 import { MENU_ITEMS } from '../constants';
-import { User, Notification } from '../types';
+import { User, Notification, translateRole } from '../types';
 import { Avatar, Button } from './ui';
 import { notificationService } from '../services/notifications';
 
@@ -206,7 +206,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               <Avatar src={user.avatar} alt={user.name} fallback={user.name.substring(0, 2)} size="sm" className="ring-2 ring-white/5" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate group-hover:text-brand-400 transition-colors">{user.name}</p>
-                <p className="text-xs text-slate-400 truncate capitalize opacity-70">{user.role.toLowerCase()}</p>
+                <p className="text-xs text-slate-400 truncate opacity-70">{translateRole(user.role)}</p>
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); onLogout(); }}

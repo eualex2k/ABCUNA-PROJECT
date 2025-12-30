@@ -7,6 +7,31 @@ export enum UserRole {
   CANDIDATE = 'CANDIDATE',
 }
 
+export const translateRole = (role: UserRole | string): string => {
+  switch (role) {
+    case UserRole.ADMIN:
+    case 'ADMIN':
+      return 'Presidente';
+    case UserRole.FINANCIAL:
+    case 'FINANCIAL':
+      return 'Tesoureiro(a)';
+    case UserRole.SECRETARY:
+    case 'SECRETARY':
+      return 'Secretário(a)';
+    case UserRole.INSTRUCTOR:
+    case 'INSTRUCTOR':
+      return 'Instrutor(a)';
+    case UserRole.ASSOCIATE:
+    case 'ASSOCIATE':
+      return 'Associado(a)';
+    case UserRole.CANDIDATE:
+    case 'CANDIDATE':
+      return 'Candidato(a)';
+    default:
+      return role;
+  }
+};
+
 export interface User {
   id: string;
   name: string;

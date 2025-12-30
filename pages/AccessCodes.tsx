@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { accessCodeService } from '../services/accessCodes';
-import { AccessCode, UserRole } from '../types';
+import { AccessCode, UserRole, translateRole } from '../types';
 import { Card, Button, Input, Badge } from '../components/ui';
 import { Copy, Plus, Trash2, Power, Shield, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -95,7 +95,7 @@ export const AccessCodesPage: React.FC = () => {
                 onChange={e => setNewCode({ ...newCode, role: e.target.value as UserRole })}
               >
                 {Object.values(UserRole).map(role => (
-                  <option key={role} value={role}>{role}</option>
+                  <option key={role} value={role}>{translateRole(role)}</option>
                 ))}
               </select>
             </div>
@@ -149,7 +149,7 @@ export const AccessCodesPage: React.FC = () => {
                       </div>
                     </div>
                     <span className={`px-2 py-1 rounded text-xs font-semibold border ${getRoleColor(code.role)}`}>
-                      {code.role}
+                      {translateRole(code.role)}
                     </span>
                   </div>
 

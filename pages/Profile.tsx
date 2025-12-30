@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { User, UserRole } from '../types';
+import { User, UserRole, translateRole } from '../types';
 import { Card, Button, Input, Avatar, Badge } from '../components/ui';
 import { Camera, Save, Mail, Phone, MapPin, FileText, Activity, CreditCard, User as UserIcon } from 'lucide-react';
 import { notificationService } from '../services/notifications';
@@ -102,7 +102,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
             </div>
 
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
-              <Badge variant="info">{formData.role}</Badge>
+              <Badge variant="info">{translateRole(formData.role)}</Badge>
               {formData.bloodType && <Badge variant="danger">{formData.bloodType}</Badge>}
             </div>
 
