@@ -28,8 +28,8 @@ export const pushNotificationService = {
 
             await navigator.serviceWorker.ready;
 
-            // Placeholder VAPID Key - Substituir pelo real gerado
-            const VAPID_PUBLIC_KEY = 'BM_AsO7jE9y5V8V_T_E8O_S8U8S8U8S8U8S8U8S8U8S8U8S8U8S8U8S8U8S8U8S8U8S8U8S8U8S8U8S8U8S8';
+            // Chave VAPID Pública Real
+            const VAPID_PUBLIC_KEY = 'BFX7msqv0fBlqIOeFdGHMNRCmgYeuTvWhU5W1A294e45oEjcUtjqIbgcWoHGrTVFs34he3g6bcxuSZiOqXPE6qg';
 
             // Verifica se já existe uma subscrição
             let subscription = await registration.pushManager.getSubscription();
