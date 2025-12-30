@@ -11,13 +11,26 @@ export const pushNotificationService = {
     /**
      * Solicita permissão e subscreve o usuário
      */
-    async subscribeUser(userId: string) {
+    /**
+     * Solicita permissão e subscreve o usuário
+     * @param silent Se true, não solicita permissão se ainda não tiver, apenas atualiza se já existir
+     */
+    async subscribeUser(userId: string, silent = false) {
         if (!this.isSupported()) return null;
 
         try {
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                throw new Error('Permissão de notificação negada');
+            const currentPermission = Notification.permission;
+
+            if (silent && currentPermission !== 'granted') {
+                return null; // Don't annoy user on load if not already granted
+            }
+
+            if (currentPermission !== 'granted') {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    if (!silent) throw new Error('Permissão de notificação negada');
+                    return null;
+                }
             }
 
             // Garante que o service worker está registrado
@@ -60,7 +73,9 @@ export const pushNotificationService = {
             return subscription;
         } catch (err: any) {
             console.error('Failed to subscribe to push notifications:', err);
-            alert('Erro ao ativar notificações: ' + err.message);
+            if (!silent) {
+                alert('Erro ao ativar notificações: ' + err.message);
+            }
             throw err;
         }
     },

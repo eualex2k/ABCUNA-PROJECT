@@ -88,8 +88,7 @@ const App: React.FC = () => {
             };
             setUser(appUser);
             notificationService.setCurrentUser(profile.id);
-            // Opt-in automático para push (pode ser movido para um botão se preferir)
-            pushNotificationService.subscribeUser(profile.id).catch(console.error);
+            pushNotificationService.subscribeUser(profile.id, true).catch(console.error);
           }
         }
       } catch (error) {
@@ -128,7 +127,7 @@ const App: React.FC = () => {
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
     notificationService.setCurrentUser(loggedInUser.id);
-    pushNotificationService.subscribeUser(loggedInUser.id).catch(console.error);
+    pushNotificationService.subscribeUser(loggedInUser.id, true).catch(console.error);
   };
 
   const handleLogout = () => {
