@@ -18,7 +18,8 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { associatesService } from '../services/associates';
 import { financialService } from '../services/financial';
-import { Transaction, Associate as AssociateType } from '../types';
+import { inventoryService } from '../services/inventory';
+import { Transaction, Associate as AssociateType, InventoryItem } from '../types';
 
 interface DashboardProps {
   user: User;
@@ -30,17 +31,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   const [associates, setAssociates] = React.useState<AssociateType[]>([]);
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
+  const [inventory, setInventory] = React.useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function loadData() {
       try {
-        const [assocData, transData] = await Promise.all([
+        const [assocData, transData, invData] = await Promise.all([
           associatesService.getAll(),
-          financialService.getAll()
+          financialService.getAll(),
+          inventoryService.getAll()
         ]);
         setAssociates(assocData);
         setTransactions(transData);
+        setInventory(invData);
       } catch (err) {
         console.error('Error loading dashboard data:', err);
       } finally {
@@ -72,10 +76,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
-  const newThisMonth = associates.filter(a => {
-    const joinDate = new Date(a.joinDate);
-    return joinDate.getMonth() === currentMonth && joinDate.getFullYear() === currentYear;
-  }).length;
+
+  const criticalItemsCount = inventory.filter(i => i.condition === 'CRITICAL').length;
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -156,9 +158,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           trend={`${lateAssociates.length} pendentes`}
         />
         <StatCard
-          title="Novos (Mês)"
-          value={newThisMonth.toString()}
-          icon={<ArrowUpRight size={24} />}
+          title="Equipamentos Críticos"
+          value={criticalItemsCount.toString()}
+          icon={<Package size={24} />}
+          trend={criticalItemsCount > 0 ? `${criticalItemsCount} itens sem estoque` : 'Estoque regular'}
+          trendUp={false}
         />
       </div>
 
