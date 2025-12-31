@@ -165,5 +165,8 @@ function mapToDb(shift: Partial<Shift>): any {
     if (shift.description !== undefined) dbRow.description = shift.description;
     if (shift.confirmedMembers !== undefined) dbRow.confirmed_members = shift.confirmedMembers;
 
+    // Default type to avoid not-null constraint error
+    dbRow.type = 'ORDINARY';
+
     return dbRow;
 }
