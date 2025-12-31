@@ -51,8 +51,8 @@ export const pushNotificationService = {
             // Aguarda o SW estar pronto
             const readyRegistration = await navigator.serviceWorker.ready;
 
-            // Chave VAPID Pública
-            const VAPID_PUBLIC_KEY = 'BFX7msqv0fBlqIOeFdGHMNRCmgYeuTvWhU5W1A294e45oEjcUtjqIbgcWoHGrTVFs34he3g6bcxuSZiOqXPE6qg';
+            // Chave VAPID Pública (Sincronizada)
+            const VAPID_PUBLIC_KEY = 'BOAs2LDm9ZPmUzzwVJxnjCRyh2KgKeEiRUlQxVorOhZWwFPp_76B9mQD5-HXWh0WElwy9hHtBKY64i14QuYQ6Zc';
 
             // Verifica se já existe uma subscrição
             let subscription = await readyRegistration.pushManager.getSubscription();
