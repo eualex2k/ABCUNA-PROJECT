@@ -6,40 +6,36 @@
 self.addEventListener('push', function (event) {
     console.log('[Service Worker] Push Received.');
 
-    if (!event.data) {
-        console.warn('[Service Worker] Push event but no data');
-        return;
+    let data = {};
+    if (event.data) {
+        try {
+            data = event.data.json();
+            console.log('[Service Worker] Push data (JSON):', data);
+        } catch (e) {
+            data = { message: event.data.text() };
+            console.log('[Service Worker] Push data (Text):', data.message);
+        }
     }
 
-    try {
-        const data = event.data.json();
-        console.log('[Service Worker] Push data received:', data);
+    const title = data.title || 'ABCUNA';
+    const options = {
+        body: data.message || data.body || 'Nova notificação recebida',
+        icon: '/logo.svg',
+        badge: '/logo.svg',
+        data: {
+            url: data.link || data.url || '/'
+        },
+        vibrate: [100, 50, 100],
+        tag: 'abcuna-notification',
+        renotify: true,
+        requireInteraction: true // Faz a notificação ficar até o usuário fechar
+    };
 
-        const title = data.title || 'ABCUNA';
-        const options = {
-            body: data.message || data.body || 'Nova notificação recebida',
-            icon: '/logo.svg',
-            badge: '/logo.svg',
-            data: {
-                url: data.link || data.url || '/'
-            },
-            vibrate: [100, 50, 100],
-            actions: [
-                { action: 'open', title: 'Abrir Sistema' },
-                { action: 'close', title: 'Fechar' }
-            ],
-            tag: 'abcuna-notification',
-            renotify: true
-        };
-
-        event.waitUntil(
-            self.registration.showNotification(title, options)
-                .then(() => console.log('[Service Worker] Notification shown.'))
-                .catch(err => console.error('[Service Worker] Failed to show notification:', err))
-        );
-    } catch (err) {
-        console.error('[Service Worker] Push processing error:', err);
-    }
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+            .then(() => console.log('[Service Worker] Notification shown successfully'))
+            .catch(err => console.error('[Service Worker] ERROR showing notification:', err))
+    );
 });
 
 self.addEventListener('notificationclick', function (event) {

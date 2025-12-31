@@ -65,6 +65,16 @@ const App: React.FC = () => {
     // Check for active session on startup
     const checkSession = async () => {
       try {
+        // Força atualização do Service Worker
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (let registration of registrations) {
+              registration.update();
+              console.log('Service Worker atualizado manualmente');
+            }
+          });
+        }
+
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {

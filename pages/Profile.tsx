@@ -5,6 +5,7 @@ import { Camera, Save, Mail, Phone, MapPin, FileText, Activity, CreditCard, User
 import { notificationService } from '../services/notifications';
 import { profileService } from '../services/profile';
 import { pushNotificationService } from '../services/pushNotifications';
+import { supabase } from '../lib/supabase';
 
 interface ProfilePageProps {
   user: User;
@@ -286,22 +287,41 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => {
+                          if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.ready.then(registration => {
+                              registration.showNotification('Teste Local', {
+                                body: 'Se você está vendo isso, o seu navegador suporta notificações e o Service Worker está funcionando!',
+                                icon: '/logo.svg',
+                                requireInteraction: true
+                              });
+                            });
+                          }
+                        }}
+                        className="text-brand-600 border-brand-200"
+                      >
+                        Teste Local (Navegador)
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={async () => {
                           try {
-                            await notificationService.add({
-                              title: 'Teste de Notificação',
-                              message: 'Esta é uma notificação de teste enviada do seu perfil.',
-                              type: 'SYSTEM',
-                              targetUserIds: [user.id]
+                            const { data: res } = await supabase.functions.invoke('send-push-notification', {
+                              body: {
+                                notificationId: 'fd393f4d-b8a4-4e43-a4c2-284dcda7ff87', // Um ID de notificação existente para teste
+                                userIds: [user.id]
+                              }
                             });
-                            alert('Solicitação de teste enviada! Aguarde alguns segundos.');
+                            console.log('Push Result:', res);
+                            alert(`Resultado do servidor: ${JSON.stringify(res)}`);
                           } catch (err) {
-                            alert('Erro ao enviar teste.');
+                            alert('Erro ao chamar servidor.');
                           }
                         }}
                         className="text-slate-600 border-slate-200"
                       >
-                        Enviar Teste
+                        Enviar Teste (Servidor)
                       </Button>
                       <Button
                         variant="ghost"
