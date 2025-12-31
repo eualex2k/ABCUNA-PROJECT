@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RefreshCcw, Calendar, User, Plus, MapPin, Clock, DollarSign, Users, FileText, CheckCircle2, Shield, HardHat } from 'lucide-react';
+import { RefreshCcw, Calendar, User, Plus, MapPin, Clock, DollarSign, Users, FileText, CheckCircle2, Shield, HardHat, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input, Avatar } from '../components/ui';
 import { notificationService } from '../services/notifications';
 import { scheduleService } from '../services/schedule';
@@ -29,8 +29,11 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
+  const [editingShift, setEditingShift] = useState<Partial<Shift>>({});
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const initialFormState: Partial<Shift> = {
     team: '',
@@ -80,12 +83,78 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
   };
 
   const handleGenerate = async () => {
-    if (confirm('Gerar escala automática com base na disponibilidade dos associados?')) {
+    if (confirm('Gerar escala automática com base na disponibilidade dos associados ativos?')) {
       try {
+        setIsGenerating(true);
         await scheduleService.generateAuto();
-        loadShifts();
+        await loadShifts();
+        notificationService.add({
+          title: 'Escala Gerada',
+          message: 'A escala automática foi gerada com sucesso.',
+          type: 'SCHEDULE'
+        });
       } catch (error) {
-        alert('Erro ao gerar escala.');
+        alert('Erro ao gerar escala: ' + (error as any).message);
+      } finally {
+        setIsGenerating(false);
+      }
+    }
+  };
+
+  const handleEditShift = (shift: Shift) => {
+    setEditingShift({
+      ...shift,
+      date: shift.fullDate
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateShift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingShift.id && editingShift.team && editingShift.date) {
+      try {
+        const updatedData: Partial<Shift> = {
+          ...editingShift,
+          day: new Date(editingShift.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long' }),
+          date: new Date(editingShift.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+          fullDate: editingShift.date
+        };
+
+        await scheduleService.update(editingShift.id, updatedData);
+        await loadShifts();
+        setIsEditModalOpen(false);
+      } catch (error) {
+        console.error('Update shift error:', error);
+        alert('Erro ao atualizar plantão.');
+      }
+    }
+  };
+
+  const handleDeleteShift = async (id: string) => {
+    if (confirm('Tem certeza que deseja excluir este plantão? Esta ação não pode ser desfeita.')) {
+      try {
+        await scheduleService.delete(id);
+        await loadShifts();
+      } catch (error) {
+        alert('Erro ao excluir plantão.');
+      }
+    }
+  };
+
+  const handleCloseShift = async (shift: Shift) => {
+    if (confirm(`Deseja encerrar e confirmar a escala "${shift.team}"?`)) {
+      try {
+        await scheduleService.update(shift.id, { status: 'CONFIRMED' });
+        await loadShifts();
+
+        notificationService.add({
+          title: 'Escala Confirmada',
+          message: `A escala "${shift.team}" foi confirmada e encerrada.`,
+          type: 'SCHEDULE',
+          broadcast: true
+        });
+      } catch (error) {
+        alert('Erro ao encerrar escala.');
       }
     }
   };
@@ -117,8 +186,14 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         </div>
         {canEdit && (
           <div className="flex gap-3">
-            <Button variant="outline" className="flex items-center gap-2" onClick={handleGenerate}>
-              <RefreshCcw size={18} /> Gerar Escala Automática
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+            >
+              <RefreshCcw size={18} className={isGenerating ? 'animate-spin' : ''} />
+              {isGenerating ? 'Gerando...' : 'Gerar Escala Automática'}
             </Button>
             <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 shadow-lg shadow-brand-200">
               <Plus size={18} /> Criar Plantão
@@ -140,9 +215,21 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                   <p className="font-bold text-slate-700">{shift.date}</p>
                 </div>
               </div>
-              <Badge variant={shift.status === 'CONFIRMED' ? 'success' : 'warning'}>
-                {shift.status === 'CONFIRMED' ? 'Confirmado' : 'Aberto'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={shift.status === 'CONFIRMED' ? 'success' : 'warning'}>
+                  {shift.status === 'CONFIRMED' ? 'Confirmado' : 'Aberto'}
+                </Badge>
+                {canEdit && (
+                  <div className="flex gap-1">
+                    <button onClick={() => handleEditShift(shift)} className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors">
+                      <Edit size={14} />
+                    </button>
+                    <button onClick={() => handleDeleteShift(shift.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="p-4 space-y-4">
@@ -192,13 +279,23 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                 <Button variant="ghost" size="sm" className="flex-1 text-xs" onClick={() => { setSelectedShift(shift); setIsDetailsOpen(true); }}>
                   Ver Detalhes
                 </Button>
+                {shift.status !== 'CONFIRMED' && canEdit && (
+                  <Button variant="outline" size="sm" className="flex-1 text-xs border-emerald-200 text-emerald-600 hover:bg-emerald-50" onClick={() => handleCloseShift(shift)}>
+                    Encerrar
+                  </Button>
+                )}
                 {shift.confirmedMembers.includes(user.name) ? (
                   <Button disabled size="sm" className="flex-1 text-xs bg-emerald-50 text-emerald-600 border-emerald-100">
-                    Inscrito
+                    <CheckCircle size={14} className="mr-1" /> Inscrito
                   </Button>
                 ) : (
-                  <Button size="sm" className="flex-1 text-xs shadow-md shadow-brand-200" onClick={() => handleJoinShift(shift.id)}>
-                    Inscrever-se
+                  <Button
+                    size="sm"
+                    className="flex-1 text-xs shadow-md shadow-brand-200"
+                    onClick={() => handleJoinShift(shift.id)}
+                    disabled={shift.status === 'CONFIRMED'}
+                  >
+                    {shift.status === 'CONFIRMED' ? 'Encerrado' : 'Inscrever-se'}
                   </Button>
                 )}
               </div>
@@ -214,6 +311,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         )}
       </div>
 
+      {/* Create Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Lançar Novo Plantão Operacional">
         <form onSubmit={handleCreateShift} className="space-y-4">
           <Input label="Título da Equipe / Evento" placeholder="Ex: Equipe de Resgate Bravo" value={newShift.team} onChange={e => setNewShift({ ...newShift, team: e.target.value })} required />
@@ -236,6 +334,30 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         </form>
       </Modal>
 
+      {/* Edit Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Editar Plantão Operacional">
+        <form onSubmit={handleUpdateShift} className="space-y-4">
+          <Input label="Título da Equipe / Evento" value={editingShift.team} onChange={e => setEditingShift({ ...editingShift, team: e.target.value })} required />
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Data" type="date" value={editingShift.date} onChange={e => setEditingShift({ ...editingShift, date: e.target.value })} required />
+            <Input label="Localização" value={editingShift.location} onChange={e => setEditingShift({ ...editingShift, location: e.target.value })} required />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Hora Início" type="time" value={editingShift.startTime} onChange={e => setEditingShift({ ...editingShift, startTime: e.target.value })} required />
+            <Input label="Hora Fim" type="time" value={editingShift.endTime} onChange={e => setEditingShift({ ...editingShift, endTime: e.target.value })} required />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Valor da Diária (R$)" type="number" step="0.01" value={editingShift.amount} onChange={e => setEditingShift({ ...editingShift, amount: parseFloat(e.target.value) })} required />
+            <Input label="Vagas Totais" type="number" value={editingShift.vacancies} onChange={e => setEditingShift({ ...editingShift, vacancies: parseInt(e.target.value) })} required />
+          </div>
+          <div className="pt-2 flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
+            <Button type="submit">Salvar Alterações</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Details Modal */}
       <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Informações Detalhadas do Plantão" maxWidth="lg">
         {selectedShift && (
           <div className="space-y-6">
@@ -294,7 +416,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
 
             <div className="pt-4 flex gap-3">
               <Button variant="ghost" className="flex-1" onClick={() => setIsDetailsOpen(false)}>Fechar</Button>
-              {!selectedShift.confirmedMembers.includes(user.name) && (
+              {!selectedShift.confirmedMembers.includes(user.name) && selectedShift.status !== 'CONFIRMED' && (
                 <Button className="flex-1 shadow-lg shadow-brand-200" onClick={() => handleJoinShift(selectedShift.id)}>Confirmar Presença</Button>
               )}
             </div>

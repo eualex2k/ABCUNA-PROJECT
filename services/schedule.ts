@@ -45,17 +45,20 @@ export const scheduleService = {
         return newShift;
     },
 
-    async update(id: string, shift: Partial<Shift>): Promise<void> {
+    async update(id: string, shift: Partial<Shift>): Promise<Shift> {
         const dbRow = mapToDb(shift);
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('schedules')
             .update(dbRow)
-            .eq('id', id);
+            .eq('id', id)
+            .select()
+            .single();
 
         if (error) {
             console.error('Error updating shift:', error);
             throw error;
         }
+        return mapToFrontend(data);
     },
 
     async delete(id: string): Promise<void> {
@@ -71,9 +74,56 @@ export const scheduleService = {
     },
 
     async generateAuto(): Promise<void> {
-        // Mock implementation for auto generation
-        console.log('Generating auto schedule...');
-        return Promise.resolve();
+        try {
+            // 1. Pegar todos os plantões abertos (PENDING)
+            const { data: openShifts, error: shiftError } = await supabase
+                .from('schedules')
+                .select('*')
+                .eq('status', 'PENDING');
+
+            if (shiftError) throw shiftError;
+            if (!openShifts || openShifts.length === 0) return;
+
+            // 2. Pegar associados ativos
+            const { data: associates, error: assocError } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .not('full_name', 'is', null);
+
+            if (assocError) throw assocError;
+            if (!associates || associates.length === 0) return;
+
+            // 3. Para cada plantão, preencher vagas aleatoriamente
+            for (const shift of openShifts) {
+                const confirmed = shift.confirmed_members || [];
+                const vacancies = shift.vacancies || 5;
+                const needed = vacancies - confirmed.length;
+
+                if (needed > 0) {
+                    // Selecionar nomes aleatórios que ainda não estão no plantão
+                    const availableNames = associates
+                        .map(a => a.full_name)
+                        .filter(name => !confirmed.includes(name));
+
+                    const selected = availableNames
+                        .sort(() => 0.5 - Math.random())
+                        .slice(0, needed);
+
+                    if (selected.length > 0) {
+                        await supabase
+                            .from('schedules')
+                            .update({
+                                confirmed_members: [...confirmed, ...selected],
+                                status: (confirmed.length + selected.length >= vacancies) ? 'CONFIRMED' : 'PENDING'
+                            })
+                            .eq('id', shift.id);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error generating auto schedule:', error);
+            throw error;
+        }
     },
 
     async join(shiftId: string, memberName: string): Promise<void> {
