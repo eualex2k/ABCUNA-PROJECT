@@ -124,16 +124,20 @@ class NotificationManager {
       if (rpcError) throw rpcError;
 
       // 2. Dispara a Edge Function para enviar o Push (Web Push API)
-      // Não bloqueamos a UI esperando o envio do push, então não usamos await necessariamente se quisermos velocidade
-      // Mas para debug é melhor esperar ou logar erros
-      supabase.functions.invoke('send-push-notification', {
+      console.log(`Triggering push for ${targets.length} targets...`);
+
+      const { data: funcResult, error: funcError } = await supabase.functions.invoke('send-push-notification', {
         body: {
           notificationId,
           userIds: targets
         }
-      }).then(({ error: funcError }) => {
-        if (funcError) console.error('Failed to trigger push edge function:', funcError);
       });
+
+      if (funcError) {
+        console.error('Failed to trigger push edge function:', funcError);
+      } else {
+        console.log('Push function result:', funcResult);
+      }
 
     } catch (err) {
       console.error('Failed to create notification:', err);

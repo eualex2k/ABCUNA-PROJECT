@@ -1,16 +1,25 @@
 /*
 * ABCUNA - Service Worker for Push Notifications
+* v2.0.0
 */
 
 self.addEventListener('push', function (event) {
-    if (!event.data) return;
+    console.log('[Service Worker] Push Received.');
+
+    if (!event.data) {
+        console.warn('[Service Worker] Push event but no data');
+        return;
+    }
 
     try {
         const data = event.data.json();
+        console.log('[Service Worker] Push data:', data);
+
+        const title = data.title || 'ABCUNA';
         const options = {
-            body: data.message || data.body,
-            icon: '/icon.png', // Opcional, se existir
-            badge: '/badge.png',
+            body: data.message || data.body || 'Nova notificação recebida',
+            icon: '/logo192.png',
+            badge: '/logo192.png',
             data: {
                 url: data.link || data.url || '/'
             },
@@ -18,23 +27,26 @@ self.addEventListener('push', function (event) {
             actions: [
                 { action: 'open', title: 'Abrir Sistema' },
                 { action: 'close', title: 'Fechar' }
-            ]
+            ],
+            tag: 'abcuna-notification', // Evita múltiplas notificações iguais acumuladas
+            renotify: true
         };
 
         event.waitUntil(
-            self.registration.showNotification(data.title || 'ABCUNA', options)
+            self.registration.showNotification(title, options)
         );
     } catch (err) {
-        console.error('Push handling error:', err);
+        console.error('[Service Worker] Push processing error:', err);
     }
 });
 
 self.addEventListener('notificationclick', function (event) {
+    console.log('[Service Worker] Notification click Received.');
     event.notification.close();
 
     if (event.action === 'close') return;
 
-    const urlToOpen = event.notification.data.url;
+    const urlToOpen = new URL(event.notification.data.url, self.location.origin).href;
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
@@ -48,4 +60,13 @@ self.addEventListener('notificationclick', function (event) {
             }
         })
     );
+});
+
+// Forçar atualização do SW
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(clients.claim());
 });

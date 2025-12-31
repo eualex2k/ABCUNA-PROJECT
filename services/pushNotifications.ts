@@ -16,13 +16,21 @@ export const pushNotificationService = {
      * @param silent Se true, não solicita permissão se ainda não tiver, apenas atualiza se já existir
      */
     async subscribeUser(userId: string, silent = false) {
-        if (!this.isSupported()) return null;
+        if (!this.isSupported()) {
+            console.warn('Push notifications not supported in this browser.');
+            return null;
+        }
 
         try {
             const currentPermission = Notification.permission;
 
             if (silent && currentPermission !== 'granted') {
-                return null; // Don't annoy user on load if not already granted
+                return null;
+            }
+
+            if (currentPermission === 'denied') {
+                if (!silent) alert('As notificações estão bloqueadas no seu navegador. Por favor, ative-as nas configurações do site.');
+                return null;
             }
 
             if (currentPermission !== 'granted') {
@@ -33,22 +41,25 @@ export const pushNotificationService = {
                 }
             }
 
-            // Garante que o service worker está registrado
+            // Garante que o service worker está registrado e ativo
             let registration = await navigator.serviceWorker.getRegistration();
             if (!registration) {
-                registration = await navigator.serviceWorker.register('/sw.js');
+                console.log('Registrando service worker...');
+                registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
             }
 
-            await navigator.serviceWorker.ready;
+            // Aguarda o SW estar pronto
+            const readyRegistration = await navigator.serviceWorker.ready;
 
-            // Chave VAPID Pública Real
+            // Chave VAPID Pública
             const VAPID_PUBLIC_KEY = 'BFX7msqv0fBlqIOeFdGHMNRCmgYeuTvWhU5W1A294e45oEjcUtjqIbgcWoHGrTVFs34he3g6bcxuSZiOqXPE6qg';
 
             // Verifica se já existe uma subscrição
-            let subscription = await registration.pushManager.getSubscription();
+            let subscription = await readyRegistration.pushManager.getSubscription();
 
             if (!subscription) {
-                subscription = await registration.pushManager.subscribe({
+                console.log('Criando nova subscrição push...');
+                subscription = await readyRegistration.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: this.urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
                 });
@@ -56,6 +67,7 @@ export const pushNotificationService = {
 
             // Salva no banco de dados do Supabase
             const subJSON = subscription.toJSON();
+            console.log('Subscrição obtida, salvando no banco...');
 
             const { error } = await supabase
                 .from('push_subscriptions')
@@ -70,11 +82,12 @@ export const pushNotificationService = {
 
             if (error) throw error;
 
+            console.log('Subscrição ativa e salva com sucesso.');
             return subscription;
         } catch (err: any) {
             console.error('Failed to subscribe to push notifications:', err);
             if (!silent) {
-                alert('Erro ao ativar notificações: ' + err.message);
+                alert('Erro ao ativar notificações: ' + (err.message || 'Erro desconhecido'));
             }
             throw err;
         }
