@@ -285,7 +285,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                   </Button>
                 )}
                 {shift.confirmedMembers.includes(user.name) ? (
-                  <Button disabled size="sm" className="flex-1 text-xs bg-emerald-50 text-emerald-600 border-emerald-100">
+                  <Button size="sm" className="flex-1 text-xs bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 cursor-default opacity-100 shadow-none font-bold">
                     <CheckCircle size={14} className="mr-1" /> Inscrito
                   </Button>
                 ) : (

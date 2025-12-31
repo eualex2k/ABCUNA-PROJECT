@@ -127,33 +127,32 @@ export const scheduleService = {
     },
 
     async join(shiftId: string, memberName: string): Promise<void> {
-        const { data: shift, error: fetchError } = await supabase
+        // Obter detalhes para a notificação antes de chamar o RPC
+        const { data: shift } = await supabase
             .from('schedules')
-            .select('id, title, confirmed_members')
+            .select('title')
             .eq('id', shiftId)
             .single();
 
-        if (fetchError) throw fetchError;
+        const { error } = await supabase.rpc('join_shift', {
+            p_shift_id: shiftId,
+            p_member_name: memberName
+        });
 
-        const members = shift.confirmed_members || [];
-        if (!members.includes(memberName)) {
-            const { error: updateError } = await supabase
-                .from('schedules')
-                .update({ confirmed_members: [...members, memberName] })
-                .eq('id', shiftId);
-
-            if (updateError) throw updateError;
-
-            // Notificar Admin/Secretaria
-            const adminIds = await associatesService.getNotificationTargets(['ADMIN', 'SECRETARY']);
-            await notificationService.add({
-                title: 'Novo Voluntário na Escala',
-                message: `${memberName} entrou na escala "${shift.title}".`,
-                type: 'SCHEDULE',
-                link: '/schedule',
-                targetUserIds: adminIds
-            });
+        if (error) {
+            console.error('Error joining shift:', error);
+            throw error;
         }
+
+        // Notificar Admin/Secretaria sobre o novo voluntário
+        const adminIds = await associatesService.getNotificationTargets(['ADMIN', 'SECRETARY']);
+        await notificationService.add({
+            title: 'Novo Voluntário na Escala',
+            message: `${memberName} entrou na escala "${shift?.title || 'Plantão'}".`,
+            type: 'SCHEDULE',
+            link: '/schedule',
+            targetUserIds: adminIds
+        });
     }
 };
 
