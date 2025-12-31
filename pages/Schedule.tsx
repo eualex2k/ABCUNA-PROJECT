@@ -41,7 +41,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
     endTime: '20:00',
     amount: 0,
     organizer: 'Administração',
-    vacancies: 5
+    vacancies: 5,
+    date: new Date().toISOString().split('T')[0] // Default to today
   };
 
   const [newShift, setNewShift] = useState<Partial<Shift>>(initialFormState);
@@ -51,8 +52,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
     if (newShift.team && newShift.date) {
       try {
         const shiftData: Omit<Shift, 'id'> = {
-          day: new Date(newShift.date).toLocaleDateString('pt-BR', { weekday: 'long' }),
-          date: new Date(newShift.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+          day: new Date(newShift.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long' }),
+          date: new Date(newShift.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
           fullDate: newShift.date,
           team: newShift.team!,
           leader: newShift.leader || 'A definir',
@@ -68,18 +69,12 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
 
         await scheduleService.create(shiftData);
 
-        notificationService.add({
-          title: 'Nova Escala Publicada',
-          message: `O plantão "${newShift.team}" para o dia ${shiftData.date} está aberto.`,
-          type: 'SCHEDULE',
-          link: '/schedule'
-        });
-
         loadShifts();
         setIsModalOpen(false);
         setNewShift(initialFormState);
       } catch (error) {
-        alert('Erro ao criar plantão.');
+        console.error('Create shift error:', error);
+        alert('Erro ao criar plantão. Verifique os dados e tente novamente.');
       }
     }
   };

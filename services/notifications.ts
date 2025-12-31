@@ -50,17 +50,19 @@ class NotificationManager {
       return;
     }
 
-    this.notifications = data.map((item: any) => ({
-      id: item.id,
-      notificationId: item.notification.id,
-      title: item.notification.title,
-      message: item.notification.message,
-      type: item.notification.type as NotificationType,
-      date: item.created_at,
-      read: item.read,
-      link: item.notification.link,
-      userId: this.currentUserId!
-    }));
+    this.notifications = data
+      .filter((item: any) => item.notification)
+      .map((item: any) => ({
+        id: item.id,
+        notificationId: item.notification.id,
+        title: item.notification.title,
+        message: item.notification.message,
+        type: item.notification.type as NotificationType,
+        date: item.created_at,
+        read: item.read,
+        link: item.notification.link,
+        userId: this.currentUserId!
+      }));
 
     this.notifyListeners();
   }

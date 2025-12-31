@@ -33,14 +33,13 @@ export const scheduleService = {
 
         const newShift = mapToFrontend(data);
 
-        // Notificar associados se for uma nova escala aberta
-        const targetIds = await associatesService.getNotificationTargets();
+        // Notificar todos os associados sobre a nova escala
         await notificationService.add({
             title: 'Nova Escala Disponível',
-            message: `Uma nova escala "${newShift.team}" foi aberta. Inscreva-se!`,
+            message: `Uma nova escala "${newShift.team}" foi aberta para o dia ${newShift.date}. Inscreva-se!`,
             type: 'SCHEDULE',
             link: '/schedule',
-            targetUserIds: targetIds
+            broadcast: true
         });
 
         return newShift;
@@ -145,15 +144,13 @@ function mapToDb(shift: Partial<Shift>): any {
 
     // Handle timestamps
     if (shift.fullDate !== undefined) {
-        if (shift.startTime !== undefined) {
-            dbRow.start_time = `${shift.fullDate}T${shift.startTime}:00`;
-        } else {
-            dbRow.start_time = `${shift.fullDate}T08:00:00`;
-        }
+        const datePart = shift.fullDate; // YYYY-MM-DD
 
-        if (shift.endTime !== undefined) {
-            dbRow.end_time = `${shift.fullDate}T${shift.endTime}:00`;
-        }
+        const startH = shift.startTime || '08:00';
+        dbRow.start_time = `${datePart}T${startH}:00`;
+
+        const endH = shift.endTime || '20:00';
+        dbRow.end_time = `${datePart}T${endH}:00`;
     }
 
     if (shift.leader !== undefined) dbRow.leader = shift.leader;
