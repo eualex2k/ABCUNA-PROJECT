@@ -279,51 +279,62 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              {Notification.permission === 'granted' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    try {
-                      await notificationService.add({
-                        title: 'Teste de Notificação',
-                        message: 'Esta é uma notificação de teste enviada do seu perfil.',
-                        type: 'SYSTEM',
-                        targetUserIds: [user.id]
-                      });
-                      alert('Solicitação de teste enviada! Aguarde alguns segundos.');
-                    } catch (err) {
-                      alert('Erro ao enviar teste.');
-                    }
-                  }}
-                  className="text-slate-600 border-slate-200"
-                >
-                  Enviar Teste
-                </Button>
+              {(typeof window !== 'undefined' && 'Notification' in window) && (
+                <>
+                  {Notification.permission === 'granted' ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            await notificationService.add({
+                              title: 'Teste de Notificação',
+                              message: 'Esta é uma notificação de teste enviada do seu perfil.',
+                              type: 'SYSTEM',
+                              targetUserIds: [user.id]
+                            });
+                            alert('Solicitação de teste enviada! Aguarde alguns segundos.');
+                          } catch (err) {
+                            alert('Erro ao enviar teste.');
+                          }
+                        }}
+                        className="text-slate-600 border-slate-200"
+                      >
+                        Enviar Teste
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={async () => {
+                          await pushNotificationService.unsubscribeUser();
+                          window.location.reload();
+                        }}
+                        className="text-slate-500"
+                      >
+                        Desativar
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      onClick={async () => {
+                        try {
+                          const sub = await pushNotificationService.subscribeUser(user.id);
+                          if (sub) {
+                            alert('Notificações ativadas com sucesso neste dispositivo!');
+                            window.location.reload();
+                          }
+                        } catch (err) {
+                          // Erro tratado no service
+                        }
+                      }}
+                      disabled={Notification.permission === 'denied'}
+                    >
+                      {Notification.permission === 'denied' ? 'Bloqueado no Navegador' : 'Ativar Notificações'}
+                    </Button>
+                  )}
+                </>
               )}
-
-              <Button
-                variant={Notification.permission === 'granted' ? 'ghost' : 'primary'}
-                onClick={async () => {
-                  try {
-                    if (Notification.permission === 'granted') {
-                      await pushNotificationService.unsubscribeUser();
-                      window.location.reload();
-                    } else {
-                      const sub = await pushNotificationService.subscribeUser(user.id);
-                      if (sub) {
-                        alert('Notificações ativadas com sucesso neste dispositivo!');
-                        window.location.reload();
-                      }
-                    }
-                  } catch (err) {
-                    // Erro tratado no service
-                  }
-                }}
-                className={Notification.permission === 'granted' ? 'text-slate-500' : ''}
-              >
-                {Notification.permission === 'granted' ? 'Desativar' : 'Ativar Notificações'}
-              </Button>
             </div>
           </div>
         </Card>
