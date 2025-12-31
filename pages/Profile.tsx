@@ -256,35 +256,73 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
 
         {/* Preferências de Notificação */}
         <Card className="p-6 md:col-span-2 border-brand-100 bg-brand-50/10">
-          <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-lg border-b border-brand-100 pb-3">
-            <Bell size={20} className="text-brand-600" /> Preferências de Notificação
-          </h3>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
+          <div className="flex items-center justify-between mb-4 border-b border-brand-100 pb-3">
+            <h3 className="font-bold text-slate-900 flex items-center gap-2 text-lg">
+              <Bell size={20} className="text-brand-600" /> Preferências de Notificação
+            </h3>
+            <Badge variant={Notification.permission === 'granted' ? 'success' : 'warning'}>
+              {Notification.permission === 'granted' ? 'Ativado' : 'Não Ativado'}
+            </Badge>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex-1">
               <p className="font-semibold text-slate-900">Notificações Push no Navegador</p>
-              <p className="text-sm text-slate-500">Receba alertas de novas escalas, materiais e eventos mesmo com o sistema fechado.</p>
+              <p className="text-sm text-slate-500 max-w-xl">
+                Receba alertas de novas escalas, materiais e eventos diretamente no seu dispositivo, mesmo com o sistema fechado.
+                {Notification.permission === 'denied' && (
+                  <span className="block mt-2 text-red-600 font-bold">
+                    ⚠ Notificações bloqueadas pelo navegador. Por favor, redefina as permissões no cadeado da barra de endereço.
+                  </span>
+                )}
+              </p>
             </div>
-            <div className="flex gap-3">
+
+            <div className="flex flex-wrap gap-3">
+              {Notification.permission === 'granted' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await notificationService.add({
+                        title: 'Teste de Notificação',
+                        message: 'Esta é uma notificação de teste enviada do seu perfil.',
+                        type: 'SYSTEM',
+                        targetUserIds: [user.id]
+                      });
+                      alert('Solicitação de teste enviada! Aguarde alguns segundos.');
+                    } catch (err) {
+                      alert('Erro ao enviar teste.');
+                    }
+                  }}
+                  className="text-slate-600 border-slate-200"
+                >
+                  Enviar Teste
+                </Button>
+              )}
+
               <Button
-                variant="outline"
+                variant={Notification.permission === 'granted' ? 'ghost' : 'primary'}
                 onClick={async () => {
                   try {
-                    await pushNotificationService.subscribeUser(user.id);
-                    alert('Notificações ativadas com sucesso neste dispositivo!');
+                    if (Notification.permission === 'granted') {
+                      await pushNotificationService.unsubscribeUser();
+                      window.location.reload();
+                    } else {
+                      const sub = await pushNotificationService.subscribeUser(user.id);
+                      if (sub) {
+                        alert('Notificações ativadas com sucesso neste dispositivo!');
+                        window.location.reload();
+                      }
+                    }
                   } catch (err) {
-                    // Erro já é tratado no service
+                    // Erro tratado no service
                   }
                 }}
-                className="text-brand-600 border-brand-200"
+                className={Notification.permission === 'granted' ? 'text-slate-500' : ''}
               >
-                Ativar Notificações
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => pushNotificationService.unsubscribeUser()}
-                className="text-slate-500"
-              >
-                Desativar
+                {Notification.permission === 'granted' ? 'Desativar' : 'Ativar Notificações'}
               </Button>
             </div>
           </div>

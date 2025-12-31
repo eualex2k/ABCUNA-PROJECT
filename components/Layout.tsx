@@ -17,7 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 import { MENU_ITEMS } from '../constants';
-import { User, Notification, translateRole } from '../types';
+import { User, Notification as AppNotification, translateRole } from '../types';
 import { Avatar, Button } from './ui';
 import { notificationService } from '../services/notifications';
 
@@ -32,7 +32,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [searchResults, setSearchResults] = useState<{ label: string; path: string; icon: any }[]>([]);
 
@@ -300,7 +300,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           </div>
 
           <div className="flex items-center gap-4" ref={notifRef}>
-            <div className="relative">
+            <div className="relative group">
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
                 className={`relative p-2 rounded-lg transition-colors ${isNotifOpen ? 'bg-slate-100 text-brand-600' : 'text-slate-500 hover:bg-slate-50'}`}
@@ -309,7 +309,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                 {unreadCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-brand-600 rounded-full ring-2 ring-white"></span>
                 )}
+                {Notification.permission !== 'granted' && !isNotifOpen && (
+                  <span className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white border border-white"></span>
+                )}
               </button>
+
+              {Notification.permission !== 'granted' && (
+                <div className="absolute top-full mt-2 right-0 bg-amber-50 text-amber-800 text-[10px] font-bold px-2 py-1 rounded border border-amber-200 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[60]">
+                  Push desativado
+                </div>
+              )}
 
               {/* Notification Dropdown */}
               {isNotifOpen && (
@@ -336,7 +345,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                       </div>
                     ) : (
                       <div className="divide-y divide-slate-100">
-                        {notifications.map(notif => (
+                        {notifications.map((notif: AppNotification) => (
                           <div
                             key={notif.id}
                             onClick={() => {

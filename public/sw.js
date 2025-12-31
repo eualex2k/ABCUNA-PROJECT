@@ -13,13 +13,13 @@ self.addEventListener('push', function (event) {
 
     try {
         const data = event.data.json();
-        console.log('[Service Worker] Push data:', data);
+        console.log('[Service Worker] Push data received:', data);
 
         const title = data.title || 'ABCUNA';
         const options = {
             body: data.message || data.body || 'Nova notificação recebida',
-            icon: '/logo192.png',
-            badge: '/logo192.png',
+            icon: '/logo.svg',
+            badge: '/logo.svg',
             data: {
                 url: data.link || data.url || '/'
             },
@@ -28,12 +28,14 @@ self.addEventListener('push', function (event) {
                 { action: 'open', title: 'Abrir Sistema' },
                 { action: 'close', title: 'Fechar' }
             ],
-            tag: 'abcuna-notification', // Evita múltiplas notificações iguais acumuladas
+            tag: 'abcuna-notification',
             renotify: true
         };
 
         event.waitUntil(
             self.registration.showNotification(title, options)
+                .then(() => console.log('[Service Worker] Notification shown.'))
+                .catch(err => console.error('[Service Worker] Failed to show notification:', err))
         );
     } catch (err) {
         console.error('[Service Worker] Push processing error:', err);

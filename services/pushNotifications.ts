@@ -67,7 +67,7 @@ export const pushNotificationService = {
 
             // Salva no banco de dados do Supabase
             const subJSON = subscription.toJSON();
-            console.log('Subscrição obtida, salvando no banco...');
+            console.log('Subscrição obtida com sucesso:', subJSON.endpoint);
 
             const { error } = await supabase
                 .from('push_subscriptions')
@@ -80,14 +80,21 @@ export const pushNotificationService = {
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'endpoint' });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Erro ao salvar subscrição no Supabase:', error);
+                throw error;
+            }
 
-            console.log('Subscrição ativa e salva com sucesso.');
+            console.log('Subscrição ativa e sincronizada com o banco de dados.');
             return subscription;
         } catch (err: any) {
-            console.error('Failed to subscribe to push notifications:', err);
+            console.error('Falha detalhada na subscrição de push:', err);
             if (!silent) {
-                alert('Erro ao ativar notificações: ' + (err.message || 'Erro desconhecido'));
+                if (err.name === 'NotAllowedError') {
+                    alert('As notificações foram bloqueadas. Por favor, ative-as nas configurações do seu navegador para este site.');
+                } else {
+                    alert('Erro ao ativar notificações: ' + (err.message || 'Verifique sua conexão ou chaves VAPID.'));
+                }
             }
             throw err;
         }
