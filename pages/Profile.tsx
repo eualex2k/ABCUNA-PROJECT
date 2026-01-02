@@ -317,7 +317,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                             console.log('Push Error:', error);
 
                             if (error) {
-                              alert(`Erro do servidor: ${JSON.stringify(error)}`);
+                              alert(`Erro de conexão com servidor: ${JSON.stringify(error)}`);
+                            } else if (res && res.success === false) {
+                              alert(`Erro na função do servidor: ${res.error}`);
                             } else {
                               alert(`Resultado do servidor: ${JSON.stringify(res)}`);
                             }

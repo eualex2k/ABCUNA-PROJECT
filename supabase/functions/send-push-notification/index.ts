@@ -171,9 +171,14 @@ Deno.serve(async (req) => {
 
     } catch (error: any) {
         console.error('Fatal Edge Function Error:', error.message)
-        return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
+        return new Response(JSON.stringify({
+            success: false,
+            error: error.message || 'Unknown error',
+            stack: error.stack
+        }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 400,
+            status: 200, // Return 200 so client can parse the JSON error
         })
     }
+})
 })
