@@ -114,7 +114,15 @@ Deno.serve(async (req) => {
             throw new Error('VAPID keys not configured in environment variables (and hardcoded fallback failed)');
         }
 
-        const vapidCryptoKeys = await createVapidKeys(publicVapidKey, privateVapidKey);
+        let vapidCryptoKeys;
+        try {
+            console.log('Importing Server VAPID keys...');
+            vapidCryptoKeys = await createVapidKeys(publicVapidKey, privateVapidKey);
+            console.log('Server VAPID keys imported successfully.');
+        } catch (keyErr: any) {
+            console.error('SERVER VAPID KEY ERROR:', keyErr);
+            throw new Error(`Failed to import Server VAPID Keys: ${keyErr.message}`);
+        }
 
         const appServer = await webpush.ApplicationServer.new({
             contactInformation: 'mailto:suporte@abcuna.com.br',
@@ -127,6 +135,9 @@ Deno.serve(async (req) => {
                     throw new Error('Incomplete subscription data');
                 }
 
+                console.log(`Processing sub for user ${sub.user_id}`);
+
+                // Construct subscriber manually to catch key errors
                 const subscriber = appServer.subscribe({
                     endpoint: sub.endpoint,
                     keys: {
@@ -147,13 +158,14 @@ Deno.serve(async (req) => {
                 return { success: true, userId: sub.user_id }
             } catch (err: any) {
                 const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
-                const errorStack = err instanceof Error ? err.stack : undefined;
                 console.error(`Erro ao enviar para ${sub.user_id}:`, errorMsg);
 
-                if (errorMsg?.includes('410') || errorMsg?.includes('404')) {
+                if (errorMsg?.includes('410') || errorMsg?.includes('404') || errorMsg?.includes('invalid P-256')) {
+                    // Invalid subscription or expired
                     await supabaseClient.from('push_subscriptions').delete().eq('id', sub.id);
+                    return { success: false, userId: sub.user_id, error: 'Subscription invalid/expired - Removed from DB', details: errorMsg }
                 }
-                return { success: false, userId: sub.user_id, error: errorMsg, details: errorStack }
+                return { success: false, userId: sub.user_id, error: errorMsg }
             }
         }))
 
