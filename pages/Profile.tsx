@@ -307,16 +307,23 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                         size="sm"
                         onClick={async () => {
                           try {
-                            const { data: res } = await supabase.functions.invoke('send-push-notification', {
+                            const { data: res, error } = await supabase.functions.invoke('send-push-notification', {
                               body: {
                                 notificationId: 'fd393f4d-b8a4-4e43-a4c2-284dcda7ff87', // Um ID de notificação existente para teste
                                 userIds: [user.id]
                               }
                             });
                             console.log('Push Result:', res);
-                            alert(`Resultado do servidor: ${JSON.stringify(res)}`);
-                          } catch (err) {
-                            alert('Erro ao chamar servidor.');
+                            console.log('Push Error:', error);
+
+                            if (error) {
+                              alert(`Erro do servidor: ${JSON.stringify(error)}`);
+                            } else {
+                              alert(`Resultado do servidor: ${JSON.stringify(res)}`);
+                            }
+                          } catch (err: any) {
+                            console.error('Erro na chamada:', err);
+                            alert('Erro ao chamar servidor: ' + err.message);
                           }
                         }}
                         className="text-slate-600 border-slate-200"
