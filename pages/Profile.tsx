@@ -284,54 +284,58 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                 <>
                   {Notification.permission === 'granted' ? (
                     <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          if ('serviceWorker' in navigator) {
-                            navigator.serviceWorker.ready.then(registration => {
-                              registration.showNotification('Teste Local', {
-                                body: 'Se você está vendo isso, o seu navegador suporta notificações e o Service Worker está funcionando!',
-                                icon: '/logo.svg',
-                                requireInteraction: true
-                              });
-                            });
-                          }
-                        }}
-                        className="text-brand-600 border-brand-200"
-                      >
-                        Teste Local (Navegador)
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          try {
-                            const { data: res, error } = await supabase.functions.invoke('send-push-notification', {
-                              body: {
-                                notificationId: 'fd393f4d-b8a4-4e43-a4c2-284dcda7ff87', // Um ID de notificação existente para teste
-                                userIds: [user.id]
+                      {user.role === UserRole.ADMIN && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if ('serviceWorker' in navigator) {
+                                navigator.serviceWorker.ready.then(registration => {
+                                  registration.showNotification('Teste Local', {
+                                    body: 'Se você está vendo isso, o seu navegador suporta notificações e o Service Worker está funcionando!',
+                                    icon: '/logo.svg',
+                                    requireInteraction: true
+                                  });
+                                });
                               }
-                            });
-                            console.log('Push Result:', res);
-                            console.log('Push Error:', error);
+                            }}
+                            className="text-brand-600 border-brand-200"
+                          >
+                            Teste Local (Navegador)
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const { data: res, error } = await supabase.functions.invoke('send-push-notification', {
+                                  body: {
+                                    notificationId: 'fd393f4d-b8a4-4e43-a4c2-284dcda7ff87', // Um ID de notificação existente para teste
+                                    userIds: [user.id]
+                                  }
+                                });
+                                console.log('Push Result:', res);
+                                console.log('Push Error:', error);
 
-                            if (error) {
-                              alert(`Erro de conexão com servidor: ${JSON.stringify(error)}`);
-                            } else if (res && res.success === false) {
-                              alert(`Erro na função do servidor: ${res.error}`);
-                            } else {
-                              alert(`Resultado do servidor: ${JSON.stringify(res)}`);
-                            }
-                          } catch (err: any) {
-                            console.error('Erro na chamada:', err);
-                            alert('Erro ao chamar servidor: ' + err.message);
-                          }
-                        }}
-                        className="text-slate-600 border-slate-200"
-                      >
-                        Enviar Teste (Servidor)
-                      </Button>
+                                if (error) {
+                                  alert(`Erro de conexão com servidor: ${JSON.stringify(error)}`);
+                                } else if (res && res.success === false) {
+                                  alert(`Erro na função do servidor: ${res.error}`);
+                                } else {
+                                  alert(`Resultado do servidor: ${JSON.stringify(res)}`);
+                                }
+                              } catch (err: any) {
+                                console.error('Erro na chamada:', err);
+                                alert('Erro ao chamar servidor: ' + err.message);
+                              }
+                            }}
+                            className="text-slate-600 border-slate-200"
+                          >
+                            Enviar Teste (Servidor)
+                          </Button>
+                        </>
+                      )}
                       <Button
                         variant="ghost"
                         onClick={async () => {
