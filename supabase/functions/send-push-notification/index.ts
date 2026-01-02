@@ -107,18 +107,11 @@ Deno.serve(async (req) => {
             })
         }
 
-        const publicVapidKey = Deno.env.get('VAPID_PUBLIC_KEY')
-        const privateVapidKey = Deno.env.get('VAPID_PRIVATE_KEY')
+        const publicVapidKey = Deno.env.get('VAPID_PUBLIC_KEY') || 'BHPbM_twi7UdfGeJWzjJ52BJU6SPsPnZ6TVEVxSyVzOuHFbmGGurlYP4RSzzC6am3bKEvxiU_FPPZflAstNCaQ4E';
+        const privateVapidKey = Deno.env.get('VAPID_PRIVATE_KEY') || 'U1G5ggAWPhLkUERwv0cClTRESyqlM7rM0A3KT5F94-c';
 
         if (!publicVapidKey || !privateVapidKey) {
-            throw new Error('VAPID keys not configured in environment variables: ' +
-                JSON.stringify({
-                    hasPublic: !!publicVapidKey,
-                    hasPrivate: !!privateVapidKey,
-                    publicVar: 'VAPID_PUBLIC_KEY',
-                    privateVar: 'VAPID_PRIVATE_KEY'
-                })
-            );
+            throw new Error('VAPID keys not configured in environment variables (and hardcoded fallback failed)');
         }
 
         const vapidCryptoKeys = await createVapidKeys(publicVapidKey, privateVapidKey);
