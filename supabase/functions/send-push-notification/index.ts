@@ -101,14 +101,33 @@ Deno.serve(async (req) => {
 
         if (dbError) throw new Error(`Database Error: ${dbError.message}`)
         if (!subscriptions || subscriptions.length === 0) {
-            return new Response(JSON.stringify({ success: true, sent_count: 0, message: 'No subscriptions found' }), {
+            // Debug info
+            let tableCount = -1;
+            try {
+                const { count } = await supabaseClient.from('push_subscriptions').select('*', { count: 'exact', head: true });
+                tableCount = count || 0;
+            } catch (e) {
+                console.error('Debug count failed', e);
+            }
+
+            return new Response(JSON.stringify({
+                success: true,
+                sent_count: 0,
+                message: 'No subscriptions found',
+                debug: {
+                    receivedIds: userIds,
+                    idsType: Array.isArray(userIds) ? 'array' : typeof userIds,
+                    tableTotal: tableCount,
+                    envServiceKey: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+                }
+            }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 200,
             })
         }
 
-        const publicVapidKey = Deno.env.get('VAPID_PUBLIC_KEY') || 'BHPbM_twi7UdfGeJWzjJ52BJU6SPsPnZ6TVEVxSyVzOuHFbmGGurlYP4RSzzC6am3bKEvxiU_FPPZflAstNCaQ4E';
-        const privateVapidKey = Deno.env.get('VAPID_PRIVATE_KEY') || 'U1G5ggAWPhLkUERwv0cClTRESyqlM7rM0A3KT5F94-c';
+        const publicVapidKey = Deno.env.get('VAPID_PUBLIC_KEY') || 'BD759cctMRGblSVMXW6VDWFD-Ep_FAkHoHFa_jhGyKeco4vmHI9PQ8tGpX7iFjwLmU-hU02cZekSv9n-1k3o7sw';
+        const privateVapidKey = Deno.env.get('VAPID_PRIVATE_KEY') || 'mPyVWxfw3_DXjKcxphiD82QrFH-WK3umffmgMopqio4';
 
         if (!publicVapidKey || !privateVapidKey) {
             throw new Error('VAPID keys not configured in environment variables (and hardcoded fallback failed)');

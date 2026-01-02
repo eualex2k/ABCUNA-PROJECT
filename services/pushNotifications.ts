@@ -52,7 +52,7 @@ export const pushNotificationService = {
             const readyRegistration = await navigator.serviceWorker.ready;
 
             // Chave VAPID Pública (Sincronizada)
-            const VAPID_PUBLIC_KEY = 'BHPbM_twi7UdfGeJWzjJ52BJU6SPsPnZ6TVEVxSyVzOuHFbmGGurlYP4RSzzC6am3bKEvxiU_FPPZflAstNCaQ4E';
+            const VAPID_PUBLIC_KEY = 'BD759cctMRGblSVMXW6VDWFD-Ep_FAkHoHFa_jhGyKeco4vmHI9PQ8tGpX7iFjwLmU-hU02cZekSv9n-1k3o7sw';
 
             // Verifica se já existe uma subscrição
             let subscription = await readyRegistration.pushManager.getSubscription();
