@@ -2,53 +2,55 @@ import { useEffect, useRef, useCallback } from 'react';
 
 interface UseUserActivityOptions {
     onInactive?: () => void;
-    inactivityTimeout?: number; // em milissegundos
+    inactivityTimeout?: number; // em milissegundos - tempo SEM ATIVIDADE para mostrar modal
     enabled?: boolean;
 }
 
 /**
- * Hook para monitorar atividade do usuário
+ * Hook para monitorar atividade do usuário de forma inteligente
+ * 
+ * Lógica:
+ * - Se o usuário estiver ATIVO (usando o sistema), não faz nada
+ * - Se o usuário ficar INATIVO por X tempo, chama onInactive (mostra modal)
+ * - O modal dá 60s para o usuário confirmar presença
+ * 
  * Detecta: cliques, teclas, movimentos do mouse, scroll, touch
  */
 export const useUserActivity = ({
     onInactive,
-    inactivityTimeout = 12 * 60 * 60 * 1000, // 12 horas padrão
+    inactivityTimeout = 30 * 60 * 1000, // 30 minutos de INATIVIDADE padrão
     enabled = true
 }: UseUserActivityOptions = {}) => {
     const lastActivityRef = useRef<number>(Date.now());
     const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const hasTriggeredInactiveRef = useRef<boolean>(false);
 
     // Atualiza o timestamp da última atividade
     const updateActivity = useCallback(() => {
         const now = Date.now();
         lastActivityRef.current = now;
         localStorage.setItem('lastActivityTime', now.toString());
-    }, []);
 
-    // Verifica se o usuário está inativo
-    const checkInactivity = useCallback(() => {
-        const now = Date.now();
-        const timeSinceActivity = now - lastActivityRef.current;
+        // Reset da flag de inatividade quando há atividade
+        hasTriggeredInactiveRef.current = false;
 
-        if (timeSinceActivity >= inactivityTimeout && onInactive) {
-            onInactive();
-        }
-    }, [inactivityTimeout, onInactive]);
-
-    // Reseta o timer de inatividade
-    const resetInactivityTimer = useCallback(() => {
+        // Reinicia o timer de inatividade
         if (inactivityTimerRef.current) {
             clearTimeout(inactivityTimerRef.current);
         }
 
-        updateActivity();
-
-        // Configura novo timer
-        inactivityTimerRef.current = setTimeout(() => {
-            checkInactivity();
-        }, inactivityTimeout);
-    }, [inactivityTimeout, updateActivity, checkInactivity]);
+        // Configura novo timer para detectar inatividade
+        if (enabled && onInactive) {
+            inactivityTimerRef.current = setTimeout(() => {
+                // Só dispara se ainda não tiver disparado
+                if (!hasTriggeredInactiveRef.current) {
+                    console.log(`Usuário inativo por ${inactivityTimeout / 60000} minutos`);
+                    hasTriggeredInactiveRef.current = true;
+                    onInactive();
+                }
+            }, inactivityTimeout);
+        }
+    }, [inactivityTimeout, onInactive, enabled]);
 
     useEffect(() => {
         if (!enabled) {
@@ -58,9 +60,17 @@ export const useUserActivity = ({
         // Restaura última atividade do localStorage se existir
         const savedActivity = localStorage.getItem('lastActivityTime');
         if (savedActivity) {
-            lastActivityRef.current = parseInt(savedActivity, 10);
-        } else {
-            updateActivity();
+            const savedTime = parseInt(savedActivity, 10);
+            lastActivityRef.current = savedTime;
+
+            // Verifica se já está inativo desde o último acesso
+            const timeSinceActivity = Date.now() - savedTime;
+            if (timeSinceActivity >= inactivityTimeout && onInactive && !hasTriggeredInactiveRef.current) {
+                console.log('Usuário já estava inativo desde o último acesso');
+                hasTriggeredInactiveRef.current = true;
+                onInactive();
+                return;
+            }
         }
 
         // Eventos que indicam atividade do usuário
@@ -76,7 +86,7 @@ export const useUserActivity = ({
 
         // Handler para eventos de atividade
         const handleActivity = () => {
-            resetInactivityTimer();
+            updateActivity();
         };
 
         // Adiciona listeners
@@ -84,11 +94,8 @@ export const useUserActivity = ({
             window.addEventListener(event, handleActivity, { passive: true });
         });
 
-        // Verifica inatividade periodicamente (a cada minuto)
-        checkIntervalRef.current = setInterval(checkInactivity, 60 * 1000);
-
         // Inicia o timer inicial
-        resetInactivityTimer();
+        updateActivity();
 
         // Cleanup
         return () => {
@@ -99,12 +106,8 @@ export const useUserActivity = ({
             if (inactivityTimerRef.current) {
                 clearTimeout(inactivityTimerRef.current);
             }
-
-            if (checkIntervalRef.current) {
-                clearInterval(checkIntervalRef.current);
-            }
         };
-    }, [enabled, resetInactivityTimer, checkInactivity, updateActivity]);
+    }, [enabled, updateActivity, inactivityTimeout, onInactive]);
 
     // Retorna funções úteis
     return {

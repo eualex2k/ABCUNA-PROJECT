@@ -52,7 +52,7 @@ export const InactivityModal: React.FC<InactivityModalProps> = ({
                         Você ainda está aí?
                     </h2>
                     <p className="text-slate-600 text-sm leading-relaxed">
-                        Detectamos que você está inativo há mais de 12 horas. Por questões de segurança,
+                        Detectamos que você está inativo há algum tempo. Por questões de segurança,
                         sua sessão será encerrada automaticamente em:
                     </p>
                 </div>

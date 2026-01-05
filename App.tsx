@@ -71,7 +71,9 @@ const App: React.FC = () => {
   const [isSessionLoading, setIsSessionLoading] = useState(true);
   const [showInactivityModal, setShowInactivityModal] = useState(false);
 
-  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000; // 12 horas em milissegundos
+  // Constantes de tempo
+  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000; // 12 horas - para verificação de sessão antiga
+  const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutos de INATIVIDADE para mostrar modal
 
   // Handler para quando o usuário fica inativo
   const handleInactive = () => {
@@ -84,7 +86,7 @@ const App: React.FC = () => {
   // Hook de monitoramento de atividade (só ativa quando usuário está logado)
   const { updateActivity } = useUserActivity({
     onInactive: handleInactive,
-    inactivityTimeout: TWELVE_HOURS_MS,
+    inactivityTimeout: INACTIVITY_TIMEOUT_MS, // 30 minutos sem atividade
     enabled: !!user
   });
 
@@ -122,6 +124,16 @@ const App: React.FC = () => {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
+          // Verificar se houve logout manual - se sim, não restaurar sessão
+          const wasManualLogout = localStorage.getItem('manualLogout');
+          if (wasManualLogout === 'true') {
+            console.log('Logout manual detectado. Não restaurando sessão...');
+            await supabase.auth.signOut();
+            localStorage.removeItem('manualLogout');
+            setIsSessionLoading(false);
+            return;
+          }
+
           // Verificar se há timestamp de login
           const lastLoginTime = localStorage.getItem('lastLoginTime');
 
@@ -218,11 +230,15 @@ const App: React.FC = () => {
     // Armazenar timestamps do login e atividade inicial
     localStorage.setItem('lastLoginTime', now);
     localStorage.setItem('lastActivityTime', now);
+    // Limpar flag de logout manual
+    localStorage.removeItem('manualLogout');
     notificationService.setCurrentUser(loggedInUser.id);
     pushNotificationService.subscribeUser(loggedInUser.id, true).catch(console.error);
   };
 
   const handleLogout = async () => {
+    // Marca que foi um logout manual para evitar auto-login no refresh
+    localStorage.setItem('manualLogout', 'true');
     await supabase.auth.signOut();
     setUser(null);
     localStorage.removeItem('lastLoginTime');
@@ -310,6 +326,14 @@ const App: React.FC = () => {
             <Route path="/landing" element={<LandingPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+
+          {/* Modal de Inatividade */}
+          <InactivityModal
+            isOpen={showInactivityModal}
+            onConfirm={handleConfirmPresence}
+            onTimeout={handleForceLogout}
+            timeoutSeconds={60}
+          />
         </Layout>
       ) : (
         <Routes>
