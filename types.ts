@@ -282,3 +282,21 @@ export interface Candidate {
   };
   status: 'PENDING' | 'APPROVED' | 'VOLUNTEER' | 'REJECTED';
 }
+
+export interface LandingPageConfig {
+  id: string;
+  hero_title: string;
+  hero_subtitle: string;
+  hero_image_url?: string;
+  about_text: string;
+  mission_text: string;
+  vision_text: string;
+  values_text: string;
+  gallery_images: string[];
+  sections_visibility: {
+    hero: boolean;
+    about: boolean;
+    gallery: boolean;
+    cta: boolean;
+  };
+}

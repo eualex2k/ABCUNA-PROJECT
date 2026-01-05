@@ -4,6 +4,8 @@ import { Lock, ChevronLeft } from 'lucide-react';
 import { Layout } from './components/Layout';
 import { Button } from './components/ui';
 import { AuthPage } from './pages/Auth';
+import { LandingPage } from './pages/LandingPage';
+import { LandingPageSettings } from './pages/LandingPageSettings';
 import { supabase } from './lib/supabase';
 import { Dashboard } from './pages/Dashboard';
 import { AssociatesPage } from './pages/Associates';
@@ -173,6 +175,12 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } />
 
+            <Route path="/settings/landing-page" element={
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
+                <LandingPageSettings user={user} />
+              </ProtectedRoute>
+            } />
+
             <Route path="/company" element={
               <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
                 <CompanyPage user={user} />
@@ -216,12 +224,15 @@ const App: React.FC = () => {
             } />
 
             <Route path="/profile" element={<ProfilePage user={user} onUpdate={handleUpdateUser} />} />
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
       ) : (
         <Routes>
-          <Route path="*" element={<AuthPage onLogin={handleLogin} />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<AuthPage onLogin={handleLogin} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       )}
     </HashRouter>
