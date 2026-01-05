@@ -22,6 +22,13 @@ import { CompanyPage } from './pages/Company';
 import { User, UserRole } from './types';
 import { notificationService } from './services/notifications';
 import { pushNotificationService } from './services/pushNotifications';
+import { InactivityModal } from './components/InactivityModal';
+import { useUserActivity } from './hooks/useUserActivity';
+
+// Importar utilitários de teste apenas em desenvolvimento
+if (import.meta.env.DEV) {
+  import('./utils/sessionTestUtils');
+}
 
 // --- Route Protection ---
 interface ProtectedRouteProps {
@@ -62,6 +69,41 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ user, allowedRoles, chi
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(true);
+  const [showInactivityModal, setShowInactivityModal] = useState(false);
+
+  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000; // 12 horas em milissegundos
+
+  // Handler para quando o usuário fica inativo
+  const handleInactive = () => {
+    if (user) {
+      console.log('Usuário inativo detectado. Mostrando modal de confirmação...');
+      setShowInactivityModal(true);
+    }
+  };
+
+  // Hook de monitoramento de atividade (só ativa quando usuário está logado)
+  const { updateActivity } = useUserActivity({
+    onInactive: handleInactive,
+    inactivityTimeout: TWELVE_HOURS_MS,
+    enabled: !!user
+  });
+
+  // Handler para confirmar que o usuário está presente
+  const handleConfirmPresence = () => {
+    console.log('Usuário confirmou presença. Resetando timer...');
+    setShowInactivityModal(false);
+    updateActivity(); // Atualiza timestamp de atividade
+  };
+
+  // Handler para timeout ou logout forçado
+  const handleForceLogout = async () => {
+    console.log('Fazendo logout por inatividade...');
+    setShowInactivityModal(false);
+    await supabase.auth.signOut();
+    localStorage.removeItem('lastLoginTime');
+    localStorage.removeItem('lastActivityTime');
+    setUser(null);
+  };
 
   useEffect(() => {
     // Check for active session on startup
@@ -80,6 +122,35 @@ const App: React.FC = () => {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
+          // Verificar se há timestamp de login
+          const lastLoginTime = localStorage.getItem('lastLoginTime');
+
+          if (!lastLoginTime) {
+            // Sessão antiga sem timestamp - fazer logout
+            console.log('Sessão sem timestamp. Fazendo logout para exibir landing page...');
+            await supabase.auth.signOut();
+            setIsSessionLoading(false);
+            return;
+          }
+
+          // Verificar inatividade usando o timestamp mais recente
+          const lastActivityTime = localStorage.getItem('lastActivityTime');
+          const referenceTime = lastActivityTime
+            ? Math.max(parseInt(lastActivityTime, 10), parseInt(lastLoginTime, 10))
+            : parseInt(lastLoginTime, 10);
+
+          const timeSinceActivity = Date.now() - referenceTime;
+
+          // Se passou mais de 12 horas de inatividade, fazer logout direto
+          if (timeSinceActivity > TWELVE_HOURS_MS) {
+            console.log('Sessão expirada por inatividade. Fazendo logout...');
+            await supabase.auth.signOut();
+            localStorage.removeItem('lastLoginTime');
+            localStorage.removeItem('lastActivityTime');
+            setIsSessionLoading(false);
+            return;
+          }
+
           // Fetch profile details
           const { data: profile, error } = await supabase
             .from('profiles')
@@ -101,6 +172,9 @@ const App: React.FC = () => {
             setUser(appUser);
             notificationService.setCurrentUser(profile.id);
             pushNotificationService.subscribeUser(profile.id, true).catch(console.error);
+
+            // Atualiza atividade ao restaurar sessão
+            updateActivity();
           }
         }
       } catch (error) {
@@ -116,6 +190,8 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session) {
         setUser(null);
+        localStorage.removeItem('lastLoginTime');
+        localStorage.removeItem('lastActivityTime');
         setIsSessionLoading(false);
       }
     });
@@ -123,7 +199,7 @@ const App: React.FC = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [updateActivity]);
 
   if (isSessionLoading) {
     return (
@@ -138,12 +214,19 @@ const App: React.FC = () => {
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
+    const now = Date.now().toString();
+    // Armazenar timestamps do login e atividade inicial
+    localStorage.setItem('lastLoginTime', now);
+    localStorage.setItem('lastActivityTime', now);
     notificationService.setCurrentUser(loggedInUser.id);
     pushNotificationService.subscribeUser(loggedInUser.id, true).catch(console.error);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
+    localStorage.removeItem('lastLoginTime');
+    localStorage.removeItem('lastActivityTime');
   };
 
   const handleUpdateUser = (updatedUser: User) => {
