@@ -8,6 +8,7 @@ import {
     Users, Clock, CheckCircle2, Award, Calendar,
     FileText, UserPlus, Flame, Target, Eye, Briefcase
 } from 'lucide-react';
+import { LandingPageCarousel } from '../components/LandingPageCarousel';
 
 type TabType = 'about' | 'services' | 'contact';
 
@@ -54,7 +55,11 @@ export const LandingPage: React.FC = () => {
         mission_text: 'Salvar vidas com excelência técnica e rapidez.',
         vision_text: 'Ser a principal referência em APH na região.',
         values_text: 'Ética, Coragem, Disciplina e Humanidade.',
-        gallery_images: [],
+        gallery_images: [
+            'https://images.unsplash.com/photo-1587351021759-3e566b9ef922?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1516574187841-69301976e499?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&q=80&w=1000'
+        ],
         stats: [],
         services: [
             { title: 'Atendimento APH', description: 'Suporte avançado de vida 24h com UTIs móveis equipadas.', icon: 'activity' },
@@ -202,30 +207,39 @@ export const LandingPage: React.FC = () => {
                                 {displayConfig.about_text}
                             </p>
 
-                            <div className="grid gap-4 mt-auto">
-                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-red-100 transition-colors">
-                                    <div className="flex items-center gap-2 mb-2 text-red-700">
-                                        <Target size={18} />
+                            {/* Carousel Section */}
+                            <div className="mb-8">
+                                <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                                    <FileText size={16} className="text-red-600" />
+                                    Galeria da Associação
+                                </h3>
+                                <LandingPageCarousel images={displayConfig.gallery_images || []} />
+                            </div>
+
+                            {/* Mission, Vision, Values - Realigned */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-auto">
+                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 hover:border-red-100 hover:shadow-sm transition-all flex flex-col h-full">
+                                    <div className="flex items-center gap-2 mb-3 text-red-700">
+                                        <Target size={20} />
                                         <h3 className="font-bold text-xs uppercase tracking-wider">Missão</h3>
                                     </div>
-                                    <p className="text-xs text-slate-600">{displayConfig.mission_text}</p>
+                                    <p className="text-xs text-slate-600 leading-relaxed flex-1">{displayConfig.mission_text}</p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-red-100 transition-colors">
-                                        <div className="flex items-center gap-2 mb-2 text-slate-700">
-                                            <Eye size={18} />
-                                            <h3 className="font-bold text-xs uppercase tracking-wider">Visão</h3>
-                                        </div>
-                                        <p className="text-[10px] text-slate-600 leading-snug">{displayConfig.vision_text}</p>
+                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 hover:border-red-100 hover:shadow-sm transition-all flex flex-col h-full">
+                                    <div className="flex items-center gap-2 mb-3 text-slate-700">
+                                        <Eye size={20} />
+                                        <h3 className="font-bold text-xs uppercase tracking-wider">Visão</h3>
                                     </div>
-                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-red-100 transition-colors">
-                                        <div className="flex items-center gap-2 mb-2 text-slate-700">
-                                            <Heart size={18} />
-                                            <h3 className="font-bold text-xs uppercase tracking-wider">Valores</h3>
-                                        </div>
-                                        <p className="text-[10px] text-slate-600 leading-snug">{displayConfig.values_text}</p>
+                                    <p className="text-xs text-slate-600 leading-relaxed flex-1">{displayConfig.vision_text}</p>
+                                </div>
+
+                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 hover:border-red-100 hover:shadow-sm transition-all flex flex-col h-full">
+                                    <div className="flex items-center gap-2 mb-3 text-slate-700">
+                                        <Heart size={20} />
+                                        <h3 className="font-bold text-xs uppercase tracking-wider">Valores</h3>
                                     </div>
+                                    <p className="text-xs text-slate-600 leading-relaxed flex-1">{displayConfig.values_text}</p>
                                 </div>
                             </div>
                         </div>
@@ -236,8 +250,8 @@ export const LandingPage: React.FC = () => {
 
     return (
         // Container Principal com animação de saída condicional
-        <div className={`h-screen w-full bg-[#0f172a] text-slate-900 flex items-center justify-center p-4 lg:p-8 overflow-hidden font-sans transition-all duration-700 ease-in-out transform ${isExiting ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100'}`}>
-            <div className="w-full max-w-6xl h-full max-h-[85vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row ring-1 ring-white/10">
+        <div className={`min-h-screen lg:h-screen w-full bg-[#0f172a] text-slate-900 flex items-center justify-center p-0 sm:p-4 lg:p-8 overflow-y-auto lg:overflow-hidden font-sans transition-all duration-700 ease-in-out transform ${isExiting ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100'}`}>
+            <div className="w-full max-w-6xl h-auto lg:h-full lg:max-h-[85vh] bg-white lg:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row ring-1 ring-white/10">
 
                 {/* Left Panel - Hero Identity (40%) */}
                 <div className="lg:w-[40%] bg-gradient-to-br from-red-700 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
