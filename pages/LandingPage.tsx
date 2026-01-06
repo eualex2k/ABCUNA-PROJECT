@@ -93,7 +93,7 @@ export const LandingPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-600 via-purple-600 to-blue-600">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-600 via-orange-600 to-yellow-500">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-sm text-white font-medium">Carregando...</p>
@@ -155,7 +155,7 @@ export const LandingPage: React.FC = () => {
             </header>
 
             {displayConfig.sections_visibility.hero && (
-                <section className="relative pt-32 pb-32 px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-brand-600 via-purple-600 to-blue-600">
+                <section className="relative pt-32 pb-32 px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-red-600 via-orange-600 to-yellow-500">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.1),transparent_50%)]"></div>
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
 
@@ -179,7 +179,7 @@ export const LandingPage: React.FC = () => {
                             <div className="flex flex-wrap items-center gap-4">
                                 <button
                                     onClick={() => navigate('/auth')}
-                                    className="px-8 py-4 bg-white text-brand-600 font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all inline-flex items-center gap-2"
+                                    className="px-8 py-4 bg-white text-red-600 font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all inline-flex items-center gap-2"
                                 >
                                     Acessar o Sistema
                                     <ArrowRight size={20} />
@@ -198,13 +198,13 @@ export const LandingPage: React.FC = () => {
 
             {displayConfig.sections_visibility.about && (
                 <section id="about" className="relative py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-white overflow-hidden">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-brand-200/40 to-transparent rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-200/40 to-transparent rounded-full blur-3xl"></div>
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-red-200/40 to-transparent rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-orange-200/40 to-transparent rounded-full blur-3xl"></div>
 
                     <div className="max-w-6xl mx-auto relative z-10">
                         <div className="grid md:grid-cols-2 gap-16 items-start">
                             <div>
-                                <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
+                                <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
                                     {displayConfig.about_title || 'Sobre Nós'}
                                 </h2>
                                 <p className="text-lg text-slate-600 leading-relaxed">
@@ -213,7 +213,7 @@ export const LandingPage: React.FC = () => {
                             </div>
 
                             <div className="space-y-6">
-                                <div className="relative p-6 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl shadow-xl shadow-brand-600/30 text-white">
+                                <div className="relative p-6 bg-gradient-to-br from-red-600 to-red-700 rounded-2xl shadow-xl shadow-red-600/30 text-white">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                                             <Target size={24} className="text-white" />
@@ -225,7 +225,7 @@ export const LandingPage: React.FC = () => {
                                     </p>
                                 </div>
 
-                                <div className="relative p-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl shadow-blue-600/30 text-white">
+                                <div className="relative p-6 bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl shadow-xl shadow-orange-600/30 text-white">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                                             <Eye size={24} className="text-white" />
@@ -237,7 +237,7 @@ export const LandingPage: React.FC = () => {
                                     </p>
                                 </div>
 
-                                <div className="relative p-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-xl shadow-purple-600/30 text-white">
+                                <div className="relative p-6 bg-gradient-to-br from-yellow-600 to-yellow-700 rounded-2xl shadow-xl shadow-yellow-600/30 text-white">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                                             <Heart size={24} className="text-white" />
@@ -256,11 +256,11 @@ export const LandingPage: React.FC = () => {
 
             {displayConfig.sections_visibility.services && displayConfig.services && displayConfig.services.length > 0 && (
                 <section id="services" className="relative py-24 px-6 lg:px-8 bg-gradient-to-br from-white to-slate-50 overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(220,38,38,0.05),transparent_50%),radial-gradient(circle_at_80%_70%,rgba(59,130,246,0.05),transparent_50%)]"></div>
+                    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(220,38,38,0.05),transparent_50%),radial-gradient(circle_at_80%_70%,rgba(249,115,22,0.05),transparent_50%)]"></div>
 
                     <div className="max-w-6xl mx-auto relative z-10">
                         <div className="text-center max-w-2xl mx-auto mb-16">
-                            <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 bg-gradient-to-r from-brand-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                            <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 bg-gradient-to-r from-red-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent">
                                 {displayConfig.services_title || 'Nossos Serviços'}
                             </h2>
                             <p className="text-lg text-slate-600">
@@ -271,16 +271,16 @@ export const LandingPage: React.FC = () => {
                         <div className="grid md:grid-cols-2 gap-6">
                             {displayConfig.services.map((service, index) => {
                                 const gradients = [
-                                    'from-brand-500 to-brand-600',
-                                    'from-blue-500 to-blue-600',
-                                    'from-purple-500 to-purple-600',
-                                    'from-pink-500 to-pink-600'
+                                    'from-red-600 to-red-700',
+                                    'from-orange-600 to-orange-700',
+                                    'from-yellow-600 to-yellow-700',
+                                    'from-slate-700 to-slate-800'
                                 ];
                                 const shadows = [
-                                    'shadow-brand-600/30',
-                                    'shadow-blue-600/30',
-                                    'shadow-purple-600/30',
-                                    'shadow-pink-600/30'
+                                    'shadow-red-600/30',
+                                    'shadow-orange-600/30',
+                                    'shadow-yellow-600/30',
+                                    'shadow-slate-700/30'
                                 ];
 
                                 return (
@@ -304,11 +304,11 @@ export const LandingPage: React.FC = () => {
 
             {displayConfig.sections_visibility.testimonials && displayConfig.testimonials && displayConfig.testimonials.length > 0 && (
                 <section className="relative py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-white overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(168,85,247,0.05),transparent_70%)]"></div>
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(234,88,12,0.05),transparent_70%)]"></div>
 
                     <div className="max-w-6xl mx-auto relative z-10">
                         <div className="text-center max-w-2xl mx-auto mb-16">
-                            <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                                 {displayConfig.testimonials_title || 'Depoimentos'}
                             </h2>
                             <p className="text-lg text-slate-600">
@@ -319,14 +319,14 @@ export const LandingPage: React.FC = () => {
                         <div className="grid md:grid-cols-3 gap-8">
                             {displayConfig.testimonials.map((testimonial, index) => {
                                 const gradients = [
-                                    'from-brand-500 to-brand-600',
-                                    'from-blue-500 to-blue-600',
-                                    'from-purple-500 to-purple-600'
+                                    'from-red-600 to-red-700',
+                                    'from-orange-600 to-orange-700',
+                                    'from-yellow-600 to-yellow-700'
                                 ];
                                 const shadows = [
-                                    'shadow-brand-600/20',
-                                    'shadow-blue-600/20',
-                                    'shadow-purple-600/20'
+                                    'shadow-red-600/20',
+                                    'shadow-orange-600/20',
+                                    'shadow-yellow-600/20'
                                 ];
 
                                 return (
@@ -354,7 +354,7 @@ export const LandingPage: React.FC = () => {
             {displayConfig.sections_visibility.gallery && displayConfig.gallery_images.length > 0 && (
                 <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-white to-slate-50">
                     <div className="max-w-6xl mx-auto">
-                        <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-12 text-center bg-gradient-to-r from-brand-600 to-blue-600 bg-clip-text text-transparent">
+                        <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-12 text-center bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
                             {displayConfig.gallery_title || 'Galeria'}
                         </h2>
 
@@ -378,13 +378,13 @@ export const LandingPage: React.FC = () => {
 
             {displayConfig.sections_visibility.contact && displayConfig.contact && (
                 <section id="contact" className="relative py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-white overflow-hidden">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-green-200/40 to-transparent rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-brand-200/40 to-transparent rounded-full blur-3xl"></div>
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-yellow-200/40 to-transparent rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-red-200/40 to-transparent rounded-full blur-3xl"></div>
 
                     <div className="max-w-6xl mx-auto relative z-10">
                         <div className="grid md:grid-cols-2 gap-16">
                             <div>
-                                <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                                <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
                                     Entre em Contato
                                 </h2>
                                 <p className="text-lg text-slate-600 mb-8">
@@ -395,19 +395,19 @@ export const LandingPage: React.FC = () => {
                                     <div className="flex items-center gap-3">
                                         {displayConfig.social.facebook && (
                                             <a href={displayConfig.social.facebook} target="_blank" rel="noopener noreferrer"
-                                                className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 hover:scale-110 rounded-xl flex items-center justify-center text-white transition-all shadow-lg shadow-blue-600/40">
+                                                className="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-800 hover:scale-110 rounded-xl flex items-center justify-center text-white transition-all shadow-lg shadow-slate-700/40">
                                                 <Facebook size={22} />
                                             </a>
                                         )}
                                         {displayConfig.social.instagram && (
                                             <a href={displayConfig.social.instagram} target="_blank" rel="noopener noreferrer"
-                                                className="w-12 h-12 bg-gradient-to-br from-pink-600 to-purple-600 hover:scale-110 rounded-xl flex items-center justify-center text-white transition-all shadow-lg shadow-pink-600/40">
+                                                className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 hover:scale-110 rounded-xl flex items-center justify-center text-white transition-all shadow-lg shadow-orange-600/40">
                                                 <Instagram size={22} />
                                             </a>
                                         )}
                                         {displayConfig.social.linkedin && (
                                             <a href={displayConfig.social.linkedin} target="_blank" rel="noopener noreferrer"
-                                                className="w-12 h-12 bg-gradient-to-br from-blue-700 to-blue-800 hover:scale-110 rounded-xl flex items-center justify-center text-white transition-all shadow-lg shadow-blue-700/40">
+                                                className="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-800 hover:scale-110 rounded-xl flex items-center justify-center text-white transition-all shadow-lg shadow-slate-700/40">
                                                 <Linkedin size={22} />
                                             </a>
                                         )}
@@ -417,7 +417,7 @@ export const LandingPage: React.FC = () => {
 
                             <div className="space-y-6">
                                 {displayConfig.contact.phone && (
-                                    <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl shadow-lg shadow-brand-600/30 text-white">
+                                    <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-red-600 to-red-700 rounded-2xl shadow-lg shadow-red-600/30 text-white">
                                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
                                             <Phone size={22} className="text-white" />
                                         </div>
@@ -429,7 +429,7 @@ export const LandingPage: React.FC = () => {
                                 )}
 
                                 {displayConfig.contact.email && (
-                                    <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg shadow-blue-600/30 text-white">
+                                    <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl shadow-lg shadow-orange-600/30 text-white">
                                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
                                             <Mail size={22} className="text-white" />
                                         </div>
@@ -441,7 +441,7 @@ export const LandingPage: React.FC = () => {
                                 )}
 
                                 {displayConfig.contact.address && (
-                                    <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg shadow-purple-600/30 text-white">
+                                    <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl shadow-lg shadow-slate-700/30 text-white">
                                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
                                             <MapPin size={22} className="text-white" />
                                         </div>
@@ -453,7 +453,7 @@ export const LandingPage: React.FC = () => {
                                 )}
 
                                 {displayConfig.contact.workingHours && (
-                                    <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg shadow-green-600/30 text-white">
+                                    <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-yellow-600 to-yellow-700 rounded-2xl shadow-lg shadow-yellow-600/30 text-white">
                                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
                                             <Clock size={22} className="text-white" />
                                         </div>
@@ -470,7 +470,7 @@ export const LandingPage: React.FC = () => {
             )}
 
             {displayConfig.sections_visibility.cta && (
-                <section className="relative py-32 px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 overflow-hidden">
+                <section className="relative py-32 px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-red-900 to-orange-900 overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.1),transparent_50%)]"></div>
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
 
