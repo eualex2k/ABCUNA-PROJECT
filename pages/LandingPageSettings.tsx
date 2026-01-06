@@ -8,6 +8,65 @@ import { landingPageService } from '../services/landingPage';
 import { LandingPageConfig, User } from '../types';
 import { notificationService } from '../services/notifications';
 
+// --- Componentes Auxiliares (DEFINIDOS FORA DO COMPONENTE PRINCIPAL PARA EVITAR TREMOR) ---
+
+const Tooltip = ({ text }: { text: string }) => (
+    <div className="group relative inline-block ml-2">
+        <HelpCircle size={16} className="text-slate-400 hover:text-red-600 cursor-help" />
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+            {text}
+        </div>
+    </div>
+);
+
+const SectionCard = ({
+    title,
+    description,
+    icon: Icon,
+    sectionKey,
+    expanded,
+    onToggle,
+    children
+}: {
+    title: string;
+    description: string;
+    icon: any;
+    sectionKey: string;
+    expanded: boolean;
+    onToggle: (key: string) => void;
+    children: React.ReactNode;
+}) => (
+    <Card className="overflow-hidden mb-4 transition-all duration-300 ease-in-out border-slate-200 hover:border-slate-300">
+        <div
+            className={`p-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors ${expanded ? 'bg-slate-100' : ''}`}
+            onClick={() => onToggle(sectionKey)}
+        >
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm transition-all duration-300 ${expanded ? 'bg-red-600 shadow-red-200' : 'bg-slate-200'}`}>
+                        <Icon size={24} className={expanded ? "text-white" : "text-slate-500"} />
+                    </div>
+                    <div>
+                        <h3 className={`text-lg font-black ${expanded ? 'text-red-700' : 'text-slate-700'}`}>{title}</h3>
+                        <p className="text-sm text-slate-500">{description}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Usando renderização condicional simples para evitar problemas de layout */}
+        {expanded && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="p-6 space-y-6 bg-white border-t border-slate-100">
+                    {children}
+                </div>
+            </div>
+        )}
+    </Card>
+);
+
+// --- Componente Principal ---
+
 interface LandingPageSettingsProps {
     user: User;
 }
@@ -49,7 +108,6 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
             linkedin: ''
         },
         cta_button_text: '',
-        // Campos mantidos para compatibilidade de tipagem, mas não usados na UI simplificada
         stats: [],
         services_title: '',
         services_subtitle: '',
@@ -134,10 +192,6 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
         try {
             setUploading(true);
             const url = await landingPageService.uploadImage(file);
-            // No novo layout, só usamos imagem no Hero (opcionalmente) ou em background
-            // Por enquanto, vamos assumir que o upload é para substituir algo específico se necessário,
-            // mas o layout split-screen usa cores sólidas. Vamos manter a funcionalidade para Hero Image
-            // caso o usuário queira.
             setConfig({ ...config, hero_image_url: url });
 
             notificationService.add({
@@ -182,53 +236,6 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
         const newServices = (config.services || []).filter((_, i) => i !== index);
         setConfig({ ...config, services: newServices });
     };
-
-    const Tooltip = ({ text }: { text: string }) => (
-        <div className="group relative inline-block ml-2">
-            <HelpCircle size={16} className="text-slate-400 hover:text-red-600 cursor-help" />
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                {text}
-            </div>
-        </div>
-    );
-
-    const SectionCard = ({
-        title,
-        description,
-        icon: Icon,
-        sectionKey,
-        children
-    }: {
-        title: string;
-        description: string;
-        icon: any;
-        sectionKey: string;
-        children: React.ReactNode;
-    }) => (
-        <Card className="overflow-hidden mb-4">
-            <div
-                className="p-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors"
-                onClick={() => toggleExpanded(sectionKey)}
-            >
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <Icon size={24} className="text-white" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-black text-slate-900">{title}</h3>
-                            <p className="text-sm text-slate-500">{description}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {expandedSections[sectionKey] && (
-                <div className="p-6 space-y-6">
-                    {children}
-                </div>
-            )}
-        </Card>
-    );
 
     if (loading) {
         return (
@@ -277,7 +284,6 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                         <p className="text-sm text-blue-700">
                             A página agora usa um layout moderno de "Tela Dividida" com abas.
                             Edite apenas as seções **Hero**, **Sobre**, **Serviços** e **Contato**.
-                            Outras seções foram removidas para garantir o visual limpo e profissional.
                         </p>
                     </div>
                 </div>
@@ -289,12 +295,13 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                 description="Lado esquerdo da tela: Título, Slogan e Botão"
                 icon={Star}
                 sectionKey="hero"
+                expanded={expandedSections['hero']}
+                onToggle={toggleExpanded}
             >
                 <Input
                     label={
                         <span className="flex items-center">
                             Título Principal
-                            <Tooltip text="Nome da organização (ex: ABCUNA)" />
                         </span>
                     }
                     value={config.hero_title}
@@ -306,7 +313,6 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                     label={
                         <span className="flex items-center">
                             Subtítulo / Slogan
-                            <Tooltip text="Frase de impacto abaixo do título" />
                         </span>
                     }
                     value={config.hero_subtitle}
@@ -320,7 +326,6 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                         label={
                             <span className="flex items-center">
                                 Texto do Badge
-                                <Tooltip text="Pequena etiqueta acima do título" />
                             </span>
                         }
                         value={config.hero_badge_text || ''}
@@ -335,6 +340,39 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                         placeholder="Ex: Área do Associado"
                     />
                 </div>
+
+                {/* Hero Image Section - Mantida mas simplificada */}
+                <div className="pt-4 border-t border-slate-100">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Imagem de Fundo (Opcional)
+                    </label>
+                    <div className="flex items-center gap-4">
+                        {config.hero_image_url && (
+                            <div className="w-20 h-20 rounded-lg overflow-hidden border border-slate-200">
+                                <img
+                                    src={config.hero_image_url}
+                                    alt="Hero"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        )}
+                        <div className="flex-1">
+                            <label className="cursor-pointer">
+                                <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 w-fit">
+                                    <Upload size={16} />
+                                    Escolher Imagem
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                    disabled={uploading}
+                                />
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </SectionCard>
 
             {/* About Section */}
@@ -343,6 +381,8 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                 description="Texto institucional e valores"
                 icon={Info}
                 sectionKey="about"
+                expanded={expandedSections['about']}
+                onToggle={toggleExpanded}
             >
                 <Input
                     label="Título da Aba"
@@ -392,6 +432,8 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                 description="Lista de serviços oferecidos"
                 icon={Award}
                 sectionKey="services"
+                expanded={expandedSections['services']}
+                onToggle={toggleExpanded}
             >
                 <div className="flex items-center justify-between mb-4">
                     <p className="text-sm text-slate-600">Recomendado: 4 serviços principais</p>
@@ -440,6 +482,8 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                 description="Dados de contato e redes sociais"
                 icon={Phone}
                 sectionKey="contact"
+                expanded={expandedSections['contact']}
+                onToggle={toggleExpanded}
             >
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                     <Input
