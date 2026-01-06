@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Flame, ArrowRight, Target, Eye, Heart,
-    Users, Award, Shield, Phone, Mail, MapPin,
-    Facebook, Instagram, Twitter, Linkedin, Youtube, Star,
-    TrendingUp, Activity, CheckCircle, Zap, Clock, Sparkles
+    Phone, Mail, MapPin,
+    Facebook, Instagram, Linkedin,
+    Activity, Award, Calendar, Briefcase
 } from 'lucide-react';
-import { Button } from '../components/ui';
 import { landingPageService } from '../services/landingPage';
 import { LandingPageConfig } from '../types';
+
+type TabType = 'about' | 'services' | 'contact';
 
 export const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [config, setConfig] = useState<LandingPageConfig | null>(null);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<TabType>('about');
 
     useEffect(() => {
         loadConfig();
@@ -33,48 +35,44 @@ export const LandingPage: React.FC = () => {
     const defaultConfig: LandingPageConfig = {
         id: '',
         hero_title: 'ABCUNA',
-        hero_subtitle: 'Dedicados a salvar vidas e servir a comunidade com excelência, profissionalismo e compromisso social.',
-        hero_badge_text: 'Salvando vidas desde sempre',
+        hero_subtitle: 'Excelência e compromisso em salvar vidas e servir a comunidade.',
+        hero_badge_text: 'Desde 2020',
         hero_image_url: '',
-        about_title: 'Sobre Nós',
-        about_text: 'A ABCUNA é uma organização sem fins lucrativos dedicada ao atendimento de emergências e urgências médicas. Nossa equipe altamente qualificada trabalha incansavelmente para garantir atendimento rápido e eficiente à comunidade.',
-        mission_text: 'Prestar serviços de atendimento pré-hospitalar com excelência, garantindo suporte imediato e qualificado em situações de emergência.',
-        vision_text: 'Ser referência nacional em atendimento de urgência e emergência, reconhecida pela qualidade técnica e compromisso com a vida.',
-        values_text: 'Ética, Profissionalismo, Compromisso Social, Excelência Técnica, Respeito à Vida',
+        about_title: 'Nossa Essência',
+        about_text: 'A ABCUNA é referência especializada em atendimento de emergência. Nossa equipe de elite combina técnica apurada e humanização para agir nos momentos mais críticos.',
+        mission_text: 'Salvar vidas com excelência técnica e rapidez.',
+        vision_text: 'Ser a principal referência em APH na região.',
+        values_text: 'Ética, Coragem, Disciplina e Humanidade.',
         gallery_images: [],
         stats: [],
         services: [
-            { title: 'Atendimento Pré-Hospitalar', description: 'Equipe especializada em atendimento de urgência e emergência, disponível 24/7.', icon: 'activity' },
-            { title: 'Treinamentos e Capacitação', description: 'Cursos e treinamentos para formação de socorristas e profissionais de saúde.', icon: 'award' },
-            { title: 'Eventos e Operações', description: 'Cobertura médica para eventos esportivos, culturais e corporativos.', icon: 'calendar' },
-            { title: 'Consultoria em Saúde', description: 'Assessoria técnica para empresas e instituições em gestão de emergências.', icon: 'briefcase' }
+            { title: 'Atendimento APH', description: 'Suporte avançado de vida 24h.', icon: 'activity' },
+            { title: 'Formação', description: 'Cursos técnicos certificadores.', icon: 'award' },
+            { title: 'Cobertura', description: 'Segurança médica para eventos.', icon: 'calendar' },
+            { title: 'Consultoria', description: 'Gestão de riscos e emergências.', icon: 'briefcase' }
         ],
-        testimonials: [
-            { name: 'Maria Silva', role: 'Coordenadora de Eventos', content: 'A ABCUNA prestou um serviço excepcional no nosso evento. Profissionalismo e dedicação incomparáveis!', avatar: '' },
-            { name: 'João Santos', role: 'Gestor de RH', content: 'Os treinamentos oferecidos pela ABCUNA transformaram nossa equipe de segurança. Altamente recomendado!', avatar: '' },
-            { name: 'Ana Costa', role: 'Diretora Escolar', content: 'Confiamos na ABCUNA para a segurança dos nossos alunos. Equipe sempre pronta e preparada.', avatar: '' }
-        ],
+        testimonials: [],
         contact: {
-            phone: '(11) 1234-5678',
+            phone: '(32) 99888-7766',
             email: 'contato@abcuna.org.br',
-            address: 'Rua Exemplo, 123 - São Paulo, SP',
-            workingHours: 'Seg-Sex: 8h-18h | Emergências: 24/7'
+            address: 'Centro, Ubá - MG',
+            workingHours: '24 Horas / 7 Dias'
         },
         social: {
-            facebook: 'https://facebook.com/abcuna',
-            instagram: 'https://instagram.com/abcuna',
-            linkedin: 'https://linkedin.com/company/abcuna'
+            facebook: '#',
+            instagram: '#',
+            linkedin: '#'
         },
-        cta_title: 'Pronto para fazer a diferença?',
-        cta_subtitle: 'Junte-se à nossa equipe e ajude a salvar vidas.',
-        cta_button_text: 'Acessar o Sistema',
+        cta_title: 'Junte-se a Nós',
+        cta_subtitle: '',
+        cta_button_text: 'Área do Associado',
         sections_visibility: {
             hero: true,
             about: true,
             stats: false,
             services: true,
-            testimonials: true,
-            gallery: true,
+            testimonials: false,
+            gallery: false,
             contact: true,
             cta: true
         }
@@ -82,342 +80,259 @@ export const LandingPage: React.FC = () => {
 
     const displayConfig = config || defaultConfig;
 
-    const getIcon = (iconName: string, size: number = 24) => {
-        const icons: { [key: string]: any } = {
-            users: Users, award: Award, shield: Shield, activity: Activity,
-            trending: TrendingUp, check: CheckCircle, zap: Zap, clock: Clock
-        };
-        const IconComponent = icons[iconName] || Activity;
-        return <IconComponent size={size} />;
-    };
-
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-600 to-slate-900">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="w-12 h-12 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-sm text-white font-medium">Carregando...</p>
-                </div>
+            <div className="h-screen flex items-center justify-center bg-slate-900">
+                <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
 
-    return (
-        <div className="min-h-screen bg-white">
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-slate-200">
-                <div className="max-w-6xl mx-auto px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        <div
-                            className="flex items-center gap-2 cursor-pointer group"
-                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                        >
-                            <div className="w-9 h-9 bg-gradient-to-br from-brand-600 to-brand-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-600/30">
-                                <Flame size={20} className="text-white" fill="currentColor" />
-                            </div>
-                            <span className="text-lg font-bold text-slate-900">ABCUNA</span>
-                        </div>
-
-                        <nav className="hidden md:flex items-center gap-8">
-                            {displayConfig.sections_visibility.about && (
-                                <button
-                                    onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors"
-                                >
-                                    Sobre
-                                </button>
-                            )}
-                            {displayConfig.sections_visibility.services && (
-                                <button
-                                    onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors"
-                                >
-                                    Serviços
-                                </button>
-                            )}
-                            {displayConfig.sections_visibility.contact && (
-                                <button
-                                    onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors"
-                                >
-                                    Contato
-                                </button>
-                            )}
-                        </nav>
-
-                        <button
-                            onClick={() => navigate('/auth')}
-                            className="px-5 py-2.5 bg-gradient-to-r from-brand-600 to-brand-700 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:shadow-brand-600/40 transition-all hover:scale-105"
-                        >
-                            Entrar
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            {displayConfig.sections_visibility.hero && (
-                <section className="relative pt-20 pb-12 px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-red-600 to-slate-900">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.1),transparent_50%)]"></div>
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
-
-                    <div className="max-w-6xl mx-auto relative z-10">
-                        <div className="max-w-3xl">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full mb-4">
-                                <Sparkles size={12} className="text-white" />
-                                <span className="text-[10px] font-semibold text-white">
-                                    {displayConfig.hero_badge_text || 'Salvando vidas desde sempre'}
-                                </span>
-                            </div>
-
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 leading-tight">
-                                {displayConfig.hero_title}
-                            </h1>
-
-                            <p className="text-base md:text-lg text-white/90 mb-6 leading-relaxed max-w-2xl">
-                                {displayConfig.hero_subtitle}
-                            </p>
-
-                            <div className="flex flex-wrap items-center gap-3">
-                                <button
-                                    onClick={() => navigate('/auth')}
-                                    className="px-6 py-2.5 bg-white text-red-600 font-bold text-sm rounded-xl hover:shadow-2xl hover:scale-105 transition-all inline-flex items-center gap-2"
-                                >
-                                    Acessar o Sistema
-                                    <ArrowRight size={16} />
-                                </button>
-                                <button
-                                    onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="px-6 py-2.5 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white font-bold text-sm rounded-xl hover:bg-white/20 transition-all"
-                                >
-                                    Saiba mais
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {displayConfig.sections_visibility.about && (
-                <section id="about" className="relative py-8 px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-white overflow-hidden">
-                    <div className="max-w-6xl mx-auto relative z-10">
-                        <div className="grid md:grid-cols-2 gap-8 items-start">
-                            <div>
-                                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3 bg-gradient-to-r from-red-600 to-slate-800 bg-clip-text text-transparent">
-                                    {displayConfig.about_title || 'Sobre Nós'}
-                                </h2>
-                                <p className="text-sm text-slate-600 leading-relaxed">
-                                    {displayConfig.about_text}
-                                </p>
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="relative p-4 bg-gradient-to-br from-red-600 to-red-700 rounded-xl shadow-lg shadow-red-600/20 text-white">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                                            <Target size={16} className="text-white" />
-                                        </div>
-                                        <h3 className="text-sm font-bold">Missão</h3>
-                                    </div>
-                                    <p className="text-white/90 text-xs leading-relaxed">
-                                        {displayConfig.mission_text}
-                                    </p>
-                                </div>
-
-                                <div className="relative p-4 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl shadow-lg shadow-slate-700/20 text-white">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                                            <Eye size={16} className="text-white" />
-                                        </div>
-                                        <h3 className="text-sm font-bold">Visão</h3>
-                                    </div>
-                                    <p className="text-white/90 text-xs leading-relaxed">
-                                        {displayConfig.vision_text}
-                                    </p>
-                                </div>
-
-                                <div className="relative p-4 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl shadow-lg shadow-slate-700/20 text-white">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                                            <Heart size={16} className="text-white" />
-                                        </div>
-                                        <h3 className="text-sm font-bold">Valores</h3>
-                                    </div>
-                                    <p className="text-white/90 text-xs leading-relaxed">
-                                        {displayConfig.values_text}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {displayConfig.sections_visibility.services && displayConfig.services && displayConfig.services.length > 0 && (
-                <section id="services" className="relative py-8 px-6 lg:px-8 bg-gradient-to-br from-white to-slate-50">
-                    <div className="max-w-6xl mx-auto relative z-10">
-                        <div className="text-center max-w-2xl mx-auto mb-6">
-                            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2 bg-gradient-to-r from-red-600 to-slate-800 bg-clip-text text-transparent">
-                                {displayConfig.services_title || 'Nossos Serviços'}
-                            </h2>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-4">
-                            {displayConfig.services.slice(0, 2).map((service, index) => {
-                                const gradients = [
-                                    'from-red-600 to-red-700',
-                                    'from-slate-700 to-slate-800'
-                                ];
-                                const shadows = [
-                                    'shadow-red-600/20',
-                                    'shadow-slate-700/20'
-                                ];
-
-                                return (
-                                    <div
-                                        key={index}
-                                        className={`group relative p-4 bg-gradient-to-br ${gradients[index % 2]} rounded-xl shadow-lg ${shadows[index % 2]} hover:shadow-xl hover:scale-105 transition-all text-white`}
-                                    >
-                                        <h3 className="text-lg font-bold mb-2">
-                                            {service.title}
-                                        </h3>
-                                        <p className="text-white/90 text-xs leading-relaxed">
-                                            {service.description}
-                                        </p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </section>
-            )}
-
-
-
-            {displayConfig.sections_visibility.gallery && displayConfig.gallery_images.length > 0 && (
-                <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-white to-slate-50">
-                    <div className="max-w-6xl mx-auto">
-                        <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-12 text-center bg-gradient-to-r from-red-600 to-slate-800 bg-clip-text text-transparent">
-                            {displayConfig.gallery_title || 'Galeria'}
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'services':
+                return (
+                    <div className="h-full flex flex-col animate-fadeIn">
+                        <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <Activity className="text-red-600" size={24} />
+                            Nossos Serviços
                         </h2>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {displayConfig.gallery_images.map((image, index) => (
-                                <div
-                                    key={index}
-                                    className="aspect-square rounded-2xl overflow-hidden bg-slate-200 hover:shadow-2xl hover:scale-105 transition-all"
-                                >
-                                    <img
-                                        src={image}
-                                        alt={`Galeria ${index + 1}`}
-                                        className="w-full h-full object-cover"
-                                    />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-4 scrollbar-hide">
+                            {displayConfig.services?.map((service, idx) => (
+                                <div key={idx} className="group p-5 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md hover:border-red-100 transition-all">
+                                    <div className="w-10 h-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                                        {idx === 0 && <Activity size={20} />}
+                                        {idx === 1 && <Award size={20} />}
+                                        {idx === 2 && <Calendar size={20} />}
+                                        {idx === 3 && <Briefcase size={20} />}
+                                    </div>
+                                    <h3 className="font-bold text-slate-800 mb-1">{service.title}</h3>
+                                    <p className="text-xs text-slate-500 leading-relaxed">{service.description}</p>
                                 </div>
                             ))}
                         </div>
                     </div>
-                </section>
-            )}
+                );
+            case 'contact':
+                return (
+                    <div className="h-full flex flex-col animate-fadeIn">
+                        <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <Phone className="text-red-600" size={24} />
+                            Fale Conosco
+                        </h2>
 
-            {displayConfig.sections_visibility.contact && displayConfig.contact && (
-                <section id="contact" className="relative py-8 px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-white">
-                    <div className="max-w-6xl mx-auto relative z-10">
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div>
-                                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3 bg-gradient-to-r from-red-600 to-slate-800 bg-clip-text text-transparent">
-                                    Entre em Contato
-                                </h2>
-
-                                {displayConfig.social && (
-                                    <div className="flex items-center gap-2">
-                                        {displayConfig.social.facebook && (
-                                            <a href={displayConfig.social.facebook} target="_blank" rel="noopener noreferrer"
-                                                className="w-9 h-9 bg-gradient-to-br from-slate-700 to-slate-800 hover:scale-110 rounded-lg flex items-center justify-center text-white transition-all shadow-md shadow-slate-700/30">
-                                                <Facebook size={16} />
-                                            </a>
-                                        )}
-                                        {displayConfig.social.instagram && (
-                                            <a href={displayConfig.social.instagram} target="_blank" rel="noopener noreferrer"
-                                                className="w-9 h-9 bg-gradient-to-br from-red-600 to-red-700 hover:scale-110 rounded-lg flex items-center justify-center text-white transition-all shadow-md shadow-red-600/30">
-                                                <Instagram size={16} />
-                                            </a>
-                                        )}
-                                        {displayConfig.social.linkedin && (
-                                            <a href={displayConfig.social.linkedin} target="_blank" rel="noopener noreferrer"
-                                                className="w-9 h-9 bg-gradient-to-br from-slate-700 to-slate-800 hover:scale-110 rounded-lg flex items-center justify-center text-white transition-all shadow-md shadow-slate-700/30">
-                                                <Linkedin size={16} />
-                                            </a>
-                                        )}
+                        <div className="space-y-4 mb-8">
+                            {displayConfig.contact?.phone && (
+                                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-red-200 transition-colors">
+                                    <div className="w-10 h-10 bg-white shadow-sm rounded-full flex items-center justify-center text-red-600">
+                                        <Phone size={20} />
                                     </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Telefone</p>
+                                        <p className="text-slate-800 font-medium text-sm">{displayConfig.contact.phone}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {displayConfig.contact?.email && (
+                                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-red-200 transition-colors">
+                                    <div className="w-10 h-10 bg-white shadow-sm rounded-full flex items-center justify-center text-red-600">
+                                        <Mail size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">E-mail</p>
+                                        <p className="text-slate-800 font-medium text-sm">{displayConfig.contact.email}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {displayConfig.contact?.address && (
+                                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-red-200 transition-colors">
+                                    <div className="w-10 h-10 bg-white shadow-sm rounded-full flex items-center justify-center text-red-600">
+                                        <MapPin size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Localização</p>
+                                        <p className="text-slate-800 font-medium text-sm">{displayConfig.contact.address}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-auto">
+                            <p className="text-xs font-semibold text-slate-600 mb-4 uppercase tracking-wider">Redes Sociais</p>
+                            <div className="flex gap-3">
+                                {displayConfig.social?.facebook && (
+                                    <a href={displayConfig.social.facebook} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-[#1877F2] text-white rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm">
+                                        <Facebook size={18} /> <span className="text-sm font-medium">Facebook</span>
+                                    </a>
                                 )}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                {displayConfig.contact.phone && (
-                                    <div className="flex items-start gap-2 p-3 bg-gradient-to-br from-red-600 to-red-700 rounded-xl shadow-md shadow-red-600/20 text-white">
-                                        <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <Phone size={14} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-xs mb-0.5">Telefone</p>
-                                            <p className="text-white/90 text-[10px]">{displayConfig.contact.phone}</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {displayConfig.contact.email && (
-                                    <div className="flex items-start gap-2 p-3 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl shadow-md shadow-slate-700/20 text-white">
-                                        <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <Mail size={14} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-xs mb-0.5">E-mail</p>
-                                            <p className="text-white/90 text-[10px]">{displayConfig.contact.email}</p>
-                                        </div>
-                                    </div>
+                                {displayConfig.social?.instagram && (
+                                    <a href={displayConfig.social.instagram} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm">
+                                        <Instagram size={18} /> <span className="text-sm font-medium">Instagram</span>
+                                    </a>
                                 )}
                             </div>
                         </div>
                     </div>
-                </section>
-            )}
-
-            {displayConfig.sections_visibility.cta && (
-                <section className="relative py-12 px-6 lg:px-8 bg-gradient-to-br from-slate-900 to-red-900 overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.1),transparent_50%)]"></div>
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
-
-                    <div className="max-w-4xl mx-auto text-center relative z-10">
-                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-                            {displayConfig.cta_title || 'Pronto para fazer a diferença?'}
+                );
+            case 'about':
+            default:
+                return (
+                    <div className="h-full flex flex-col animate-fadeIn">
+                        <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <Target className="text-red-600" size={24} />
+                            {displayConfig.about_title}
                         </h2>
-                        <p className="text-base md:text-lg text-white/80 mb-6 max-w-2xl mx-auto">
-                            {displayConfig.cta_subtitle || 'Junte-se à nossa equipe e ajude a salvar vidas.'}
+
+                        <p className="text-sm text-slate-600 leading-relaxed mb-8 border-l-4 border-red-500 pl-4">
+                            {displayConfig.about_text}
                         </p>
+
+                        <div className="grid gap-4 mt-auto">
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-red-100 transition-colors">
+                                <div className="flex items-center gap-2 mb-2 text-red-700">
+                                    <Target size={18} />
+                                    <h3 className="font-bold text-xs uppercase tracking-wider">Missão</h3>
+                                </div>
+                                <p className="text-xs text-slate-600">{displayConfig.mission_text}</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-red-100 transition-colors">
+                                    <div className="flex items-center gap-2 mb-2 text-slate-700">
+                                        <Eye size={18} />
+                                        <h3 className="font-bold text-xs uppercase tracking-wider">Visão</h3>
+                                    </div>
+                                    <p className="text-[10px] text-slate-600 leading-snug">{displayConfig.vision_text}</p>
+                                </div>
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-red-100 transition-colors">
+                                    <div className="flex items-center gap-2 mb-2 text-slate-700">
+                                        <Heart size={18} />
+                                        <h3 className="font-bold text-xs uppercase tracking-wider">Valores</h3>
+                                    </div>
+                                    <p className="text-[10px] text-slate-600 leading-snug">{displayConfig.values_text}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+        }
+    };
+
+    return (
+        <div className="h-screen w-full bg-[#0f172a] text-slate-900 flex items-center justify-center p-4 lg:p-8 overflow-hidden font-sans">
+            <div className="w-full max-w-6xl h-full max-h-[85vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row ring-1 ring-white/10">
+
+                {/* Left Panel - Hero Identity (40%) */}
+                <div className="lg:w-[40%] bg-gradient-to-br from-red-700 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
+                    {/* Background Pattern */}
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjFmIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-10"></div>
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-red-500 rounded-full blur-[100px] opacity-20 -mr-20 -mt-20"></div>
+
+                    {/* Header Logo */}
+                    <div className="relative z-10 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-lg">
+                            <Flame size={20} className="text-white" fill="currentColor" />
+                        </div>
+                        <span className="text-xl font-bold tracking-tight">ABCUNA</span>
+                    </div>
+
+                    {/* Main Hero Content */}
+                    <div className="relative z-10 my-8">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white text-[10px] font-medium mb-6 uppercase tracking-wider">
+                            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                            {displayConfig.hero_badge_text}
+                        </div>
+                        <h1 className="text-3xl lg:text-4xl font-bold leading-tight mb-4">
+                            {displayConfig.hero_title}
+                        </h1>
+                        <p className="text-base text-slate-300 leading-relaxed max-w-sm">
+                            {displayConfig.hero_subtitle}
+                        </p>
+                    </div>
+
+                    {/* Footer / CTA */}
+                    <div className="relative z-10">
                         <button
                             onClick={() => navigate('/auth')}
-                            className="px-6 py-3 bg-white text-slate-900 font-bold text-sm rounded-xl hover:shadow-2xl hover:scale-110 transition-all inline-flex items-center gap-2"
+                            className="group w-full sm:w-auto px-6 py-3.5 bg-white text-red-700 font-bold text-sm rounded-xl shadow-lg shadow-black/20 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                         >
-                            {displayConfig.cta_button_text || 'Acessar o Sistema'}
-                            <ArrowRight size={16} />
+                            {displayConfig.cta_button_text}
+                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                         </button>
-                    </div>
-                </section>
-            )}
-
-            <footer className="py-6 px-6 lg:px-8 bg-slate-900 border-t border-slate-800">
-                <div className="max-w-6xl mx-auto">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 bg-gradient-to-br from-brand-600 to-brand-700 rounded-lg flex items-center justify-center shadow-md shadow-brand-600/20">
-                                <Flame size={16} className="text-white" fill="currentColor" />
-                            </div>
-                            <span className="text-sm font-bold text-white">ABCUNA</span>
-                        </div>
-                        <p className="text-xs text-slate-400">
-                            © {new Date().getFullYear()} ABCUNA. Todos os direitos reservados.
+                        <p className="mt-6 text-[10px] text-slate-400 opacity-60 uppercase tracking-widest text-center lg:text-left">
+                            © {new Date().getFullYear()} ABCUNA • Sistema Integrado
                         </p>
                     </div>
                 </div>
-            </footer>
+
+                {/* Right Panel - Interactive Content (60%) */}
+                <div className="lg:w-[60%] bg-white flex flex-col relative z-20">
+                    {/* Navigation Tabs */}
+                    <div className="flex border-b border-slate-100 px-8 pt-8 bg-white sticky top-0 z-30">
+                        <button
+                            onClick={() => setActiveTab('about')}
+                            className={`pb-4 px-4 text-xs font-bold uppercase tracking-wider transition-all relative ${activeTab === 'about'
+                                    ? 'text-red-700'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                        >
+                            Sobre
+                            {activeTab === 'about' && (
+                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-700 rounded-t-full transition-all"></span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('services')}
+                            className={`pb-4 px-4 text-xs font-bold uppercase tracking-wider transition-all relative ${activeTab === 'services'
+                                    ? 'text-red-700'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                        >
+                            Serviços
+                            {activeTab === 'services' && (
+                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-700 rounded-t-full transition-all"></span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('contact')}
+                            className={`pb-4 px-4 text-xs font-bold uppercase tracking-wider transition-all relative ${activeTab === 'contact'
+                                    ? 'text-red-700'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                        >
+                            Contato
+                            {activeTab === 'contact' && (
+                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-700 rounded-t-full transition-all"></span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Dynamic Content Area */}
+                    <div className="flex-1 p-8 overflow-hidden relative">
+                        {renderContent()}
+                    </div>
+                </div>
+            </div>
+
+            {/* Global Style for fades */}
+            <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(5px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.3s ease-out forwards;
+                }
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+                .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            `}</style>
         </div>
     );
 };
