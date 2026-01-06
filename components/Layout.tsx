@@ -147,7 +147,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
       >
         <div className="h-full flex flex-col">
           {/* Logo */}
-          <div className="h-20 flex items-center px-6 mb-2">
+          <div className="h-20 flex items-center px-6 mb-2 flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-brand-600 rounded-xl text-white">
                 <Flame size={22} fill="currentColor" />
@@ -167,11 +167,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             </button>
           </div>
 
-          {/* Navigation */}
+          {/* Menu Principal Header - FIXED (Moved outside scrollable nav) */}
+          <div className="px-7 pt-2 pb-2 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] opacity-70 flex-shrink-0">
+            Menu Principal
+          </div>
+
+          {/* Navigation - Scrollable */}
           <nav className="flex-1 overflow-y-auto py-2 px-4 space-y-1 custom-scrollbar">
-            <div className="px-3 mb-4 mt-4 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] opacity-70">
-              Menu Principal
-            </div>
             {filteredMenu.map((item) => {
               const isActive = location.pathname === item.path;
               const Icon = item.icon;
@@ -198,7 +200,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           </nav>
 
           {/* User Profile Footer */}
-          <div className="p-4 mt-auto">
+          <div className="p-4 mt-auto flex-shrink-0">
             <div
               className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors group"
               onClick={() => navigate('/profile')}
