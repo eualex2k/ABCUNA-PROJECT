@@ -117,7 +117,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
       transition-all duration-700 ease-out
       ${showContent ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-95 blur-sm'}
     `}>
-      <div className="w-full max-w-6xl h-full lg:h-[80vh] min-h-[550px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row ring-1 ring-white/10">
+      <div className="w-full max-w-6xl h-full lg:h-[80vh] min-h-[550px] bg-[#0f172a] rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
 
         {/* Lado Esquerdo - Branding (40%) */}
         <div className="lg:w-[40%] bg-gradient-to-br from-red-800 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
