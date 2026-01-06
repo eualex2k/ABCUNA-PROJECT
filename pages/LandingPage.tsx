@@ -251,7 +251,7 @@ export const LandingPage: React.FC = () => {
     return (
         // Container Principal com animação de saída condicional
         <div className={`min-h-screen lg:h-screen w-full bg-[#0f172a] text-slate-900 flex items-center justify-center p-0 sm:p-4 lg:p-8 overflow-y-auto lg:overflow-hidden font-sans transition-all duration-700 ease-in-out transform ${isExiting ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100'}`}>
-            <div className="w-full max-w-6xl h-auto lg:h-full lg:max-h-[85vh] bg-white lg:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row ring-1 ring-white/10">
+            <div className="w-full max-w-6xl h-auto lg:h-full lg:max-h-[85vh] bg-[#0f172a] lg:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
 
                 {/* Left Panel - Hero Identity (40%) */}
                 <div className="lg:w-[40%] bg-gradient-to-br from-red-700 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
