@@ -156,7 +156,7 @@ export const LandingPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-white">
             {/* Fixed Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white/98 backdrop-blur-xl border-b border-slate-200/80 shadow-sm">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-200 shadow-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         {/* Logo */}
@@ -168,8 +168,8 @@ export const LandingPage: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <h1 className="text-xl font-black text-slate-900 leading-tight tracking-tight">ABCUNA</h1>
-                                <p className="text-[9px] font-bold text-slate-400 tracking-[0.15em] uppercase">Sistema de Gestão Integrada</p>
+                                <h1 className="text-xl font-black text-slate-900 leading-tight tracking-tight drop-shadow-sm">ABCUNA</h1>
+                                <p className="text-[9px] font-bold text-slate-500 tracking-[0.15em] uppercase">Sistema de Gestão Integrada</p>
                             </div>
                         </div>
 
@@ -178,7 +178,7 @@ export const LandingPage: React.FC = () => {
                             {displayConfig.sections_visibility.about && (
                                 <button
                                     onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors"
+                                    className="text-sm font-bold text-slate-700 hover:text-brand-600 transition-colors"
                                 >
                                     Sobre
                                 </button>
@@ -218,9 +218,8 @@ export const LandingPage: React.FC = () => {
                 <section className="relative pt-32 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
                     {/* Animated Background */}
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-                        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-600/20 rounded-full blur-3xl animate-pulse"></div>
-                        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-600/5 rounded-full blur-3xl"></div>
+                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/15 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-600/10 rounded-full blur-3xl"></div>
                     </div>
 
                     <div className="max-w-7xl mx-auto relative z-10">
@@ -279,13 +278,6 @@ export const LandingPage: React.FC = () => {
                                             <Flame size={160} className="text-brand-600/40" />
                                         </div>
                                     )}
-                                    {/* Floating Elements */}
-                                    <div className="absolute -top-6 -right-6 w-32 h-32 bg-brand-600 rounded-2xl shadow-2xl flex items-center justify-center animate-bounce" style={{ animationDuration: '3s' }}>
-                                        <div className="text-center text-white">
-                                            <p className="text-3xl font-black">24/7</p>
-                                            <p className="text-xs font-semibold">Disponível</p>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -304,7 +296,7 @@ export const LandingPage: React.FC = () => {
                                     className="text-center group"
                                     style={{ animationDelay: `${index * 100}ms` }}
                                 >
-                                    <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-50 rounded-2xl mb-4 group-hover:bg-brand-600 group-hover:scale-110 transition-all">
+                                    <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-50 rounded-2xl mb-4 group-hover:bg-brand-600 transition-all">
                                         <div className="text-brand-600 group-hover:text-white transition-colors">
                                             {getIcon(stat.icon || 'activity', 28)}
                                         </div>
@@ -342,7 +334,7 @@ export const LandingPage: React.FC = () => {
                             <div className="group relative bg-white rounded-3xl border-2 border-slate-200 p-8 hover:border-brand-500 hover:shadow-2xl transition-all duration-300 overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
                                 <div className="relative">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                                         <Target size={28} className="text-white" />
                                     </div>
                                     <h3 className="text-2xl font-black text-slate-900 mb-4">Missão</h3>
@@ -356,7 +348,7 @@ export const LandingPage: React.FC = () => {
                             <div className="group relative bg-white rounded-3xl border-2 border-slate-200 p-8 hover:border-brand-500 hover:shadow-2xl transition-all duration-300 overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
                                 <div className="relative">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                                         <Eye size={28} className="text-white" />
                                     </div>
                                     <h3 className="text-2xl font-black text-slate-900 mb-4">Visão</h3>
@@ -370,7 +362,7 @@ export const LandingPage: React.FC = () => {
                             <div className="group relative bg-white rounded-3xl border-2 border-slate-200 p-8 hover:border-brand-500 hover:shadow-2xl transition-all duration-300 overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
                                 <div className="relative">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                                         <Heart size={28} className="text-white" />
                                     </div>
                                     <h3 className="text-2xl font-black text-slate-900 mb-4">Valores</h3>
@@ -653,8 +645,8 @@ export const LandingPage: React.FC = () => {
             {displayConfig.sections_visibility.cta && (
                 <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white relative overflow-hidden">
                     {/* Background Decorations */}
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
+                    <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
 
                     <div className="max-w-4xl mx-auto text-center relative z-10">
                         <h2 className="text-4xl sm:text-5xl font-black mb-6">
@@ -666,8 +658,7 @@ export const LandingPage: React.FC = () => {
                         <Button
                             onClick={() => navigate('/auth')}
                             size="lg"
-                            variant="secondary"
-                            className="flex items-center gap-2 text-base shadow-2xl hover:shadow-3xl transition-all bg-white text-brand-600 hover:bg-slate-50 px-8 py-6 mx-auto group"
+                            className="flex items-center gap-2 text-base font-bold shadow-2xl hover:shadow-3xl transition-all bg-white text-brand-600 hover:bg-brand-50 hover:scale-105 px-8 py-6 mx-auto group"
                         >
                             {displayConfig.cta_button_text || 'Acessar o Sistema'}
                             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
