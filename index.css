@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --app-bg: #f8fafc;
+  --app-bg: #0f172a;
   /* Clean background */
   --sidebar-bg: #0f172a;
   /* Professional dark navy sidebar */
