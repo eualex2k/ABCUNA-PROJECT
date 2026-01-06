@@ -113,7 +113,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
 
   return (
     <div className={`
-      min-h-screen w-full bg-[#0f172a] text-slate-900 flex items-center justify-center p-4 lg:p-8 overflow-hidden font-sans 
+      h-[100dvh] w-full bg-[#0f172a] text-slate-900 flex items-center justify-center p-4 lg:p-8 overflow-y-auto overscroll-none font-sans 
       transition-all duration-700 ease-out
       ${showContent ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-95 blur-sm'}
     `}>
