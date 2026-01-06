@@ -110,7 +110,7 @@ export const LandingPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white">
-            {/* Header with subtle gradient */}
+            {/* Header */}
             <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-slate-200">
                 <div className="max-w-6xl mx-auto px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
@@ -161,17 +161,28 @@ export const LandingPage: React.FC = () => {
                 </div>
             </header>
 
-            {/* Hero with gradient background */}
+            {/* Hero with dynamic patterns */}
             {displayConfig.sections_visibility.hero && (
                 <section className="relative pt-32 pb-24 px-6 lg:px-8 overflow-hidden">
-                    {/* Gradient background */}
+                    {/* Base gradient */}
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-brand-50/30"></div>
-                    <div className="absolute top-20 right-0 w-96 h-96 bg-brand-600/5 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
+
+                    {/* Grid pattern overlay */}
+                    <div
+                        className="absolute inset-0 opacity-40"
+                        style={{
+                            backgroundImage: `linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)`,
+                            backgroundSize: '4rem 4rem'
+                        }}
+                    ></div>
+
+                    {/* Animated gradient orbs */}
+                    <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-br from-brand-600/10 to-brand-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }}></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-600/10 to-purple-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }}></div>
+                    <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-purple-600/5 to-pink-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '2s' }}></div>
 
                     <div className="max-w-6xl mx-auto relative z-10">
                         <div className="max-w-3xl">
-                            {/* Badge with gradient */}
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-50 to-brand-100 border border-brand-200 rounded-full mb-8">
                                 <Sparkles size={14} className="text-brand-600" />
                                 <span className="text-xs font-semibold text-brand-700">
@@ -207,10 +218,19 @@ export const LandingPage: React.FC = () => {
                 </section>
             )}
 
-            {/* Stats with colored backgrounds */}
+            {/* Stats with dark background */}
             {displayConfig.sections_visibility.stats && displayConfig.stats && displayConfig.stats.length > 0 && (
-                <section className="py-20 px-6 lg:px-8 bg-gradient-to-r from-slate-900 to-slate-800">
-                    <div className="max-w-6xl mx-auto">
+                <section className="py-20 px-6 lg:px-8 bg-gradient-to-r from-slate-900 to-slate-800 relative overflow-hidden">
+                    {/* Subtle grid */}
+                    <div
+                        className="absolute inset-0 opacity-10"
+                        style={{
+                            backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)`,
+                            backgroundSize: '3rem 3rem'
+                        }}
+                    ></div>
+
+                    <div className="max-w-6xl mx-auto relative z-10">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                             {displayConfig.stats.map((stat, index) => (
                                 <div key={index} className="text-center">
@@ -227,10 +247,23 @@ export const LandingPage: React.FC = () => {
                 </section>
             )}
 
-            {/* About with accent colors */}
+            {/* About with dot pattern */}
             {displayConfig.sections_visibility.about && (
-                <section id="about" className="py-24 px-6 lg:px-8 bg-white">
-                    <div className="max-w-6xl mx-auto">
+                <section id="about" className="relative py-24 px-6 lg:px-8 bg-white overflow-hidden">
+                    {/* Dot pattern */}
+                    <div
+                        className="absolute inset-0 opacity-30"
+                        style={{
+                            backgroundImage: `radial-gradient(circle, #e5e7eb 1px, transparent 1px)`,
+                            backgroundSize: '20px 20px'
+                        }}
+                    ></div>
+
+                    {/* Decorative gradient orbs */}
+                    <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-brand-100/40 to-transparent rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-10 left-10 w-72 h-72 bg-gradient-to-tr from-blue-100/40 to-transparent rounded-full blur-3xl"></div>
+
+                    <div className="max-w-6xl mx-auto relative z-10">
                         <div className="grid md:grid-cols-2 gap-16 items-start">
                             <div>
                                 <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
@@ -242,7 +275,6 @@ export const LandingPage: React.FC = () => {
                             </div>
 
                             <div className="space-y-6">
-                                {/* Mission with red accent */}
                                 <div className="relative p-6 bg-gradient-to-br from-brand-50 to-white border-l-4 border-brand-600 rounded-r-xl">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-10 h-10 bg-brand-600 rounded-lg flex items-center justify-center">
@@ -255,7 +287,6 @@ export const LandingPage: React.FC = () => {
                                     </p>
                                 </div>
 
-                                {/* Vision with blue accent */}
                                 <div className="relative p-6 bg-gradient-to-br from-blue-50 to-white border-l-4 border-blue-600 rounded-r-xl">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -268,7 +299,6 @@ export const LandingPage: React.FC = () => {
                                     </p>
                                 </div>
 
-                                {/* Values with purple accent */}
                                 <div className="relative p-6 bg-gradient-to-br from-purple-50 to-white border-l-4 border-purple-600 rounded-r-xl">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
@@ -286,10 +316,22 @@ export const LandingPage: React.FC = () => {
                 </section>
             )}
 
-            {/* Services with hover effects */}
+            {/* Services with diagonal pattern */}
             {displayConfig.sections_visibility.services && displayConfig.services && displayConfig.services.length > 0 && (
-                <section id="services" className="py-24 px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-white">
-                    <div className="max-w-6xl mx-auto">
+                <section id="services" className="relative py-24 px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-white overflow-hidden">
+                    {/* Diagonal stripes pattern */}
+                    <div
+                        className="absolute inset-0 opacity-30"
+                        style={{
+                            backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, #f1f5f9 35px, #f1f5f9 70px)`
+                        }}
+                    ></div>
+
+                    {/* Gradient accents */}
+                    <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-brand-200/20 to-transparent rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-tl from-blue-200/20 to-transparent rounded-full blur-3xl"></div>
+
+                    <div className="max-w-6xl mx-auto relative z-10">
                         <div className="text-center max-w-2xl mx-auto mb-16">
                             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
                                 {displayConfig.services_title || 'Nossos Serviços'}
@@ -319,10 +361,27 @@ export const LandingPage: React.FC = () => {
                 </section>
             )}
 
-            {/* Testimonials with colored accents */}
+            {/* Testimonials with wave pattern */}
             {displayConfig.sections_visibility.testimonials && displayConfig.testimonials && displayConfig.testimonials.length > 0 && (
-                <section className="py-24 px-6 lg:px-8 bg-white">
-                    <div className="max-w-6xl mx-auto">
+                <section className="relative py-24 px-6 lg:px-8 bg-white overflow-hidden">
+                    {/* Wave pattern */}
+                    <div className="absolute inset-0 opacity-20">
+                        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <pattern id="wave" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                                    <path d="M0 50 Q 25 40, 50 50 T 100 50" stroke="#e2e8f0" strokeWidth="1" fill="none" />
+                                    <path d="M0 60 Q 25 50, 50 60 T 100 60" stroke="#e2e8f0" strokeWidth="1" fill="none" />
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#wave)" />
+                        </svg>
+                    </div>
+
+                    {/* Colored accents */}
+                    <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-brand-100/30 to-transparent rounded-full blur-2xl"></div>
+                    <div className="absolute bottom-20 left-20 w-64 h-64 bg-gradient-to-tr from-purple-100/30 to-transparent rounded-full blur-2xl"></div>
+
+                    <div className="max-w-6xl mx-auto relative z-10">
                         <div className="text-center max-w-2xl mx-auto mb-16">
                             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
                                 {displayConfig.testimonials_title || 'Depoimentos'}
@@ -389,10 +448,29 @@ export const LandingPage: React.FC = () => {
                 </section>
             )}
 
-            {/* Contact with gradient */}
+            {/* Contact with circuit pattern */}
             {displayConfig.sections_visibility.contact && displayConfig.contact && (
-                <section id="contact" className="py-24 px-6 lg:px-8 bg-white">
-                    <div className="max-w-6xl mx-auto">
+                <section id="contact" className="relative py-24 px-6 lg:px-8 bg-gradient-to-br from-white via-slate-50/50 to-white overflow-hidden">
+                    {/* Circuit board inspired pattern */}
+                    <div
+                        className="absolute inset-0 opacity-10"
+                        style={{
+                            backgroundImage: `linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)`,
+                            backgroundSize: '40px 40px'
+                        }}
+                    ></div>
+
+                    {/* Colored dots like circuit nodes */}
+                    <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-brand-600 rounded-full"></div>
+                    <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-blue-600 rounded-full"></div>
+                    <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-purple-600 rounded-full"></div>
+                    <div className="absolute bottom-1/3 right-1/4 w-2 h-2 bg-green-600 rounded-full"></div>
+
+                    {/* Gradient accents */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-brand-50/50 to-transparent rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-50/50 to-transparent rounded-full blur-3xl"></div>
+
+                    <div className="max-w-6xl mx-auto relative z-10">
                         <div className="grid md:grid-cols-2 gap-16">
                             <div>
                                 <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
@@ -480,11 +558,27 @@ export const LandingPage: React.FC = () => {
                 </section>
             )}
 
-            {/* CTA with gradient */}
+            {/* CTA with mesh gradient */}
             {displayConfig.sections_visibility.cta && (
-                <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>
+                <section className="relative py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+                    {/* Mesh gradient background */}
+                    <div className="absolute inset-0">
+                        <div className="absolute inset-0 bg-gradient-to-br from-brand-600/10 via-transparent to-blue-600/10"></div>
+                        <div className="absolute inset-0 bg-gradient-to-tl from-purple-600/10 via-transparent to-pink-600/10"></div>
+                    </div>
+
+                    {/* Grid overlay */}
+                    <div
+                        className="absolute inset-0 opacity-20"
+                        style={{
+                            backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+                            backgroundSize: '4rem 4rem'
+                        }}
+                    ></div>
+
+                    {/* Animated orbs */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-brand-600/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }}></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-600/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }}></div>
 
                     <div className="max-w-4xl mx-auto text-center relative z-10">
                         <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
