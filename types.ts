@@ -283,20 +283,100 @@ export interface Candidate {
   status: 'PENDING' | 'APPROVED' | 'VOLUNTEER' | 'REJECTED';
 }
 
+export interface LandingPageStat {
+  label: string;
+  value: string;
+  icon?: string;
+}
+
+export interface LandingPageService {
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+export interface LandingPageTestimonial {
+  name: string;
+  role: string;
+  content: string;
+  avatar?: string;
+}
+
+export interface LandingPageContact {
+  phone?: string;
+  email?: string;
+  address?: string;
+  workingHours?: string;
+}
+
+export interface LandingPageSocial {
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  linkedin?: string;
+  youtube?: string;
+}
+
+export interface LandingPageTheme {
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+}
+
 export interface LandingPageConfig {
   id: string;
+  // Hero Section
   hero_title: string;
   hero_subtitle: string;
   hero_image_url?: string;
+  hero_badge_text?: string;
+
+  // About Section
+  about_title?: string;
   about_text: string;
   mission_text: string;
   vision_text: string;
   values_text: string;
+
+  // Statistics Section
+  stats?: LandingPageStat[];
+
+  // Services Section
+  services_title?: string;
+  services_subtitle?: string;
+  services?: LandingPageService[];
+
+  // Testimonials Section
+  testimonials_title?: string;
+  testimonials_subtitle?: string;
+  testimonials?: LandingPageTestimonial[];
+
+  // Gallery Section
+  gallery_title?: string;
+  gallery_subtitle?: string;
   gallery_images: string[];
+
+  // Contact Section
+  contact?: LandingPageContact;
+  social?: LandingPageSocial;
+
+  // CTA Section
+  cta_title?: string;
+  cta_subtitle?: string;
+  cta_button_text?: string;
+
+  // Theme Customization
+  theme?: LandingPageTheme;
+
+  // Sections Visibility
   sections_visibility: {
     hero: boolean;
     about: boolean;
+    stats: boolean;
+    services: boolean;
+    testimonials: boolean;
     gallery: boolean;
+    contact: boolean;
     cta: boolean;
   };
 }
