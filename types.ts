@@ -114,6 +114,8 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  shiftsCount?: number;
+  lastShiftDate?: string;
   // Extended Profile Fields
   phone?: string;
   cpf?: string;
@@ -236,6 +238,20 @@ export interface CompanyInfo {
   website?: string;
 }
 
+export type ShiftMemberStatus = 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'VOLUNTEER_PENDING' | 'VOLUNTEER_APPROVED';
+
+export interface ShiftMember {
+  userId: string;
+  name: string;
+  avatar?: string;
+  status: ShiftMemberStatus;
+  type: 'ROTATION' | 'VOLUNTEER';
+  confirmedAt?: string;
+  joinedAt: string;
+}
+
+export type ShiftStatus = 'PENDING' | 'CONFIRMED' | 'AWAITING_CONFIRMATION' | 'FINISHED' | 'DRAFT';
+
 export interface Shift {
   id: string;
   day: string;
@@ -243,7 +259,7 @@ export interface Shift {
   fullDate: string; // ISO string for sorting/logic
   team: string; // Title of the shift/Event
   leader: string;
-  status: 'CONFIRMED' | 'PENDING';
+  status: ShiftStatus; // Updated type
   location: string;
   startTime: string;
   endTime: string;
@@ -251,7 +267,7 @@ export interface Shift {
   organizer: string;
   vacancies: number;
   description?: string;
-  confirmedMembers: string[]; // List of names
+  members: ShiftMember[]; // Replaces confirmedMembers
 }
 
 export interface SelectionStage {
