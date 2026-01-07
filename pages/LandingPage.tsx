@@ -196,52 +196,68 @@ export const LandingPage: React.FC = () => {
             case 'about':
             default:
                 return (
-                    <div className="h-full flex flex-col animate-fadeIn">
-                        <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <Target className="text-red-700" size={24} />
-                            {displayConfig.about_title}
-                        </h2>
+                    <div className="h-full animate-fadeIn grid grid-cols-1 lg:grid-cols-2 gap-8 content-start lg:content-stretch">
 
-                        <div className="overflow-y-auto pr-2 pb-4 scrollbar-hide flex-1">
+                        {/* Column 1: Main Info & Carousel (Scrollable if needed on mobile, but fit on desktop) */}
+                        <div className="flex flex-col h-full overflow-y-auto pr-2 scrollbar-hide">
+                            <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <Target className="text-red-700" size={24} />
+                                {displayConfig.about_title}
+                            </h2>
+
                             <p className="text-sm text-slate-600 leading-relaxed mb-6 border-l-4 border-red-500 pl-4 text-justify">
                                 {displayConfig.about_text}
                             </p>
 
                             {/* Carousel Section */}
-                            <div className="mb-8">
+                            <div className="flex-1 min-h-[200px] mb-4 lg:mb-0">
                                 <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                                     <FileText size={16} className="text-red-600" />
                                     Galeria da Associação
                                 </h3>
                                 <LandingPageCarousel images={displayConfig.gallery_images || []} />
                             </div>
+                        </div>
 
-                            {/* Mission, Vision, Values - Realigned */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-auto">
-                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 hover:border-red-100 hover:shadow-sm transition-all flex flex-col h-full">
-                                    <div className="flex items-center gap-2 mb-3 text-red-700">
-                                        <Target size={20} />
-                                        <h3 className="font-bold text-xs uppercase tracking-wider">Missão</h3>
-                                    </div>
-                                    <p className="text-xs text-slate-600 leading-relaxed flex-1">{displayConfig.mission_text}</p>
-                                </div>
+                        {/* Column 2: Mission, Vision, Values (Staggered 'Escadinha' Layout) */}
+                        <div className="flex flex-col justify-center gap-6 py-4 lg:py-0 lg:pl-4 lg:border-l border-slate-100">
 
-                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 hover:border-red-100 hover:shadow-sm transition-all flex flex-col h-full">
-                                    <div className="flex items-center gap-2 mb-3 text-slate-700">
-                                        <Eye size={20} />
-                                        <h3 className="font-bold text-xs uppercase tracking-wider">Visão</h3>
-                                    </div>
-                                    <p className="text-xs text-slate-600 leading-relaxed flex-1">{displayConfig.vision_text}</p>
+                            {/* Step 1: Mission (Left) */}
+                            <div className="w-full lg:w-[90%] self-start bg-slate-50 p-6 rounded-2xl border-l-4 border-red-600 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                                <div className="absolute right-0 top-0 opacity-5 group-hover:opacity-10 transition-opacity transform translate-x-1/4 -translate-y-1/4">
+                                    <Target size={100} className="text-red-600" />
                                 </div>
-
-                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 hover:border-red-100 hover:shadow-sm transition-all flex flex-col h-full">
-                                    <div className="flex items-center gap-2 mb-3 text-slate-700">
-                                        <Heart size={20} />
-                                        <h3 className="font-bold text-xs uppercase tracking-wider">Valores</h3>
-                                    </div>
-                                    <p className="text-xs text-slate-600 leading-relaxed flex-1">{displayConfig.values_text}</p>
+                                <div className="flex items-center gap-3 mb-2 text-red-700">
+                                    <Target size={24} />
+                                    <h3 className="font-bold text-sm uppercase tracking-wider">Missão</h3>
                                 </div>
+                                <p className="text-xs text-slate-600 leading-relaxed font-medium relative z-10">{displayConfig.mission_text}</p>
                             </div>
+
+                            {/* Step 2: Vision (Center / Indented) */}
+                            <div className="w-full lg:w-[90%] self-center lg:ml-[5%] bg-slate-50 p-6 rounded-2xl border-l-4 border-slate-700 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                                <div className="absolute right-0 top-0 opacity-5 group-hover:opacity-10 transition-opacity transform translate-x-1/4 -translate-y-1/4">
+                                    <Eye size={100} className="text-slate-800" />
+                                </div>
+                                <div className="flex items-center gap-3 mb-2 text-slate-800">
+                                    <Eye size={24} />
+                                    <h3 className="font-bold text-sm uppercase tracking-wider">Visão</h3>
+                                </div>
+                                <p className="text-xs text-slate-600 leading-relaxed font-medium relative z-10">{displayConfig.vision_text}</p>
+                            </div>
+
+                            {/* Step 3: Values (Right / More Indented) */}
+                            <div className="w-full lg:w-[90%] self-end lg:ml-auto bg-slate-50 p-6 rounded-2xl border-l-4 border-red-500 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                                <div className="absolute right-0 top-0 opacity-5 group-hover:opacity-10 transition-opacity transform translate-x-1/4 -translate-y-1/4">
+                                    <Heart size={100} className="text-red-500" />
+                                </div>
+                                <div className="flex items-center gap-3 mb-2 text-slate-700">
+                                    <Heart size={24} className="text-red-500" />
+                                    <h3 className="font-bold text-sm uppercase tracking-wider">Valores</h3>
+                                </div>
+                                <p className="text-xs text-slate-600 leading-relaxed font-medium relative z-10">{displayConfig.values_text}</p>
+                            </div>
+
                         </div>
                     </div>
                 );
@@ -251,10 +267,10 @@ export const LandingPage: React.FC = () => {
     return (
         // Container Principal com animação de saída condicional
         <div className={`min-h-screen lg:h-screen w-full bg-[#0f172a] text-slate-900 flex items-center justify-center p-0 sm:p-4 lg:p-8 overflow-y-auto lg:overflow-hidden font-sans transition-all duration-700 ease-in-out transform ${isExiting ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100'}`}>
-            <div className="w-full max-w-6xl h-auto lg:h-full lg:max-h-[85vh] bg-[#0f172a] lg:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
+            <div className="w-full max-w-[95%] lg:max-w-[1600px] h-auto lg:h-[90vh] bg-[#0f172a] lg:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
 
-                {/* Left Panel - Hero Identity (40%) */}
-                <div className="lg:w-[40%] bg-gradient-to-br from-red-700 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
+                {/* Left Panel - Hero Identity (30%) */}
+                <div className="lg:w-[30%] bg-gradient-to-br from-red-700 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
                     {/* Background Pattern */}
                     {displayConfig.hero_image_url ? (
                         <div className="absolute inset-0">
@@ -305,8 +321,8 @@ export const LandingPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Right Panel - Content Tabs (60%) */}
-                <div className="lg:w-[60%] bg-white flex flex-col relative">
+                {/* Right Panel - Content Tabs (70%) */}
+                <div className="lg:w-[70%] bg-white flex flex-col relative">
                     {/* Tab Navigation */}
                     <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100">
                         <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl">
