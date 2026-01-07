@@ -631,7 +631,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                     </div>
                     <p className="text-xs text-slate-500">
                         <Info size={12} className="inline mr-1" />
-                        Formatos aceitos: JPG, PNG. Recomendado: 1920x1080px.
+                        Formatos aceitos: JPG, PNG. Recomendado: 1200x500px (Formato Horizontal/Banner).
                     </p>
                 </div>
             </SectionCard>
