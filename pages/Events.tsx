@@ -139,11 +139,7 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user }) => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Eventos e Convocações</h2>
-          <p className="text-slate-500 text-sm">Agenda de atividades, treinamentos e solenidades oficiais.</p>
-        </div>
+      <div className="flex justify-end gap-4 mb-4">
         {canEdit && (
           <Button onClick={handleOpenCreate} className="flex items-center gap-2 shadow-lg shadow-brand-200">
             <Plus size={18} /> Criar Evento

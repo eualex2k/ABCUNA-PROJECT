@@ -179,11 +179,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Escala Operacional</h2>
-          <p className="text-slate-500 text-sm">Visualização de plantões, eventos extras e escalas ordinárias.</p>
-        </div>
+      <div className="flex justify-end gap-3 mb-4">
         {canEdit && (
           <div className="flex gap-3">
             <Button

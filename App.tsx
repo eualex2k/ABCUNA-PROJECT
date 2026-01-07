@@ -12,8 +12,8 @@ import { AssociatesPage } from './pages/Associates';
 import { FinancialPage } from './pages/Financial';
 import { SettingsPage } from './pages/Settings';
 import { InventoryPage } from './pages/Inventory';
-import { EventsPage } from './pages/Events';
-import { SchedulePage } from './pages/Schedule';
+import { EventsManagerPage } from './pages/EventsManager';
+
 import { AuditPage } from './pages/Audit';
 import { ClassroomPage } from './pages/Classroom';
 import { SelectionPage } from './pages/Selection';
@@ -300,15 +300,18 @@ const App: React.FC = () => {
 
             <Route path="/events" element={
               <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL, UserRole.ASSOCIATE, UserRole.INSTRUCTOR]}>
-                <EventsPage user={user} />
+                <EventsManagerPage user={user} />
               </ProtectedRoute>
             } />
 
-            <Route path="/schedule" element={
+            <Route path="/events/schedule" element={
               <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL, UserRole.ASSOCIATE, UserRole.INSTRUCTOR]}>
-                <SchedulePage user={user} />
+                <EventsManagerPage user={user} />
               </ProtectedRoute>
             } />
+
+            {/* Rota legada redirecionando para a nova */}
+            <Route path="/schedule" element={<Navigate to="/events/schedule" replace />} />
 
             <Route path="/audit" element={
               <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.ASSOCIATE, UserRole.INSTRUCTOR, UserRole.CANDIDATE]}>
