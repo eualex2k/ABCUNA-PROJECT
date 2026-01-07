@@ -111,7 +111,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     { title: 'Associados', desc: 'Gestão de membros', icon: Users, path: '/associates', color: 'text-blue-600', bg: 'bg-blue-50', hover: 'group-hover:bg-blue-100' },
     { title: 'Financeiro', desc: 'Fluxo de caixa', icon: DollarSign, path: '/financial', color: 'text-emerald-600', bg: 'bg-emerald-50', hover: 'group-hover:bg-emerald-100' },
     { title: 'Estoque', desc: 'Equipamentos', icon: Package, path: '/inventory', color: 'text-orange-600', bg: 'bg-orange-50', hover: 'group-hover:bg-orange-100' },
-    { title: 'Escala', desc: 'Plantões', icon: RefreshCcw, path: '/schedule', color: 'text-purple-600', bg: 'bg-purple-50', hover: 'group-hover:bg-purple-100' },
+    { title: 'Escala', desc: 'Plantões', icon: RefreshCcw, path: '/events/schedule', color: 'text-purple-600', bg: 'bg-purple-50', hover: 'group-hover:bg-purple-100' },
     { title: 'Eventos', desc: 'Agenda e reuniões', icon: Calendar, path: '/events', color: 'text-red-600', bg: 'bg-red-50', hover: 'group-hover:bg-red-100' },
     { title: 'Sala de Aula', desc: 'Cursos e materiais', icon: BookOpen, path: '/classroom', color: 'text-indigo-600', bg: 'bg-indigo-50', hover: 'group-hover:bg-indigo-100' },
   ];
