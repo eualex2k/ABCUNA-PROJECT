@@ -199,24 +199,24 @@ export const LandingPage: React.FC = () => {
                     <div className="h-full animate-fadeIn flex flex-col lg:flex-row gap-8 lg:gap-10 items-stretch overflow-y-auto lg:overflow-hidden scrollbar-hide">
 
                         {/* Main Content Column: Title, Text, Gallery */}
-                        <div className="flex-1 flex flex-col lg:h-full lg:overflow-hidden min-h-0">
+                        <div className="flex-1 flex flex-col lg:h-full overflow-y-auto pr-4 scrollbar-hide py-2">
                             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2 shrink-0">
                                 <Target className="text-red-700" size={24} />
                                 {displayConfig.about_title}
                             </h2>
 
-                            <div className="mb-6 shrink-0">
+                            <div className="mb-6">
                                 <p className="text-sm text-slate-600 leading-relaxed border-l-4 border-red-500 pl-4 text-justify">
                                     {displayConfig.about_text}
                                 </p>
                             </div>
 
-                            <div className="flex flex-col min-h-0">
-                                <h3 className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2 shrink-0">
+                            <div className="flex flex-col mt-auto pt-4">
+                                <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2 shrink-0">
                                     <FileText size={16} className="text-red-600" />
                                     Galeria da Associação
                                 </h3>
-                                <div className="w-full rounded-2xl shadow-xl overflow-hidden bg-slate-50 relative">
+                                <div className="w-full rounded-2xl shadow-xl overflow-hidden bg-slate-50 relative shrink-0">
                                     <LandingPageCarousel images={displayConfig.gallery_images || []} />
                                 </div>
                             </div>
