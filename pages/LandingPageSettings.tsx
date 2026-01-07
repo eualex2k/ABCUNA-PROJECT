@@ -290,17 +290,17 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
     }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto pb-20">
+        <div className="space-y-6 animate-in fade-in duration-500 pb-20">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white p-8 rounded-2xl shadow-xl">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-3xl font-black mb-2">Editor da Página Inicial</h2>
-                    <p className="text-slate-300">Personalize o conteúdo da sua Landing Page</p>
+                    <h2 className="text-2xl font-bold text-slate-900">Editor da Página Inicial</h2>
+                    <p className="text-slate-500 text-sm">Personalize o conteúdo da sua Landing Page</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Button
                         onClick={handleSave}
-                        className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-900/20"
+                        className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 shadow-md shadow-red-900/10"
                         disabled={saving}
                     >
                         {saving ? (
