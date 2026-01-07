@@ -47,7 +47,7 @@ export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', s
 
 // --- Input Component ---
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+  label?: React.ReactNode;
   error?: string;
   icon?: React.ReactNode;
   mask?: 'phone' | 'cpf' | 'cnpj' | 'date' | 'cep' | 'cns';
@@ -198,7 +198,7 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
 
 // --- Textarea Component ---
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string;
+  label?: React.ReactNode;
   error?: string;
 }
 

@@ -5,12 +5,12 @@ import { Layout } from './components/Layout';
 import { Button } from './components/ui';
 import { AuthPage } from './pages/Auth';
 import { LandingPage } from './pages/LandingPage';
-import { LandingPageSettings } from './pages/LandingPageSettings';
+
 import { supabase } from './lib/supabase';
 import { Dashboard } from './pages/Dashboard';
 import { AssociatesPage } from './pages/Associates';
 import { FinancialPage } from './pages/Financial';
-import { AccessCodesPage } from './pages/AccessCodes';
+import { SettingsPage } from './pages/Settings';
 import { InventoryPage } from './pages/Inventory';
 import { EventsPage } from './pages/Events';
 import { SchedulePage } from './pages/Schedule';
@@ -268,15 +268,21 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } />
 
+            <Route path="/settings" element={
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
+                <SettingsPage user={user} />
+              </ProtectedRoute>
+            } />
+
             <Route path="/settings/codes" element={
               <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
-                <AccessCodesPage />
+                <SettingsPage user={user} />
               </ProtectedRoute>
             } />
 
             <Route path="/settings/landing-page" element={
               <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
-                <LandingPageSettings user={user} />
+                <SettingsPage user={user} />
               </ProtectedRoute>
             } />
 

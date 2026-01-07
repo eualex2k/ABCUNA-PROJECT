@@ -33,8 +33,7 @@ export const MENU_ITEMS = [
   { label: 'Auditoria', icon: FileText, path: '/audit', allowedRoles: [UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL, UserRole.ASSOCIATE, UserRole.INSTRUCTOR, UserRole.CANDIDATE] },
   { label: 'Sala de Aula', icon: GraduationCap, path: '/classroom', allowedRoles: [UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.SECRETARY, UserRole.FINANCIAL] },
   { label: 'Processo Seletivo', icon: UserPlus, path: '/selection', allowedRoles: [UserRole.ADMIN, UserRole.CANDIDATE] },
-  { label: 'Página Inicial', icon: Home, path: '/settings/landing-page', allowedRoles: [UserRole.ADMIN] },
-  { label: 'Configurações', icon: Settings, path: '/settings/codes', allowedRoles: [UserRole.ADMIN] },
+  { label: 'Configurações', icon: Settings, path: '/settings', allowedRoles: [UserRole.ADMIN] },
 ];
 
 export const MOCK_ASSOCIATES: Associate[] = [

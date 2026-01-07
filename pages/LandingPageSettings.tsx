@@ -81,9 +81,9 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
         hero: true,
         about: false,
         services: false,
-        contact: false
+        contact: false,
+        gallery: false
     });
-
     const [config, setConfig] = useState<LandingPageConfig>({
         id: '',
         hero_title: '',
@@ -209,6 +209,49 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
         } finally {
             setUploading(false);
         }
+    };
+
+    const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        try {
+            setUploading(true);
+            const newImages: string[] = [];
+
+            // Upload each file
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type.startsWith('image/')) {
+                    const url = await landingPageService.uploadImage(file);
+                    newImages.push(url);
+                }
+            }
+
+            const currentImages = config.gallery_images || [];
+            setConfig({ ...config, gallery_images: [...currentImages, ...newImages] });
+
+            notificationService.add({
+                title: 'Galeria Atualizada',
+                message: `${newImages.length} imagem(ns) adicionada(s) com sucesso.`,
+                type: 'SYSTEM'
+            });
+        } catch (error) {
+            console.error('Failed to upload gallery images:', error);
+            notificationService.add({
+                title: 'Erro no Upload',
+                message: 'Falha ao enviar algumas imagens.',
+                type: 'SYSTEM'
+            });
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const removeGalleryImage = (index: number) => {
+        const currentImages = config.gallery_images || [];
+        const newImages = currentImages.filter((_, i) => i !== index);
+        setConfig({ ...config, gallery_images: newImages });
     };
 
     const toggleExpanded = (section: string) => {
@@ -539,6 +582,57 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                             placeholder="https://instagram.com/..."
                         />
                     </div>
+                </div>
+            </SectionCard>
+
+            {/* Gallery Section */}
+            <SectionCard
+                title="Aba: Galeria de Imagens"
+                description="Fotos para o carrossel da página inicial"
+                icon={Eye}
+                sectionKey="gallery"
+                expanded={expandedSections['gallery']}
+                onToggle={toggleExpanded}
+            >
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Imagens do Carrossel
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        {config.gallery_images?.map((img, idx) => (
+                            <div key={idx} className="relative group aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                                <img src={img} alt={`Galeria ${idx}`} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <button
+                                        onClick={() => removeGalleryImage(idx)}
+                                        className="p-2 bg-white text-red-600 rounded-full hover:bg-red-50 transition-colors"
+                                        title="Remover Imagem"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+
+                        <label className="cursor-pointer border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center p-4 hover:border-red-400 hover:bg-red-50 transition-colors aspect-video">
+                            <Upload size={24} className="text-slate-400 mb-2" />
+                            <span className="text-xs font-medium text-slate-600 text-center">
+                                {uploading ? 'Enviando...' : 'Adicionar Fotos'}
+                            </span>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleGalleryUpload}
+                                className="hidden"
+                                disabled={uploading}
+                            />
+                        </label>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                        <Info size={12} className="inline mr-1" />
+                        Formatos aceitos: JPG, PNG. Recomendado: 1920x1080px.
+                    </p>
                 </div>
             </SectionCard>
         </div>
