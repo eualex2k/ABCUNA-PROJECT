@@ -196,70 +196,69 @@ export const LandingPage: React.FC = () => {
             case 'about':
             default:
                 return (
-                    <div className="h-full animate-fadeIn flex flex-col gap-6">
+                    <div className="h-full animate-fadeIn flex gap-8">
 
-                        {/* Upper Section: Text (Left) & Staircase Cards (Right) */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 content-start min-h-0">
+                        {/* Main Content Column (Left): Title, Text, Gallery (Fills remaining space) */}
+                        <div className="flex-1 flex flex-col h-full overflow-y-auto pr-2 scrollbar-hide">
+                            <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2 shrink-0">
+                                <Target className="text-red-700" size={24} />
+                                {displayConfig.about_title}
+                            </h2>
 
-                            {/* Left: Purpose & About Text */}
-                            <div className="flex flex-col justify-center overflow-y-auto pr-2 scrollbar-hide">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                    <Target className="text-red-700" size={24} />
-                                    {displayConfig.about_title}
-                                </h2>
+                            <div className="mb-8 shrink-0">
                                 <p className="text-sm text-slate-600 leading-relaxed border-l-4 border-red-500 pl-4 text-justify">
                                     {displayConfig.about_text}
                                 </p>
                             </div>
 
-                            {/* Right: Mission, Vision, Values (Staggered 'Escadinha' Layout) */}
-                            <div className="flex flex-col justify-center gap-4 lg:pl-4 lg:border-l border-slate-100">
-                                {/* Step 1: Mission (Left) */}
-                                <div className="w-full lg:w-[90%] self-start bg-slate-50 p-5 rounded-xl border-l-4 border-red-600 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
-                                    <div className="absolute right-0 top-0 opacity-5 group-hover:opacity-10 transition-opacity transform translate-x-1/4 -translate-y-1/4">
-                                        <Target size={80} className="text-red-600" />
-                                    </div>
-                                    <div className="flex items-center gap-2 mb-2 text-red-700">
-                                        <Target size={20} />
-                                        <h3 className="font-bold text-xs uppercase tracking-wider">Missão</h3>
-                                    </div>
-                                    <p className="text-xs text-slate-600 leading-relaxed font-medium relative z-10">{displayConfig.mission_text}</p>
-                                </div>
-
-                                {/* Step 2: Vision (Center) */}
-                                <div className="w-full lg:w-[90%] self-center lg:ml-[5%] bg-slate-50 p-5 rounded-xl border-l-4 border-slate-700 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
-                                    <div className="absolute right-0 top-0 opacity-5 group-hover:opacity-10 transition-opacity transform translate-x-1/4 -translate-y-1/4">
-                                        <Eye size={80} className="text-slate-800" />
-                                    </div>
-                                    <div className="flex items-center gap-2 mb-2 text-slate-800">
-                                        <Eye size={20} />
-                                        <h3 className="font-bold text-xs uppercase tracking-wider">Visão</h3>
-                                    </div>
-                                    <p className="text-xs text-slate-600 leading-relaxed font-medium relative z-10">{displayConfig.vision_text}</p>
-                                </div>
-
-                                {/* Step 3: Values (Right) */}
-                                <div className="w-full lg:w-[90%] self-end lg:ml-auto bg-slate-50 p-5 rounded-xl border-l-4 border-red-500 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
-                                    <div className="absolute right-0 top-0 opacity-5 group-hover:opacity-10 transition-opacity transform translate-x-1/4 -translate-y-1/4">
-                                        <Heart size={80} className="text-red-500" />
-                                    </div>
-                                    <div className="flex items-center gap-2 mb-2 text-slate-700">
-                                        <Heart size={20} className="text-red-500" />
-                                        <h3 className="font-bold text-xs uppercase tracking-wider">Valores</h3>
-                                    </div>
-                                    <p className="text-xs text-slate-600 leading-relaxed font-medium relative z-10">{displayConfig.values_text}</p>
+                            <div className="flex-1 min-h-[250px] mb-4 flex flex-col">
+                                <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2 shrink-0">
+                                    <FileText size={16} className="text-red-600" />
+                                    Galeria da Associação
+                                </h3>
+                                <div className="w-full flex-1 rounded-xl shadow-md overflow-hidden bg-slate-100 relative min-h-[200px]">
+                                    {/* Gallery Fills Available Space */}
+                                    <LandingPageCarousel images={displayConfig.gallery_images || []} />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Lower Section: Full Width Gallery */}
-                        <div className="w-full shrink-0">
-                            <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                                <FileText size={16} className="text-red-600" />
-                                Galeria da Associação
-                            </h3>
-                            <div className="w-full h-[250px] lg:h-[300px] overflow-hidden rounded-xl shadow-md relative group">
-                                <LandingPageCarousel images={displayConfig.gallery_images || []} />
+                        {/* Sidebar Column (Right): Mission, Vision, Values (Fixed Minimal Width) */}
+                        <div className="w-[300px] hidden lg:flex flex-col justify-center gap-4 border-l border-slate-100 pl-6 h-full overflow-y-auto scrollbar-hide shrink-0 bg-gradient-to-l from-slate-50/50 to-transparent py-4">
+                            {/* Mission */}
+                            <div className="w-full self-start bg-white p-5 rounded-2xl border border-slate-100 border-l-[3px] border-l-red-600 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                                <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+                                    <Target size={80} className="text-red-600" />
+                                </div>
+                                <div className="flex items-center gap-2 mb-2 text-red-700">
+                                    <Target size={18} />
+                                    <h3 className="font-bold text-xs uppercase tracking-wider">Missão</h3>
+                                </div>
+                                <p className="text-xs text-slate-600 leading-relaxed font-medium relative z-10">{displayConfig.mission_text}</p>
+                            </div>
+
+                            {/* Vision */}
+                            <div className="w-full self-center ml-2 bg-white p-5 rounded-2xl border border-slate-100 border-l-[3px] border-l-slate-800 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                                <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+                                    <Eye size={80} className="text-slate-800" />
+                                </div>
+                                <div className="flex items-center gap-2 mb-2 text-slate-800">
+                                    <Eye size={18} />
+                                    <h3 className="font-bold text-xs uppercase tracking-wider">Visão</h3>
+                                </div>
+                                <p className="text-xs text-slate-600 leading-relaxed font-medium relative z-10">{displayConfig.vision_text}</p>
+                            </div>
+
+                            {/* Values */}
+                            <div className="w-full self-end ml-4 bg-white p-5 rounded-2xl border border-slate-100 border-l-[3px] border-l-red-500 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                                <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+                                    <Heart size={80} className="text-red-500" />
+                                </div>
+                                <div className="flex items-center gap-2 mb-2 text-slate-700">
+                                    <Heart size={18} className="text-red-500" />
+                                    <h3 className="font-bold text-xs uppercase tracking-wider">Valores</h3>
+                                </div>
+                                <p className="text-xs text-slate-600 leading-relaxed font-medium relative z-10">{displayConfig.values_text}</p>
                             </div>
                         </div>
                     </div>
