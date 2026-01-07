@@ -196,10 +196,10 @@ export const LandingPage: React.FC = () => {
             case 'about':
             default:
                 return (
-                    <div className="h-full animate-fadeIn flex gap-10 items-stretch">
+                    <div className="h-full animate-fadeIn flex flex-col lg:flex-row gap-8 lg:gap-10 items-stretch overflow-y-auto lg:overflow-hidden scrollbar-hide">
 
-                        {/* Main Content Column (Left): Title, Text, Gallery (Fills remaining space) */}
-                        <div className="flex-1 flex flex-col h-full overflow-hidden">
+                        {/* Main Content Column: Title, Text, Gallery */}
+                        <div className="flex-1 flex flex-col lg:h-full lg:overflow-hidden min-h-0">
                             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2 shrink-0">
                                 <Target className="text-red-700" size={24} />
                                 {displayConfig.about_title}
@@ -211,20 +211,19 @@ export const LandingPage: React.FC = () => {
                                 </p>
                             </div>
 
-                            <div className="flex-1 flex flex-col min-h-0">
+                            <div className="flex flex-col min-h-0">
                                 <h3 className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2 shrink-0">
                                     <FileText size={16} className="text-red-600" />
                                     Galeria da Associação
                                 </h3>
-                                <div className="w-full flex-1 rounded-2xl shadow-xl overflow-hidden bg-slate-50 relative">
-                                    {/* Gallery Fills Available Space */}
+                                <div className="w-full rounded-2xl shadow-xl overflow-hidden bg-slate-50 relative">
                                     <LandingPageCarousel images={displayConfig.gallery_images || []} />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Sidebar Column (Right): Mission, Vision, Values (Fixed Minimal Width) */}
-                        <div className="w-[320px] hidden lg:flex flex-col justify-center gap-6 h-full shrink-0 py-4">
+                        {/* Sidebar Column: Mission, Vision, Values (Stacked on mobile, floating on desktop) */}
+                        <div className="w-full lg:w-[320px] flex flex-col justify-center gap-6 h-auto lg:h-full shrink-0 py-6 lg:py-4">
                             {/* Mission */}
                             <div className="w-full bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_50px_-15px_rgba(220,38,38,0.15)] transition-all duration-500 group relative overflow-hidden">
                                 <div className="absolute -right-4 -top-4 opacity-[0.05] group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
@@ -354,7 +353,7 @@ export const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Content Area */}
-                    <div className="flex-1 p-8 overflow-hidden relative">
+                    <div className="flex-1 p-6 lg:p-8 overflow-y-auto lg:overflow-hidden relative scrollbar-hide">
                         {renderContent()}
                     </div>
                 </div>

@@ -36,13 +36,13 @@ export const LandingPageCarousel: React.FC<CarouselProps> = ({ images, autoPlayI
     }
 
     return (
-        <div className="relative w-full h-64 rounded-xl overflow-hidden group shadow-md border border-slate-200">
+        <div className="relative w-full aspect-[12/5] rounded-xl overflow-hidden group shadow-md border border-slate-200 bg-slate-100">
             <div
                 className="absolute inset-0 flex transition-transform duration-700 ease-in-out"
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
                 {images.map((img, idx) => (
-                    <div key={idx} className="w-full h-full flex-shrink-0 bg-slate-200">
+                    <div key={idx} className="w-full h-full flex-shrink-0">
                         <img
                             src={img}
                             alt={`Slide ${idx + 1}`}
