@@ -173,32 +173,28 @@ export const scheduleService = {
                 const fillFromB = sortedGroupB.slice(0, remaining);
                 selected = [...selected, ...fillFromB];
             }
-            const dateA = a.last_shift_date ? new Date(a.last_shift_date).getTime() : 0;
-            const dateB = b.last_shift_date ? new Date(b.last_shift_date).getTime() : 0;
-            return dateA - dateB;
-        });
 
-        // 6. Selecionar os necessários para preencher vagas
-        const vacanciesNeeded = shift.vacancies - currentMembers.length;
-        const selected = eligible.slice(0, vacanciesNeeded);
 
-        // 7. Retornar lista combinada (atuais + propostos)
-        const proposedMembers: ShiftMember[] = selected.map(a => ({
-            userId: a.id,
-            name: a.full_name,
-            avatar: a.avatar_url,
-            status: 'PENDING', // Proposta, pendente de confirmação
-            type: 'ROTATION',
-            joinedAt: new Date().toISOString()
-        }));
+            // 6. Selecionar os necessários para preencher vagas
 
-        return [...currentMembers, ...proposedMembers];
 
-    } catch(error) {
-        console.error('Error generating preview:', error);
-        throw error;
-    }
-},
+            // 7. Retornar lista combinada (atuais + propostos)
+            const proposedMembers: ShiftMember[] = selected.map(a => ({
+                userId: a.id,
+                name: a.full_name,
+                avatar: a.avatar_url,
+                status: 'PENDING', // Proposta, pendente de confirmação
+                type: 'ROTATION',
+                joinedAt: new Date().toISOString()
+            }));
+
+            return [...currentMembers, ...proposedMembers];
+
+        } catch (error) {
+            console.error('Error generating preview:', error);
+            throw error;
+        }
+    },
 
     /**
      * Voluntariar-se para um plantão. Requer aprovação.
@@ -257,114 +253,114 @@ export const scheduleService = {
         });
     },
 
-        /**
-         * Admin aprova um voluntário ou confirma a escala
-         */
-        async updateMembers(shiftId: string, members: ShiftMember[]): Promise < void> {
-            const { error } = await supabase
-                .from('schedules')
-                .update({ confirmed_members: members })
-                .eq('id', shiftId);
+    /**
+     * Admin aprova um voluntário ou confirma a escala
+     */
+    async updateMembers(shiftId: string, members: ShiftMember[]): Promise<void> {
+        const { error } = await supabase
+            .from('schedules')
+            .update({ confirmed_members: members })
+            .eq('id', shiftId);
 
-            if(error) throw error;
-        },
+        if (error) throw error;
+    },
 
-            /**
-             * Membro responde à convocação (ACEITAR / RECUSAR)
-             */
-            async respondToSummon(shiftId: string, userId: string, accept: boolean): Promise < void> {
-                // 1. Obter plantão
-                const { data: shift } = await supabase
-                    .from('schedules')
-                    .select('*')
-                    .eq('id', shiftId)
-                    .single();
+    /**
+     * Membro responde à convocação (ACEITAR / RECUSAR)
+     */
+    async respondToSummon(shiftId: string, userId: string, accept: boolean): Promise<void> {
+        // 1. Obter plantão
+        const { data: shift } = await supabase
+            .from('schedules')
+            .select('*')
+            .eq('id', shiftId)
+            .single();
 
-                if(!shift) throw new Error('Plantão não encontrado');
+        if (!shift) throw new Error('Plantão não encontrado');
 
-                let members: ShiftMember[] = shift.confirmed_members || [];
+        let members: ShiftMember[] = shift.confirmed_members || [];
 
-                // 2. Atualizar status do membro
-                const memberIndex = members.findIndex(m => m.userId === userId);
-                if(memberIndex === -1) throw new Error('Você não está nesta convocação.');
+        // 2. Atualizar status do membro
+        const memberIndex = members.findIndex(m => m.userId === userId);
+        if (memberIndex === -1) throw new Error('Você não está nesta convocação.');
 
-if (accept) {
-    members[memberIndex].status = 'CONFIRMED';
-    members[memberIndex].confirmedAt = new Date().toISOString();
-    // REMOVED IN FINAL ADJUSTMENT: Stats increment now happens only on finalizeShift
-} else {
-    members[memberIndex].status = 'DECLINED';
-}
+        if (accept) {
+            members[memberIndex].status = 'CONFIRMED';
+            members[memberIndex].confirmedAt = new Date().toISOString();
+            // REMOVED IN FINAL ADJUSTMENT: Stats increment now happens only on finalizeShift
+        } else {
+            members[memberIndex].status = 'DECLINED';
+        }
 
-// 3. Salvar
-const { error } = await supabase
-    .from('schedules')
-    .update({ confirmed_members: members })
-    .eq('id', shiftId);
+        // 3. Salvar
+        const { error } = await supabase
+            .from('schedules')
+            .update({ confirmed_members: members })
+            .eq('id', shiftId);
 
-if (error) throw error;
+        if (error) throw error;
 
-// Se recusou, notificar admin
-if (!accept) {
-    const adminIds = await associatesService.getNotificationTargets(['ADMIN', 'SECRETARY']);
-    const memberName = members[memberIndex].name;
-    await notificationService.add({
-        title: 'Recusa de Escala',
-        message: `${memberName} recusou a convocação para "${shift.title}". Necessário substituto.`,
-        type: 'SCHEDULE',
-        link: '/events/schedule',
-        targetUserIds: adminIds
-    });
-}
+        // Se recusou, notificar admin
+        if (!accept) {
+            const adminIds = await associatesService.getNotificationTargets(['ADMIN', 'SECRETARY']);
+            const memberName = members[memberIndex].name;
+            await notificationService.add({
+                title: 'Recusa de Escala',
+                message: `${memberName} recusou a convocação para "${shift.title}". Necessário substituto.`,
+                type: 'SCHEDULE',
+                link: '/events/schedule',
+                targetUserIds: adminIds
+            });
+        }
     },
 
     /**
      * Finalizar Plantão (Presidente/Admin)
      * Consolida a escala e atualiza as estatísticas de quem participou.
      */
-    async finalizeShift(shiftId: string): Promise < void> {
-    // 1. Obter plantão
-    const { data: shift } = await supabase
-        .from('schedules')
-        .select('*')
-        .eq('id', shiftId)
-        .single();
+    async finalizeShift(shiftId: string): Promise<void> {
+        // 1. Obter plantão
+        const { data: shift } = await supabase
+            .from('schedules')
+            .select('*')
+            .eq('id', shiftId)
+            .single();
 
-    if(!shift) throw new Error('Plantão não encontrado');
-    if(shift.status === 'FINISHED') throw new Error('Este plantão já foi finalizado.');
+        if (!shift) throw new Error('Plantão não encontrado');
+        if (shift.status === 'FINISHED') throw new Error('Este plantão já foi finalizado.');
 
-    let members: ShiftMember[] = shift.confirmed_members || [];
+        let members: ShiftMember[] = shift.confirmed_members || [];
 
-    // 2. Filter CONFIRMED members to update stats
-    const participants = members.filter(m => m.status === 'CONFIRMED' && m.userId);
+        // 2. Filter CONFIRMED members to update stats
+        const participants = members.filter(m => m.status === 'CONFIRMED' && m.userId);
 
-    for(const p of participants) {
-        // Incrementar contador de plantões do usuário
-        await supabase.rpc('increment_shift_count', { user_id: p.userId });
+        for (const p of participants) {
+            // Incrementar contador de plantões do usuário
+            await supabase.rpc('increment_shift_count', { user_id: p.userId });
 
-        // Atualizar data do ultimo plantão
-        await supabase
-            .from('profiles')
-            .update({ last_shift_date: new Date().toISOString() })
-            .eq('id', p.userId);
-    }
+            // Atualizar data do ultimo plantão
+            await supabase
+                .from('profiles')
+                .update({ last_shift_date: new Date().toISOString() })
+                .eq('id', p.userId);
+        }
 
         // 3. Update Status to FINISHED
         const { error } = await supabase
-        .from('schedules')
-        .update({ status: 'FINISHED' }) // FINISHED status
-        .eq('id', shiftId);
+            .from('schedules')
+            .update({ status: 'FINISHED' }) // FINISHED status
+            .eq('id', shiftId);
 
-    if(error) throw error;
+        if (error) throw error;
 
-    // Notificar participantes
-    await notificationService.add({
-        title: 'Plantão Finalizado',
-        message: `O plantão "${shift.title}" foi encerrado e contabilizado.`,
-        type: 'SCHEDULE',
-        targetUserIds: participants.map(p => p.userId)
-    });
-}
+        // Notificar participantes
+        await notificationService.add({
+            title: 'Plantão Finalizado',
+            message: `O plantão "${shift.title}" foi encerrado e contabilizado.`,
+            type: 'SCHEDULE',
+            targetUserIds: participants.map(p => p.userId)
+        });
+    }
 };
 
 function mapToFrontend(row: any): Shift {
