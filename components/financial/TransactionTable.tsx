@@ -96,8 +96,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                             filteredTransactions.map((tx) => (
                                 <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="px-6 py-4">
-                                        <p className="text-sm font-bold text-slate-700">{new Date(tx.date).toLocaleDateString('pt-BR')}</p>
-                                        <p className="text-[10px] text-slate-400 font-medium">às {new Date(tx.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+                                        <p className="text-sm font-bold text-slate-700">
+                                            {(() => {
+                                                const [y, m, d] = tx.date.split('-');
+                                                return `${d}/${m}/${y}`;
+                                            })()}
+                                        </p>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
