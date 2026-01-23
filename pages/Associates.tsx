@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Plus, Download, Trash2, Edit2, X, FileText, Calendar, DollarSign, Clock, Save, AlertCircle, ArrowRight, Users, Shield, MapPin } from 'lucide-react';
-import { Card, Button, Input, Badge, Avatar, Modal } from '../components/ui';
+import { Card, Button, Input, Badge, Avatar, Modal, Skeleton } from '../components/ui';
 import { Associate, Transaction, User, UserRole, translateRole, translateStatus, translatePaymentStatus } from '../types';
 import { associatesService } from '../services/associates';
 import { scheduleService } from '../services/schedule';
@@ -218,16 +218,58 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
         </div>
       </Card>
 
-      <Card className="p-0 overflow-hidden">
+      <div className="md:hidden space-y-4">
+        {loading ? (
+          [1, 2, 3].map(i => <Card key={i} className="h-24 w-full flex items-center px-4"><Skeleton className="h-16 w-full" /></Card>)
+        ) : filtered.length === 0 ? (
+          <div className="p-12 text-center text-slate-400">Nenhum associado encontrado.</div>
+        ) : filtered.map((associate) => (
+          <Card key={associate.id} className="p-4 flex flex-col gap-4" onClick={() => handleViewDetails(associate)}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar src={associate.avatar} alt={associate.name} fallback={associate.name.substring(0, 2)} size="md" />
+                <div>
+                  <p className="font-bold text-slate-900 leading-tight">{associate.name}</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{translateRole(associate.role)}</p>
+                </div>
+              </div>
+              <Badge variant={associate.paymentStatus === 'UP_TO_DATE' ? 'success' : 'danger'}>
+                {translatePaymentStatus(associate.paymentStatus)}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+              <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold uppercase">
+                {associate.status === 'ACTIVE' ? (
+                  <span className="flex items-center gap-1 text-emerald-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ATIVO
+                  </span>
+                ) : (
+                  <span className="text-slate-400">{translateStatus(associate.status)}</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {canEdit && (
+                  <button onClick={(e) => { e.stopPropagation(); handleEdit(associate); }} className="p-2 text-slate-400 hover:text-brand-600">
+                    <Edit2 size={16} />
+                  </button>
+                )}
+                <ArrowRight size={16} className="text-slate-300" />
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="hidden md:block p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-medium">
               <tr>
-                <th className="px-6 py-4">Membro</th>
-                <th className="px-6 py-4">Função</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Financeiro</th>
-                <th className="px-6 py-4 text-center">Ações</th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Membro</th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Função</th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Status</th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Financeiro</th>
+                <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -236,7 +278,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                   <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
                     <div className="flex flex-col items-center gap-3">
                       <Clock className="animate-spin text-brand-500" size={24} />
-                      <p>Sincronizando dados...</p>
+                      <p className="font-bold text-xs uppercase tracking-widest">Sincronizando...</p>
                     </div>
                   </td>
                 </tr>
@@ -247,17 +289,17 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                   </td>
                 </tr>
               ) : filtered.map((associate) => (
-                <tr key={associate.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={associate.id} className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleViewDetails(associate)}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Avatar
                         src={associate.avatar}
                         alt={associate.name}
                         fallback={associate.name.substring(0, 2)}
-                        size="sm"
+                        size="md"
                       />
                       <div>
-                        <p className="font-semibold text-slate-900">{associate.name}</p>
+                        <p className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{associate.name}</p>
                         <p className="text-xs text-slate-500">{associate.email}</p>
                       </div>
                     </div>
@@ -267,8 +309,8 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                   </td>
                   <td className="px-6 py-4">
                     {associate.status === 'ACTIVE' ? (
-                      <span className="flex items-center gap-1.5 text-emerald-600 font-medium text-xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ativo
+                      <span className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs uppercase tracking-wider">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Ativo
                       </span>
                     ) : (
                       <Badge variant="warning">{translateStatus(associate.status)}</Badge>
@@ -284,16 +326,16 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleViewDetails(associate)}>
+                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleViewDetails(associate); }}>
                         <FileText size={16} />
                       </Button>
                       {canEdit && (
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(associate)}>
+                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleEdit(associate); }}>
                           <Edit2 size={16} />
                         </Button>
                       )}
                       {canEdit && (
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(associate.id)} className="text-red-400 hover:text-red-500">
+                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(associate.id); }} className="text-red-400 hover:text-red-500">
                           <Trash2 size={16} />
                         </Button>
                       )}

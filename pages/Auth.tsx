@@ -217,7 +217,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
               {isRegister ? (
                 <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-500 delay-75">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="block text-[10px] font-black text-slate-700 uppercase tracking-widest mb-1">
                       Código de Acesso
                     </label>
                     <div className="relative">

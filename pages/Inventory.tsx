@@ -294,14 +294,14 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                   {/* Info Grid Section */}
                   <div className="grid grid-cols-2 gap-4 py-8">
                     <div className="space-y-2">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Quantidade</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantidade</p>
                       <p className="font-black text-slate-900 text-3xl flex items-baseline gap-1.5">
                         {item.quantity}
                         <span className="text-xs font-bold text-slate-400 lowercase tracking-normal">{item.unit || 'un'}</span>
                       </p>
                     </div>
                     <div className="space-y-2 text-right">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Localização</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Localização</p>
                       <p className="font-black text-slate-900 text-xl flex items-center justify-end gap-2">
                         <MapPin size={18} className="text-red-500" /> {item.location}
                       </p>

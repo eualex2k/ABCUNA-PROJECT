@@ -187,7 +187,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {shortcuts.map((item, index) => {
           const Icon = item.icon;
           return (
@@ -278,7 +278,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             <h3 className="font-bold text-slate-900 text-sm">Transações Recentes</h3>
             <Button variant="ghost" size="sm" onClick={() => navigate('/financial')} className="text-xs font-bold text-brand-600">Ver Extrato Completo</Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+          <div className="grid grid-cols-1 divide-y divide-slate-100">
             {recentTransactions.length > 0 ? (
               recentTransactions.map((tx) => (
                 <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">

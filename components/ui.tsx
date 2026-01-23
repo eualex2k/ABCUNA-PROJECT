@@ -46,7 +46,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', size = 'md', className = '', ...props }) => {
-  const baseStyles = "inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none rounded-lg";
+  const baseStyles = "inline-flex items-center justify-center font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none rounded-lg";
 
   const variants = {
     primary: "bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-500 shadow-sm",
@@ -191,7 +191,7 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
 
   return (
     <div className="w-full">
-      {label && <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>}
+      {label && <label className="block text-sm font-bold text-slate-700 mb-1.5">{label}</label>}
       <div className="relative">
         <input
           ref={inputRef}
@@ -232,7 +232,7 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 export const Textarea: React.FC<TextareaProps> = ({ label, error, className = '', ...props }) => {
   return (
     <div className="w-full">
-      {label && <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>}
+      {label && <label className="block text-sm font-bold text-slate-700 mb-1.5">{label}</label>}
       <textarea
         className={`w-full p-4 bg-white border border-slate-300 rounded-lg text-base shadow-sm placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors resize-none ${error ? 'border-red-500' : ''} ${className}`}
         {...props}
@@ -317,8 +317,8 @@ export const StatCard: React.FC<{
             </span>
           )}
         </div>
-        <div className="animate-slide-up">
-          <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1.5">{title}</h3>
+        <div className="animate-slide-up flex flex-col mobile-items-center sm:items-start text-center sm:text-left">
+          <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">{title}</h3>
           <p className="text-2xl font-black text-slate-900 tracking-tight">{value}</p>
         </div>
       </>
@@ -366,13 +366,13 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         className={`bg-white rounded-2xl shadow-2xl w-full ${maxWidthClasses[maxWidth]} flex flex-col max-h-[90vh] animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-header px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 backdrop-blur-md flex-shrink-0">
-          <h3 className="font-bold text-slate-900">{title}</h3>
+        <div className="modal-header px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 flex-shrink-0">
+          <h3 className="font-bold text-slate-900 text-sm sm:text-base">{title}</h3>
           <button onClick={onClose} className="p-2 -mr-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all">
             <X size={20} />
           </button>
         </div>
-        <div className="p-6 overflow-y-auto custom-scrollbar">{children}</div>
+        <div className="p-5 sm:p-6 overflow-y-auto custom-scrollbar">{children}</div>
       </div>
     </div>,
     document.body

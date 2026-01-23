@@ -133,8 +133,8 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                         <div
                             key={fee.id}
                             className={`group p-4 rounded-xl border transition-all duration-300 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${selectedFeeIds.includes(fee.id)
-                                    ? 'bg-brand-50 border-brand-200 shadow-lg scale-[1.01]'
-                                    : 'bg-white border-slate-100 shadow-sm hover:border-slate-300'
+                                ? 'bg-brand-50 border-brand-200 shadow-lg scale-[1.01]'
+                                : 'bg-white border-slate-100 shadow-sm hover:border-slate-300'
                                 }`}
                         >
                             <div className="flex items-start gap-4 flex-1">
@@ -155,9 +155,9 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                                             {translateStatus(fee.status)}
                                         </Badge>
                                     </div>
-                                    <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
-                                        <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-400" /> Vencimento {new Date(fee.dueDate).toLocaleDateString('pt-BR')}</span>
-                                        <span className="flex items-center gap-1"><AlertTriangle size={12} className="text-slate-400" /> {fee.monthRef}</span>
+                                    <div className="flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest pt-1">
+                                        <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-400" strokeWidth={2.5} /> Venc. {new Date(fee.dueDate).toLocaleDateString('pt-BR')}</span>
+                                        <span className="flex items-center gap-1"><AlertTriangle size={12} className="text-slate-400" strokeWidth={2.5} /> {fee.monthRef}</span>
                                     </div>
                                 </div>
                             </div>

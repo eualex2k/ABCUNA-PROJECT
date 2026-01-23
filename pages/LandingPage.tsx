@@ -206,7 +206,7 @@ export const LandingPage: React.FC = () => {
                             </h2>
 
                             <div className="mb-6">
-                                <p className="text-sm text-slate-600 leading-relaxed border-l-4 border-red-500 pl-4 text-justify">
+                                <p className="text-sm text-slate-600 leading-relaxed border-l-4 border-red-500 pl-4 text-justify lg:text-left">
                                     {displayConfig.about_text}
                                 </p>
                             </div>
@@ -277,7 +277,7 @@ export const LandingPage: React.FC = () => {
             <div className="w-full max-w-[95%] lg:max-w-[1600px] h-auto lg:h-[90vh] bg-[#0f172a] lg:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
 
                 {/* Left Panel - Hero Identity (35%) */}
-                <div className="lg:w-[35%] bg-gradient-to-br from-red-700 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
+                <div className="lg:w-[35%] bg-gradient-to-br from-red-700 to-slate-900 text-white p-6 sm:p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden mobile-items-center">
                     {/* Background Pattern */}
                     {displayConfig.hero_image_url ? (
                         <div className="absolute inset-0">
@@ -300,7 +300,7 @@ export const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Main Hero Content */}
-                    <div className="relative z-10 my-8">
+                    <div className="relative z-10 my-8 mobile-text-center">
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white text-[10px] font-medium mb-6 uppercase tracking-wider">
                             <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
                             {displayConfig.hero_badge_text}
@@ -308,13 +308,13 @@ export const LandingPage: React.FC = () => {
                         <h1 className="text-3xl lg:text-4xl font-bold leading-tight mb-4 drop-shadow-lg">
                             {displayConfig.hero_title}
                         </h1>
-                        <p className="text-base text-slate-100 font-light leading-relaxed max-w-sm drop-shadow-md">
+                        <p className="text-base text-slate-100 font-light leading-relaxed max-w-sm mx-auto lg:mx-0 drop-shadow-md">
                             {displayConfig.hero_subtitle}
                         </p>
                     </div>
 
                     {/* Footer / CTA */}
-                    <div className="relative z-10">
+                    <div className="relative z-10 flex flex-col mobile-items-center">
                         <button
                             onClick={handleNavigation}
                             className="group w-full sm:w-auto px-6 py-3.5 bg-white text-red-700 font-bold text-sm rounded-xl shadow-lg shadow-black/20 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -331,8 +331,8 @@ export const LandingPage: React.FC = () => {
                 {/* Right Panel - Content Tabs (65%) */}
                 <div className="lg:w-[65%] bg-white flex flex-col relative">
                     {/* Tab Navigation */}
-                    <div className="flex items-center justify-between px-8 py-6">
-                        <div className="flex items-center gap-1 p-1">
+                    <div className="flex items-center justify-center lg:justify-between px-8 py-6">
+                        <div className="flex items-center gap-1 p-1 bg-slate-50 lg:bg-transparent rounded-xl">
                             {(['about', 'services', 'contact'] as TabType[]).map((tab) => (
                                 <button
                                     key={tab}

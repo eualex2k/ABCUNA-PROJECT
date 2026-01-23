@@ -60,7 +60,7 @@ export const RegistrationBoard: React.FC<RegistrationBoardProps> = ({
                                             </div>
                                             <div>
                                                 <h4 className="font-bold text-slate-900 leading-tight">{reg.full_name}</h4>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase">Inscrito</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inscrito</span>
                                             </div>
                                         </div>
                                         <Badge variant={remaining <= 0 ? 'success' : 'warning'}>
@@ -69,9 +69,9 @@ export const RegistrationBoard: React.FC<RegistrationBoardProps> = ({
                                     </div>
 
                                     <div className="space-y-2">
-                                        <div className="flex justify-between text-xs">
-                                            <span className="text-slate-500 font-medium">Progresso</span>
-                                            <span className="text-slate-900 font-bold">{progress.toFixed(0)}%</span>
+                                        <div className="flex justify-between text-xs mb-1">
+                                            <span className="text-slate-500 font-black uppercase text-[10px] tracking-widest">Progresso</span>
+                                            <span className="text-slate-900 font-black">{progress.toFixed(0)}%</span>
                                         </div>
                                         <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                                             <div
@@ -81,20 +81,20 @@ export const RegistrationBoard: React.FC<RegistrationBoardProps> = ({
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4 py-2 border-y border-slate-100">
+                                    <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-100 bg-slate-50/30 -mx-5 px-5">
                                         <div>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Pago</p>
-                                            <p className="text-sm font-black text-emerald-600">{formatCurrency(reg.total_paid)}</p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Pago</p>
+                                            <p className="text-base font-black text-emerald-600 tracking-tighter">{formatCurrency(reg.total_paid)}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Restante</p>
-                                            <p className={`text-sm font-black ${remaining > 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Restante</p>
+                                            <p className={`text-base font-black tracking-tighter ${remaining > 0 ? 'text-red-600' : 'text-slate-400'}`}>
                                                 {formatCurrency(remaining)}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase">
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-500 font-black uppercase tracking-widest pt-1">
                                         <Calendar size={12} className="text-slate-400" />
                                         Prazo: {new Date(reg.deadline).toLocaleDateString('pt-BR')}
                                     </div>

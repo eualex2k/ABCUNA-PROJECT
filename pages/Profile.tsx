@@ -110,20 +110,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
               <div className="p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-xs text-slate-400 mb-0.5">CPF</p>
-                <p className="text-sm font-bold text-slate-900 font-mono">{formData.cpf || '-'}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">CPF</p>
+                <p className="text-sm font-black text-slate-900 font-mono tracking-tighter">{formData.cpf || '-'}</p>
               </div>
               <div className="p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-xs text-slate-400 mb-0.5">Matrícula</p>
-                <p className="text-sm font-bold text-slate-900">{formData.registrationNumber || '-'}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Matrícula</p>
+                <p className="text-sm font-black text-slate-900">{formData.registrationNumber || '-'}</p>
               </div>
               <div className="p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-xs text-slate-400 mb-0.5">Telefone</p>
-                <p className="text-sm font-bold text-slate-900">{formData.phone || '-'}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Telefone</p>
+                <p className="text-sm font-black text-slate-900">{formData.phone || '-'}</p>
               </div>
               <div className="p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-xs text-slate-400 mb-0.5">Cartão SUS</p>
-                <p className="text-sm font-bold text-slate-900 font-mono">{formData.susNumber || '-'}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cartão SUS</p>
+                <p className="text-sm font-black text-slate-900 font-mono tracking-tighter">{formData.susNumber || '-'}</p>
               </div>
             </div>
           </div>

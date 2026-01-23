@@ -62,7 +62,6 @@ body {
 }
 
 /* Structured Card */
-/* Structured Card */
 .premium-card {
   background: white;
   border: 1px solid #e2e8f0;
@@ -132,4 +131,49 @@ body {
 .hover-lift:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Mobile Harmony & Alignment --- */
+@media (max-width: 640px) {
+  .mobile-text-center {
+    text-align: center;
+  }
+
+  .mobile-items-center {
+    align-items: center;
+    justify-content: center;
+  }
+
+  h1 {
+    font-size: 1.85rem !important;
+    line-height: 1.2 !important;
+  }
+
+  h2 {
+    font-size: 1.6rem !important;
+  }
+
+  h3 {
+    font-size: 1.3rem !important;
+  }
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
+
+.section-padding {
+  padding: 2rem 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .section-padding {
+    padding: 4rem 6rem;
+  }
 }

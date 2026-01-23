@@ -265,8 +265,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                   <Calendar size={18} className="text-brand-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{shift.day}</p>
-                  <p className="font-bold text-slate-700">{shift.date}</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">{shift.day}</p>
+                  <p className="font-bold text-slate-700 tracking-tight">{shift.date}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -289,8 +289,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
             <div className="p-4 space-y-4">
               <div>
                 <h3 className="font-black text-slate-900 text-lg uppercase">{shift.team}</h3>
-                <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 font-medium italic">
-                  <Clock size={12} /> {shift.startTime} às {shift.endTime}
+                <div className="flex items-center gap-2 text-xs text-slate-500 mt-2 font-bold uppercase tracking-widest">
+                  <Clock size={12} className="text-brand-500" strokeWidth={3} /> {shift.startTime} <span className="text-slate-300">|</span> {shift.endTime}
                 </div>
               </div>
 
@@ -309,8 +309,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               {/* Members List Preview (First 3) */}
               <div className="space-y-2">
                 <div className="flex justify-between items-end">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Efetivo</span>
-                  <span className="text-[10px] font-bold text-slate-500">{shift.members.filter(m => ['CONFIRMED', 'PENDING'].includes(m.status)).length} / {shift.vacancies}</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Equipe</span>
+                  <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded">{shift.members.filter(m => ['CONFIRMED', 'PENDING'].includes(m.status)).length} / {shift.vacancies}</span>
                 </div>
                 <div className="flex -space-x-2 overflow-hidden py-1">
                   {shift.members.slice(0, 5).map((m, i) => (
