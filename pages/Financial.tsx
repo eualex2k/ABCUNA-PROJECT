@@ -1078,7 +1078,14 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   // Derived state for summary cards
   const completedTransactions = transactions
     .filter(t => t.status === 'COMPLETED')
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => {
+      // 1. Sort by transaction date
+      if (b.date !== a.date) {
+        return b.date.localeCompare(a.date);
+      }
+      // 2. Tie-break by creation time (latests at the top)
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
   const totalBalance = completedTransactions.reduce((acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0);
   const totalIncome = completedTransactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
   const totalExpense = completedTransactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);

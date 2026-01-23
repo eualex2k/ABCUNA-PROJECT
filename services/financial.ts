@@ -129,6 +129,7 @@ function mapToFrontend(row: any): Transaction {
         recipient_id: row.recipient_id,
         notes: row.notes,
         registration_id: row.registration_id,
+        createdAt: row.created_at,
     };
 }
 
