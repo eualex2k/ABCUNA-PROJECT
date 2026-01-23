@@ -293,7 +293,7 @@ export const StatCard: React.FC<{
   icon: React.ReactNode;
   loading?: boolean;
 }> = ({ title, value, trend, trendUp, icon, loading = false }) => (
-  <Card className="p-6 flex flex-col justify-between h-full hover-lift" glass={false}>
+  <Card className="p-4 sm:p-6 flex flex-col justify-between h-full hover-lift" glass={false}>
     {loading ? (
       <div className="space-y-4">
         <div className="flex justify-between items-start">
@@ -319,7 +319,7 @@ export const StatCard: React.FC<{
         </div>
         <div className="animate-slide-up flex flex-col mobile-items-center sm:items-start text-center sm:text-left">
           <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">{title}</h3>
-          <p className="text-2xl font-black text-slate-900 tracking-tight">{value}</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{value}</p>
         </div>
       </>
     )}

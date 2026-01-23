@@ -193,7 +193,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           return (
             <Card
               key={index}
-              className="p-4 hover:border-brand-500 cursor-pointer group transition-colors"
+              className="p-3 sm:p-4 hover:border-brand-500 cursor-pointer group transition-colors"
               onClick={() => navigate(item.path)}
             >
               <div className={`w-12 h-12 rounded-lg ${item.bg} ${item.color} flex items-center justify-center mb-3`}>

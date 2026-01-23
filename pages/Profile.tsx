@@ -59,7 +59,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Meu Perfil</h2>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">Meu Perfil</h1>
           <p className="text-slate-500 text-sm">Gerencie suas informações pessoais e documentos.</p>
         </div>
         <Button onClick={handleSubmit} disabled={isLoading} className="flex items-center gap-2">
@@ -68,12 +68,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
       </div>
 
       {/* Card de Cabeçalho com Avatar e Info Principal */}
-      <Card className="p-6 bg-gradient-to-br from-white to-slate-50">
+      <Card className="p-5 sm:p-6 bg-gradient-to-br from-white to-slate-50">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-          {/* Avatar */}
-          <div className="relative group">
+          {/* Avatar Section */}
+          <div className="relative group flex-shrink-0">
             <div
-              className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg cursor-pointer transition-transform hover:scale-105"
+              className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg cursor-pointer transition-transform hover:scale-105"
               onClick={() => fileInputRef.current?.click()}
             >
               <Avatar
@@ -84,7 +84,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                 className="w-full h-full"
               />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="text-white" size={28} />
+                <Camera className="text-white" size={24} />
               </div>
             </div>
             <input
@@ -97,10 +97,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
           </div>
 
           {/* Informações Principais */}
-          <div className="flex-1 text-center md:text-left space-y-3">
+          <div className="flex-1 text-center md:text-left space-y-3 w-full">
             <div>
-              <h3 className="text-2xl font-bold text-slate-900">{formData.name}</h3>
-              <p className="text-sm text-slate-500">{formData.email}</p>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{formData.name}</h3>
+              <p className="text-sm font-medium text-slate-500">{formData.email}</p>
             </div>
 
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
@@ -108,29 +108,28 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
               {formData.bloodType && <Badge variant="danger">{formData.bloodType}</Badge>}
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-              <div className="p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">CPF</p>
-                <p className="text-sm font-black text-slate-900 font-mono tracking-tighter">{formData.cpf || '-'}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 pt-2">
+              <div className="p-2 sm:p-3 bg-white rounded-lg border border-slate-200">
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">CPF</p>
+                <p className="text-xs sm:text-sm font-black text-slate-900 font-mono tracking-tighter">{formData.cpf || '-'}</p>
               </div>
-              <div className="p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Matrícula</p>
-                <p className="text-sm font-black text-slate-900">{formData.registrationNumber || '-'}</p>
+              <div className="p-2 sm:p-3 bg-white rounded-lg border border-slate-200">
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Matrícula</p>
+                <p className="text-xs sm:text-sm font-black text-slate-900">{formData.registrationNumber || '-'}</p>
               </div>
-              <div className="p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Telefone</p>
-                <p className="text-sm font-black text-slate-900">{formData.phone || '-'}</p>
+              <div className="p-2 sm:p-3 bg-white rounded-lg border border-slate-200">
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Telefone</p>
+                <p className="text-xs sm:text-sm font-black text-slate-900">{formData.phone || '-'}</p>
               </div>
-              <div className="p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cartão SUS</p>
-                <p className="text-sm font-black text-slate-900 font-mono tracking-tighter">{formData.susNumber || '-'}</p>
+              <div className="p-2 sm:p-3 bg-white rounded-lg border border-slate-200">
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cartão SUS</p>
+                <p className="text-xs sm:text-sm font-black text-slate-900 font-mono tracking-tighter">{formData.susNumber || '-'}</p>
               </div>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Grid de Formulários */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Dados Pessoais */}
         <Card className="p-6">

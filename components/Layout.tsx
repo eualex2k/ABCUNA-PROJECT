@@ -144,11 +144,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed lg:static inset-y-0 left-0 z-50 w-72 side-panel shadow-2xl lg:shadow-none transform transition-transform duration-300 ease-in-out
+          fixed lg:static inset-y-0 left-0 z-[100] w-72 side-panel shadow-2xl lg:shadow-none transform transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col pb-safe">
           {/* Logo */}
           <div className="h-20 flex items-center px-6 mb-2 flex-shrink-0">
             <div className="flex items-center gap-3">
@@ -203,10 +203,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           </nav>
 
           {/* User Profile Footer */}
-          <div className="p-4 mt-auto flex-shrink-0">
+          <div className="p-4 mt-auto mb-[68px] lg:mb-0 flex-shrink-0">
             <div
               className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors group"
-              onClick={() => navigate('/profile')}
+              onClick={() => { setIsSidebarOpen(false); navigate('/profile'); }}
             >
               <Avatar src={user.avatar} alt={user.name} fallback={user.name.substring(0, 2)} size="sm" className="ring-2 ring-white/5" />
               <div className="flex-1 min-w-0">
@@ -214,7 +214,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                 <p className="text-xs text-slate-400 truncate opacity-70">{translateRole(user.role)}</p>
               </div>
               <button
-                onClick={(e) => { e.stopPropagation(); onLogout(); }}
+                onClick={(e) => { e.stopPropagation(); setIsSidebarOpen(false); onLogout(); }}
                 className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 title="Sair"
               >
