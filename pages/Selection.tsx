@@ -18,6 +18,7 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
   const [schedule, setSchedule] = useState<SelectionScheduleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditScheduleMode, setIsEditScheduleMode] = useState(false);
+  const [editingStageId, setEditingStageId] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -132,14 +133,48 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
     e.preventDefault();
     if (newStage.title) {
       try {
-        const stage = await selectionService.addStage(newStage.title, newStage.description, stages.length + 1);
-        setStages(prev => [...prev, stage]);
+        if (editingStageId !== null) {
+          await selectionService.updateStage(editingStageId, newStage);
+          setStages(prev => prev.map(s => s.id === editingStageId ? { ...s, ...newStage } : s));
+          showToast('Etapa atualizada com sucesso!');
+        } else {
+          const stage = await selectionService.addStage(newStage.title, newStage.description, stages.length + 1);
+          setStages(prev => [...prev, stage]);
+          showToast('Nova etapa criada!');
+        }
         setIsAddStageModalOpen(false);
         setNewStage({ title: '', description: '' });
+        setEditingStageId(null);
       } catch (error) {
-        console.error('Error adding stage:', error);
+        console.error('Error saving stage:', error);
       }
     }
+  };
+
+  const handleEditStage = (stage: SelectionStage) => {
+    setEditingStageId(stage.id);
+    setNewStage({ title: stage.title, description: stage.description });
+    setIsAddStageModalOpen(true);
+  };
+
+  const handleDeleteStage = async (id: number) => {
+    if (!confirm('Deseja realmente excluir esta etapa?')) return;
+    try {
+      await selectionService.deleteStage(id);
+      setStages(prev => prev.filter(s => s.id !== id));
+      setIsAddStageModalOpen(false);
+      setEditingStageId(null);
+      setNewStage({ title: '', description: '' });
+      showToast('Etapa removida com sucesso!');
+    } catch (error) {
+      console.error('Error deleting stage:', error);
+    }
+  };
+
+  const [toast, setToast] = useState({ message: '', visible: false });
+  const showToast = (message: string) => {
+    setToast({ message, visible: true });
+    setTimeout(() => setToast({ message: '', visible: false }), 3000);
   };
 
   const handleAddSchedule = async (e: React.FormEvent) => {
@@ -237,7 +272,11 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setIsAddStageModalOpen(true)}
+                  onClick={() => {
+                    setEditingStageId(null);
+                    setNewStage({ title: '', description: '' });
+                    setIsAddStageModalOpen(true);
+                  }}
                   className="flex items-center gap-2 border-brand-200 text-brand-700 hover:bg-brand-50"
                 >
                   <Plus size={16} /> Nova Etapa
@@ -305,9 +344,20 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
                   <div className={`p-1.5 rounded-lg ${stage.status === 'COMPLETED' ? 'bg-green-50 text-green-600' : stage.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'}`}>
                     <Target size={20} />
                   </div>
-                  <Badge variant={stage.status === 'COMPLETED' ? 'success' : stage.status === 'IN_PROGRESS' ? 'info' : 'neutral'}>
-                    {translateStatus(stage.status)}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleEditStage(stage)}
+                        className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+                        title="Editar Etapa"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                    )}
+                    <Badge variant={stage.status === 'COMPLETED' ? 'success' : stage.status === 'IN_PROGRESS' ? 'info' : 'neutral'}>
+                      {translateStatus(stage.status)}
+                    </Badge>
+                  </div>
                 </div>
                 <h3 className="font-bold text-slate-900 text-base mb-1">{stage.id}. {stage.title}</h3>
                 <p className="text-[13px] leading-snug text-slate-500 mb-3 line-clamp-2">{stage.description}</p>
@@ -686,8 +736,8 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
         )}
       </Modal>
 
-      {/* Modals for Adding Content */}
-      <Modal isOpen={isAddStageModalOpen} onClose={() => setIsAddStageModalOpen(false)} title="Adicionar Nova Etapa">
+      {/* Modal: Cadastro/Edição de Etapa */}
+      <Modal isOpen={isAddStageModalOpen} onClose={() => { setIsAddStageModalOpen(false); setEditingStageId(null); setNewStage({ title: '', description: '' }); }} title={editingStageId ? 'Editar Etapa' : 'Nova Etapa'}>
         <form onSubmit={handleAddStage} className="space-y-4">
           <Input
             label="Título da Etapa"
@@ -705,12 +755,31 @@ export const SelectionPage: React.FC<SelectionPageProps> = ({ user }) => {
               onChange={e => setNewStage({ ...newStage, description: e.target.value })}
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" onClick={() => setIsAddStageModalOpen(false)}>Cancelar</Button>
-            <Button type="submit">Criar Etapa</Button>
+          <div className="flex justify-between items-center pt-2">
+            {editingStageId ? (
+              <Button type="button" variant="outline" className="text-red-500 border-red-100 hover:bg-red-50" onClick={() => handleDeleteStage(editingStageId)}>
+                Remover Etapa
+              </Button>
+            ) : <div />}
+            <div className="flex gap-2">
+              <Button type="button" variant="ghost" onClick={() => { setIsAddStageModalOpen(false); setEditingStageId(null); }}>Cancelar</Button>
+              <Button type="submit">
+                {editingStageId ? 'Salvar Alterações' : 'Criar Etapa'}
+              </Button>
+            </div>
           </div>
         </form>
       </Modal>
+
+      {/* Toast Notification */}
+      {toast.visible && (
+        <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-bottom-4">
+          <div className="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <p className="text-sm font-bold">{toast.message}</p>
+          </div>
+        </div>
+      )}
 
       <Modal isOpen={isAddScheduleModalOpen} onClose={() => setIsAddScheduleModalOpen(false)} title="Adicionar Evento ao Cronograma">
         <form onSubmit={handleAddSchedule} className="space-y-4">

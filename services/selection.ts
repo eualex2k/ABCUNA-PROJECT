@@ -106,6 +106,22 @@ export const selectionService = {
         return data;
     },
 
+    async updateStage(id: number, updates: Partial<SelectionStage>): Promise<void> {
+        const { error } = await supabase
+            .from('selection_stages')
+            .update(updates)
+            .eq('id', id);
+        if (error) throw error;
+    },
+
+    async deleteStage(id: number): Promise<void> {
+        const { error } = await supabase
+            .from('selection_stages')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+    },
+
     async getSchedule(): Promise<SelectionScheduleItem[]> {
         const { data, error } = await supabase
             .from('selection_schedule')
