@@ -403,32 +403,59 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           </div>
         </main>
 
-        {/* Mobile Bottom Navigation - Highly Refined Design */}
+        {/* Mobile Bottom Navigation - Dynamic Role-Based Quick Access */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-white/5 h-[68px] flex items-center justify-around z-50 px-2 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
-          {[
-            { label: 'Início', icon: LayoutDashboard, path: '/' },
-            { label: 'Financeiro', icon: DollarSign, path: '/financial' },
-            { label: 'Escala', icon: Clock, path: '/events/schedule' },
-            { label: 'Associados', icon: Users, path: '/associates' },
-            { label: 'Estoque', icon: Package, path: '/inventory' },
-          ].map((item) => {
-            const isActive = location.pathname === item.path;
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500'}`}
-              >
-                <div className={`relative p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]' : ''}`}>
-                  <Icon size={20} />
-                </div>
-                <span className={`text-[9px] font-black uppercase tracking-tight transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
-                  {item.label}
-                </span>
-              </NavLink>
-            );
-          })}
+          {(() => {
+            // Define priority items for bottom bar per role to keep it clean (max 5)
+            const getPriorityPaths = (role: string) => {
+              switch (role) {
+                case 'ADMIN':
+                  return ['/', '/associates', '/financial', '/events', '/inventory'];
+                case 'FINANCIAL':
+                  return ['/', '/financial', '/associates', '/inventory'];
+                case 'SECRETARY':
+                  return ['/', '/associates', '/financial', '/inventory', '/events'];
+                case 'INSTRUCTOR':
+                  return ['/', '/classroom', '/audit', '/events'];
+                case 'ASSOCIATE':
+                  return ['/', '/events', '/audit'];
+                case 'CANDIDATE':
+                  return ['/', '/selection', '/audit'];
+                default:
+                  return ['/'];
+              }
+            };
+
+            const priorityPaths = getPriorityPaths(user.role);
+
+            // Filter global MENU_ITEMS to find the ones in priority list AND allowed for role
+            return MENU_ITEMS
+              .filter(item =>
+                priorityPaths.includes(item.path) &&
+                item.allowedRoles.includes(user.role)
+              )
+              // Sort by the order in priorityPaths to respect user preference
+              .sort((a, b) => priorityPaths.indexOf(a.path) - priorityPaths.indexOf(b.path))
+              .slice(0, 5) // Safety cap
+              .map((item) => {
+                const isActive = location.pathname === item.path;
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500'}`}
+                  >
+                    <div className={`relative p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]' : ''}`}>
+                      <Icon size={20} />
+                    </div>
+                    <span className={`text-[9px] font-black uppercase tracking-tight transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+                      {item.label === 'Dashboard' ? 'Início' : item.label}
+                    </span>
+                  </NavLink>
+                );
+              });
+          })()}
         </nav>
       </div>
 
