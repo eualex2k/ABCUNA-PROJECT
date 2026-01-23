@@ -92,6 +92,7 @@ function mapToFrontend(row: any): Transaction {
         payer_id: row.payer_id,
         recipient_id: row.recipient_id,
         notes: row.notes,
+        registration_id: row.registration_id,
     };
 }
 
@@ -106,5 +107,6 @@ function mapToDb(tx: Partial<Transaction>): any {
     if (tx.payer_id !== undefined) dbRow.payer_id = tx.payer_id;
     if (tx.recipient_id !== undefined) dbRow.recipient_id = tx.recipient_id;
     if (tx.notes !== undefined) dbRow.notes = tx.notes;
+    if (tx.registration_id !== undefined) dbRow.registration_id = tx.registration_id;
     return dbRow;
 }

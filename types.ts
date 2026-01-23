@@ -103,6 +103,7 @@ export const translateCategory = (category: string): string => {
     case 'Membership': return 'Mensalidade';
     case 'Maintenance': return 'Manutenção';
     case 'Equipment': return 'Equipamento';
+    case 'Taxa de Inscrição': return 'Taxa de Inscrição';
     case 'Other': return 'Outro';
     default: return category;
   }
@@ -177,6 +178,18 @@ export interface Transaction {
   payer_id?: string;
   recipient_id?: string;
   notes?: string;
+  registration_id?: string;
+}
+
+export interface Registration {
+  id: string;
+  full_name: string;
+  status: 'PENDING' | 'COMPLETED';
+  total_paid: number;
+  target_amount: number;
+  deadline: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export type NotificationType = 'FINANCIAL' | 'EVENT' | 'SCHEDULE' | 'CLASSROOM' | 'AUDIT' | 'SYSTEM';

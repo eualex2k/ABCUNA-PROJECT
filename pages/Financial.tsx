@@ -7,6 +7,8 @@ import { associatesService } from '../services/associates';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { notificationService } from '../services/notifications';
 import { financialService } from '../services/financial';
+import { registrationsService } from '../services/registrations';
+import { Registration } from '../types';
 
 
 
@@ -41,7 +43,19 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   useEffect(() => {
     loadTransactions();
     loadAssociates();
+    loadRegistrations();
   }, []);
+
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+
+  const loadRegistrations = async () => {
+    try {
+      const data = await registrationsService.getAll();
+      setRegistrations(data);
+    } catch (error) {
+      console.error('Failed to load registrations', error);
+    }
+  };
 
   const loadAssociates = async () => {
     try {
@@ -94,6 +108,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   // Modals State
   const [isModalOpen, setIsModalOpen] = useState(false); // For New Movement
   const [isFeesManagerOpen, setIsFeesManagerOpen] = useState(false); // For Fee Management
+  const [isRegistrationManagerOpen, setIsRegistrationManagerOpen] = useState(false); // For Registration Management
   const [isOverduePreviewOpen, setIsOverduePreviewOpen] = useState(false); // New: Preview Modal for Notifications
 
   const [feePaymentStep, setFeePaymentStep] = useState<'LIST' | 'PAYMENT' | 'EDIT'>('LIST');
@@ -147,6 +162,21 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     dueDate: '',
     description: ''
   });
+
+  const [registrationForm, setRegistrationForm] = useState({
+    fullName: '',
+    targetAmount: '250.00',
+    deadline: '2026-04-15'
+  });
+
+  const [registrationPaymentForm, setRegistrationPaymentForm] = useState({
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    method: 'PIX',
+    registrationId: ''
+  });
+
+  const [editingRegistrationId, setEditingRegistrationId] = useState<string | null>(null);
 
   // Handle auto-open via Navigation State
   useEffect(() => {
@@ -704,6 +734,300 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     return null;
   };
 
+  const [registrationStep, setRegistrationStep] = useState<'LIST' | 'FORM' | 'PAYMENT'>('LIST');
+
+  const handleSaveRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingRegistrationId) {
+        await registrationsService.update(editingRegistrationId, {
+          full_name: registrationForm.fullName,
+          target_amount: parseFloat(registrationForm.targetAmount),
+          deadline: registrationForm.deadline
+        });
+        showToast('Inscrição atualizada com sucesso!');
+      } else {
+        await registrationsService.create({
+          full_name: registrationForm.fullName,
+          target_amount: parseFloat(registrationForm.targetAmount),
+          deadline: registrationForm.deadline
+        });
+        showToast('Inscrito cadastrado com sucesso!');
+      }
+      loadRegistrations();
+      setRegistrationStep('LIST');
+      setEditingRegistrationId(null);
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao salvar inscrição', 'info');
+    }
+  };
+
+  const handleSaveRegistrationPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const reg = registrations.find(r => r.id === registrationPaymentForm.registrationId);
+      if (!reg) return;
+
+      const txData: Omit<Transaction, 'id'> = {
+        description: `Taxa de Inscrição - ${reg.full_name}`,
+        amount: parseFloat(registrationPaymentForm.amount),
+        type: 'INCOME',
+        category: 'Taxa de Inscrição',
+        status: 'COMPLETED',
+        date: registrationPaymentForm.date,
+        registration_id: reg.id,
+        notes: `Pagamento via ${registrationPaymentForm.method}`
+      };
+
+      await financialService.create(txData);
+      showToast('Pagamento registrado com sucesso!');
+      loadTransactions();
+      loadRegistrations();
+      setRegistrationStep('LIST');
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao registrar pagamento', 'info');
+    }
+  };
+
+  const handleDeleteRegistration = async (id: string, name: string) => {
+    if (!confirm(`Tem certeza que deseja excluir a inscrição de ${name}?`)) return;
+    try {
+      await registrationsService.delete(id);
+      showToast('Inscrição excluída com sucesso!');
+      loadRegistrations();
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao excluir inscrição', 'info');
+    }
+  };
+
+  const [registrationFilter, setRegistrationFilter] = useState({ search: '', status: 'ALL' });
+
+  const renderRegistrationManagerContent = () => {
+    if (registrationStep === 'LIST') {
+      const filteredRegistrations = registrations.filter(reg => {
+        const matchesSearch = reg.full_name.toLowerCase().includes(registrationFilter.search.toLowerCase());
+        const isPaid = reg.total_paid >= reg.target_amount;
+        const matchesStatus = registrationFilter.status === 'ALL' ||
+          (registrationFilter.status === 'PAID' && isPaid) ||
+          (registrationFilter.status === 'PENDING' && !isPaid);
+        return matchesSearch && matchesStatus;
+      });
+
+      return (
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
+                <input
+                  type="text"
+                  placeholder="Buscar inscrito..."
+                  className="pl-9 h-9 w-48 text-xs bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-brand-500 outline-none"
+                  value={registrationFilter.search}
+                  onChange={e => setRegistrationFilter({ ...registrationFilter, search: e.target.value })}
+                />
+              </div>
+              <select
+                className="h-9 px-3 text-xs bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-brand-500 outline-none"
+                value={registrationFilter.status}
+                onChange={e => setRegistrationFilter({ ...registrationFilter, status: e.target.value })}
+              >
+                <option value="ALL">Todos Status</option>
+                <option value="PAID">Pagos</option>
+                <option value="PENDING">Pendentes</option>
+              </select>
+            </div>
+            <Button size="sm" onClick={() => {
+              setEditingRegistrationId(null);
+              setRegistrationForm({ fullName: '', targetAmount: '250.00', deadline: '2026-04-15' });
+              setRegistrationStep('FORM');
+            }}>
+              <Plus size={14} className="mr-1" /> Novo Inscrito
+            </Button>
+          </div>
+
+          <div className="max-h-[500px] overflow-y-auto pr-1 space-y-3">
+            {filteredRegistrations.map(reg => {
+              const remaining = reg.target_amount - reg.total_paid;
+              const isPaid = reg.total_paid >= reg.target_amount;
+              const deadlineDate = new Date(reg.deadline + 'T12:00:00');
+              const isNearDeadline = !isPaid && deadlineDate < new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+              const isOverdue = !isPaid && deadlineDate < new Date();
+
+              return (
+                <div key={reg.id} className="p-4 rounded-xl border border-slate-100 shadow-sm bg-white hover:border-slate-300 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-slate-900">{reg.full_name}</span>
+                      {isPaid ? (
+                        <Badge variant="success">Pago</Badge>
+                      ) : (
+                        <Badge variant={isOverdue ? 'danger' : (isNearDeadline ? 'warning' : 'neutral')}>
+                          {isOverdue ? 'Atrasado' : (isNearDeadline ? 'Próximo do Prazo' : 'Pendente')}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-500 flex gap-4">
+                      <span className="flex items-center gap-1">
+                        <TrendingUp size={12} className="text-emerald-500" /> Pago: {formatCurrency(reg.total_paid)}
+                      </span>
+                      <span className={`flex items-center gap-1 ${remaining > 0 ? 'text-amber-600 font-medium' : ''}`}>
+                        <DollarSign size={12} /> Restante: {formatCurrency(Math.max(0, remaining))}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar size={12} /> Prazo: {reg.deadline.split('-').reverse().join('/')}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 w-full md:w-auto">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingRegistrationId(reg.id);
+                        setRegistrationForm({
+                          fullName: reg.full_name,
+                          targetAmount: reg.target_amount.toString(),
+                          deadline: reg.deadline
+                        });
+                        setRegistrationStep('FORM');
+                      }}
+                      className="h-9 px-3 border-slate-200"
+                    >
+                      <Edit3 size={14} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteRegistration(reg.id, reg.full_name)}
+                      className="h-9 px-3 border-red-100 text-red-500 hover:bg-red-50"
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                    {!isPaid && (
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setRegistrationPaymentForm({
+                            ...registrationPaymentForm,
+                            registrationId: reg.id,
+                            amount: Math.max(0, remaining).toFixed(2)
+                          });
+                          setRegistrationStep('PAYMENT');
+                        }}
+                        className="h-9 font-bold bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        Registrar Pagamento
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {registrations.length === 0 && (
+              <div className="text-center py-10 text-slate-400">
+                <Users size={40} className="mx-auto mb-2 opacity-20" />
+                <p>Nenhum inscrito cadastrado.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (registrationStep === 'FORM') {
+      return (
+        <form onSubmit={handleSaveRegistration} className="space-y-4 animate-in fade-in slide-in-from-right-4">
+          <div className="flex items-center gap-2 text-slate-600 mb-2 cursor-pointer hover:text-brand-600" onClick={() => setRegistrationStep('LIST')}>
+            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
+          </div>
+          <h3 className="text-lg font-bold text-slate-900">{editingRegistrationId ? 'Editar Inscrito' : 'Novo Inscrito'}</h3>
+          <Input
+            label="Nome Completo"
+            placeholder="Digite o nome completo do interessado"
+            value={registrationForm.fullName}
+            onChange={e => setRegistrationForm({ ...registrationForm, fullName: e.target.value })}
+            required
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Valor da Taxa (R$)"
+              type="number"
+              step="0.01"
+              value={registrationForm.targetAmount}
+              onChange={e => setRegistrationForm({ ...registrationForm, targetAmount: e.target.value })}
+              required
+            />
+            <Input
+              label="Data Limite"
+              type="date"
+              value={registrationForm.deadline}
+              onChange={e => setRegistrationForm({ ...registrationForm, deadline: e.target.value })}
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full h-12 text-lg">
+            {editingRegistrationId ? 'Salvar Alterações' : 'Cadastrar Inscrito'}
+          </Button>
+        </form>
+      );
+    }
+
+    if (registrationStep === 'PAYMENT') {
+      const reg = registrations.find(r => r.id === registrationPaymentForm.registrationId);
+      return (
+        <form onSubmit={handleSaveRegistrationPayment} className="space-y-4 animate-in fade-in slide-in-from-right-4">
+          <div className="flex items-center gap-2 text-slate-600 mb-2 cursor-pointer hover:text-brand-600" onClick={() => setRegistrationStep('LIST')}>
+            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
+          </div>
+          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-2">
+            <h4 className="font-bold text-slate-900">{reg?.full_name}</h4>
+            <div className="text-sm text-slate-500">
+              Total Pago: {formatCurrency(reg?.total_paid || 0)} / Meta: {formatCurrency(reg?.target_amount || 0)}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Valor Pago (R$)"
+              type="number"
+              step="0.01"
+              value={registrationPaymentForm.amount}
+              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, amount: e.target.value })}
+              required
+            />
+            <Input
+              label="Data do Pagamento"
+              type="date"
+              value={registrationPaymentForm.date}
+              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, date: e.target.value })}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Forma de Pagamento</label>
+            <select
+              className="w-full h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:border-brand-500"
+              value={registrationPaymentForm.method}
+              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, method: e.target.value })}
+            >
+              <option value="PIX">Pix</option>
+              <option value="CASH">Dinheiro / Espécie</option>
+              <option value="CARD">Cartão de Crédito/Débito</option>
+              <option value="BANK">Transferência Bancária</option>
+            </select>
+          </div>
+          <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700">
+            Confirmar Pagamento
+          </Button>
+        </form>
+      );
+    }
+    return null;
+  };
+
   // --- End Fee Management Logic ---
 
   const handleSaveIncome = async (e: React.FormEvent) => {
@@ -1187,6 +1511,11 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {canEdit && (
+            <Button variant="outline" onClick={() => setIsRegistrationManagerOpen(true)} className="flex items-center gap-2">
+              <Users size={18} /> Inscrições
+            </Button>
+          )}
+          {canEdit && (
             <Button variant="outline" onClick={handleOpenFeesManager} className="flex items-center gap-2">
               <CreditCard size={18} /> Mensalidades
             </Button>
@@ -1356,6 +1685,10 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
       <Modal isOpen={isFeesManagerOpen} onClose={() => setIsFeesManagerOpen(false)} title="Gestão de Mensalidades" maxWidth="3xl">
         {renderFeesManagerContent()}
+      </Modal>
+
+      <Modal isOpen={isRegistrationManagerOpen} onClose={() => { setIsRegistrationManagerOpen(false); setEditingRegistrationId(null); setRegistrationStep('LIST'); }} title="Controle de Inscrições" maxWidth="4xl">
+        {renderRegistrationManagerContent()}
       </Modal>
 
       <Modal isOpen={isOverduePreviewOpen} onClose={() => setIsOverduePreviewOpen(false)} title="Notificar Inadimplentes" maxWidth="2xl">
