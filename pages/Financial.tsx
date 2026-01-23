@@ -544,16 +544,106 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
   const [registrationFilter, setRegistrationFilter] = useState({ search: '', status: 'ALL' });
 
-  const renderRegistrationManagerContent = () => (
-    <RegistrationBoard
-      registrations={registrations}
-      onAdd={() => { setRegistrationForm({ fullName: '', targetAmount: '250.00', deadline: '2026-04-15' }); setRegistrationStep('FORM'); }}
-      onEdit={(reg) => { setEditingRegistrationId(reg.id); setRegistrationForm({ fullName: reg.full_name, targetAmount: reg.target_amount.toString(), deadline: reg.deadline }); setRegistrationStep('FORM'); }}
-      onDelete={handleDeleteRegistration}
-      onPay={(reg) => { setRegistrationPaymentForm({ ...registrationPaymentForm, registrationId: reg.id, amount: (reg.target_amount - reg.total_paid).toString() }); setRegistrationStep('PAYMENT'); }}
-      loading={registrations.length === 0}
-    />
-  );
+  const renderRegistrationManagerContent = () => {
+    if (registrationStep === 'FORM') {
+      return (
+        <form onSubmit={handleSaveRegistration} className="space-y-4 animate-in fade-in slide-in-from-right-4">
+          <div className="flex items-center gap-2 text-slate-600 mb-2 cursor-pointer hover:text-brand-600" onClick={() => { setRegistrationStep('LIST'); setEditingRegistrationId(null); }}>
+            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
+          </div>
+          <h3 className="text-lg font-bold text-slate-900">{editingRegistrationId ? 'Editar Inscrito' : 'Novo Inscrito' || 'Cadastrar Inscrito'}</h3>
+          <Input
+            label="Nome Completo"
+            placeholder="Digite o nome completo do interessado"
+            value={registrationForm.fullName}
+            onChange={e => setRegistrationForm({ ...registrationForm, fullName: e.target.value })}
+            required
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Valor da Taxa (R$)"
+              type="number"
+              step="0.01"
+              value={registrationForm.targetAmount}
+              onChange={e => setRegistrationForm({ ...registrationForm, targetAmount: e.target.value })}
+              required
+            />
+            <Input
+              label="Data Limite"
+              type="date"
+              value={registrationForm.deadline}
+              onChange={e => setRegistrationForm({ ...registrationForm, deadline: e.target.value })}
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full h-12 text-lg">
+            {editingRegistrationId ? 'Salvar Alterações' : 'Cadastrar Inscrito'}
+          </Button>
+        </form>
+      );
+    }
+
+    if (registrationStep === 'PAYMENT') {
+      const reg = registrations.find(r => r.id === registrationPaymentForm.registrationId);
+      return (
+        <form onSubmit={handleSaveRegistrationPayment} className="space-y-4 animate-in fade-in slide-in-from-right-4">
+          <div className="flex items-center gap-2 text-slate-600 mb-2 cursor-pointer hover:text-brand-600" onClick={() => setRegistrationStep('LIST')}>
+            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
+          </div>
+          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-2">
+            <h4 className="font-bold text-slate-900">{reg?.full_name}</h4>
+            <div className="text-sm text-slate-500">
+              Total Pago: {formatCurrency(reg?.total_paid || 0)} / Meta: {formatCurrency(reg?.target_amount || 0)}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Valor Pago (R$)"
+              type="number"
+              step="0.01"
+              value={registrationPaymentForm.amount}
+              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, amount: e.target.value })}
+              required
+            />
+            <Input
+              label="Data do Pagamento"
+              type="date"
+              value={registrationPaymentForm.date}
+              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, date: e.target.value })}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Forma de Pagamento</label>
+            <select
+              className="w-full h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:border-brand-500"
+              value={registrationPaymentForm.method}
+              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, method: e.target.value })}
+            >
+              <option value="PIX">Pix</option>
+              <option value="CASH">Dinheiro / Espécie</option>
+              <option value="CARD">Cartão de Crédito/Débito</option>
+              <option value="BANK">Transferência Bancária</option>
+            </select>
+          </div>
+          <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700">
+            Confirmar Pagamento
+          </Button>
+        </form>
+      );
+    }
+
+    return (
+      <RegistrationBoard
+        registrations={registrations}
+        onAdd={() => { setRegistrationForm({ fullName: '', targetAmount: '250.00', deadline: '2026-04-15' }); setRegistrationStep('FORM'); }}
+        onEdit={(reg) => { setEditingRegistrationId(reg.id); setRegistrationForm({ fullName: reg.full_name, targetAmount: reg.target_amount.toString(), deadline: reg.deadline }); setRegistrationStep('FORM'); }}
+        onDelete={handleDeleteRegistration}
+        onPay={(reg) => { setRegistrationPaymentForm({ ...registrationPaymentForm, registrationId: reg.id, amount: (reg.target_amount - reg.total_paid).toString(), date: new Date().toISOString().split('T')[0], method: 'PIX' }); setRegistrationStep('PAYMENT'); }}
+        loading={registrations.length === 0}
+      />
+    );
+  };
 
 
   // --- End Fee Management Logic ---
