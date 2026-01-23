@@ -1076,13 +1076,62 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   };
 
   // Derived state for summary cards
-  const completedTransactions = transactions.filter(t => t.status === 'COMPLETED');
+  const completedTransactions = transactions
+    .filter(t => t.status === 'COMPLETED')
+    .sort((a, b) => b.date.localeCompare(a.date));
   const totalBalance = completedTransactions.reduce((acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0);
   const totalIncome = completedTransactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
   const totalExpense = completedTransactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  };
+
+  const handleExportPDF = () => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload = () => {
+      const autoTableScript = document.createElement('script');
+      autoTableScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js';
+      autoTableScript.onload = () => {
+        const { jsPDF } = (window as any).jspdf;
+        const doc = new jsPDF();
+
+        // Header
+        doc.setFontSize(18);
+        doc.text('Relatório Financeiro - ABCUNA', 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+
+        // Stats summary
+        doc.text(`Saldo Total: ${formatCurrency(totalBalance)}`, 14, 40);
+        doc.text(`Entradas: ${formatCurrency(totalIncome)} | Saídas: ${formatCurrency(totalExpense)}`, 14, 46);
+
+        const tableData = completedTransactions.map(tx => [
+          (() => { const [y, m, d] = tx.date.split('-'); return `${d}/${m}/${y}`; })(),
+          tx.description,
+          tx.category,
+          tx.type === 'INCOME' ? 'Entrada' : 'Saída',
+          formatCurrency(tx.amount)
+        ]);
+
+        (doc as any).autoTable({
+          startY: 55,
+          head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
+          body: tableData,
+          headStyles: { fillColor: [15, 23, 42] },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+          margin: { top: 55 }
+        });
+
+        doc.save(`financeiro-abcuna-${new Date().toISOString().split('T')[0]}.pdf`);
+        showToast('PDF gerado com sucesso!');
+      };
+      document.body.appendChild(autoTableScript);
+    };
+    document.body.appendChild(script);
+    showToast('Iniciando geração do PDF...', 'info');
   };
 
   // Generate dynamic chart data for the last 30 days
@@ -1240,6 +1289,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         transactions={completedTransactions}
         onEdit={handleEditTransaction}
         onDelete={handleDeleteTransaction}
+        onExport={handleExportPDF}
         loading={isLoadingTransactions}
       />
 

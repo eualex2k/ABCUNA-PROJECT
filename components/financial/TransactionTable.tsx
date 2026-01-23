@@ -7,6 +7,7 @@ interface TransactionTableProps {
     transactions: Transaction[];
     onEdit: (tx: Transaction) => void;
     onDelete: (tx: Transaction) => void;
+    onExport?: () => void;
     loading?: boolean;
 }
 
@@ -14,6 +15,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     transactions,
     onEdit,
     onDelete,
+    onExport,
     loading = false
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -38,7 +40,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                         Histórico Financeiro
                         <Badge variant="neutral" className="ml-2">{filteredTransactions.length}</Badge>
                     </h3>
-                    <Button variant="outline" size="sm" className="h-9 font-bold text-xs uppercase tracking-wider">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 font-bold text-xs uppercase tracking-wider"
+                        onClick={onExport}
+                    >
                         <Download size={14} className="mr-2" /> Exportar PDF
                     </Button>
                 </div>
