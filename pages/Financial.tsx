@@ -53,32 +53,44 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   }, []);
 
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [isLoadingRegistrations, setIsLoadingRegistrations] = useState(true);
+  const [isLoadingAssociates, setIsLoadingAssociates] = useState(true);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
 
   const loadRegistrations = async () => {
+    setIsLoadingRegistrations(true);
     try {
       const data = await registrationsService.getAll();
       setRegistrations(data);
     } catch (error) {
       console.error('Failed to load registrations', error);
+    } finally {
+      setIsLoadingRegistrations(false);
     }
   };
 
   const loadAssociates = async () => {
+    setIsLoadingAssociates(true);
     try {
       const data = await associatesService.getAll();
       setRealAssociates(data);
     } catch (error) {
       console.error('Failed to load associates', error);
+    } finally {
+      setIsLoadingAssociates(false);
     }
   };
 
   const loadTransactions = async () => {
+    setIsLoadingTransactions(true);
     try {
       const data = await financialService.getAll();
       setTransactions(data);
     } catch (error) {
       console.error('Failed to load transactions', error);
       showToast('Erro ao carregar movimentações', 'info');
+    } finally {
+      setIsLoadingTransactions(false);
     }
   };
 
@@ -469,7 +481,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       onEdit={handleEditFee}
       onPay={handleSelectFeeToPay}
       canEdit={canEdit}
-      loading={transactions.length === 0}
+      loading={isLoadingTransactions || isLoadingAssociates}
     />
   );
 
@@ -640,7 +652,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         onEdit={(reg) => { setEditingRegistrationId(reg.id); setRegistrationForm({ fullName: reg.full_name, targetAmount: reg.target_amount.toString(), deadline: reg.deadline }); setRegistrationStep('FORM'); }}
         onDelete={handleDeleteRegistration}
         onPay={(reg) => { setRegistrationPaymentForm({ ...registrationPaymentForm, registrationId: reg.id, amount: (reg.target_amount - reg.total_paid).toString(), date: new Date().toISOString().split('T')[0], method: 'PIX' }); setRegistrationStep('PAYMENT'); }}
-        loading={registrations.length === 0}
+        loading={isLoadingRegistrations}
       />
     );
   };
@@ -1228,7 +1240,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         transactions={completedTransactions}
         onEdit={handleEditTransaction}
         onDelete={handleDeleteTransaction}
-        loading={transactions.length === 0}
+        loading={isLoadingTransactions}
       />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="lg">
