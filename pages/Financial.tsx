@@ -10,6 +10,12 @@ import { financialService } from '../services/financial';
 import { registrationsService } from '../services/registrations';
 import { Registration } from '../types';
 
+// Novas importações modulares
+import { FinanceStats } from '../components/financial/FinanceStats';
+import { RegistrationBoard } from '../components/financial/RegistrationBoard';
+import { TransactionTable } from '../components/financial/TransactionTable';
+import { FeesManager } from '../components/financial/FeesManager';
+
 
 
 type ModalStep = 'MENU' | 'INCOME' | 'EXPENSE' | 'FEES';
@@ -447,292 +453,25 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     return a.associateName.localeCompare(b.associateName);
   });
 
-  const renderFeesManagerContent = () => {
-    if (feePaymentStep === 'LIST') {
-      return (
-        <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
-            <h3 className="font-semibold text-slate-700">Controle de Mensalidades</h3>
-
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              {/* Toggle Selection Mode Button */}
-              {canEdit && (
-                <Button
-                  variant={isSelectionMode ? "secondary" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    setIsSelectionMode(!isSelectionMode);
-                    if (!isSelectionMode) setSelectedFeeIds([]);
-                  }}
-                  className="h-8 text-xs font-bold"
-                >
-                  {isSelectionMode ? (
-                    <><X size={14} className="mr-1" /> Cancelar Seleção</>
-                  ) : (
-                    <><CheckCircle2 size={14} className="mr-1" /> Selecionar</>
-                  )}
-                </Button>
-              )}
-
-              {/* Filter Dropdown */}
-              <div className="flex items-center gap-2 bg-white border border-slate-300 rounded px-2 h-8">
-                <Filter size={14} className="text-slate-400" />
-                <select
-                  className="text-xs bg-transparent border-none focus:ring-0 outline-none"
-                  value={filterAssociateId}
-                  onChange={(e) => setFilterAssociateId(e.target.value)}
-                >
-                  <option value="ALL">Mostrar Todos</option>
-                  {realAssociates.map(a => (
-                    <option key={a.id} value={a.id}>{a.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Selection Toolbar - Only shows in Selection Mode */}
-          {isSelectionMode && canEdit && sortedFees.filter(f => f.status !== 'PAID').length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 p-3 bg-slate-100 rounded-xl border border-slate-200 animate-in slide-in-from-top-2 duration-200">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                  checked={selectedFeeIds.length > 0 && selectedFeeIds.length === sortedFees.filter(f => f.status !== 'PAID').length}
-                  onChange={(e) => {
-                    if (e.target.checked) selectAllFilteredFees();
-                    else deselectAllFees();
-                  }}
-                  id="select-all-checkbox"
-                />
-                <label htmlFor="select-all-checkbox" className="text-xs font-bold text-slate-700 cursor-pointer">
-                  {selectedFeeIds.length === 0 ? 'Selecionar Todas' : `Selecionadas: ${selectedFeeIds.length}`}
-                </label>
-              </div>
-
-              {selectedFeeIds.length > 0 && (
-                <div className="ml-auto flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={deselectAllFees}
-                    className="h-8 text-[10px] font-bold uppercase bg-white"
-                  >
-                    Limpar
-                  </Button>
-
-                  <Button
-                    size="sm"
-                    onClick={deleteSelectedFees}
-                    className="h-8 text-[10px] font-bold uppercase bg-red-600 hover:bg-red-700 text-white border-none shadow-sm"
-                  >
-                    <Trash2 size={14} className="mr-1" />
-                    Excluir ({selectedFeeIds.length})
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="max-h-[500px] overflow-y-auto pr-1 space-y-3">
-            {sortedFees.filter(f => f.status !== 'PAID').map(fee => (
-              <div
-                key={fee.id}
-                className={`p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3 transition-all ${selectedFeeIds.includes(fee.id) ? 'bg-brand-50/50 border-brand-200 ring-1 ring-brand-200' : 'bg-white hover:border-slate-300'
-                  }`}
-              >
-                <div className="flex items-start gap-4 flex-1">
-                  {isSelectionMode && (
-                    <div className="pt-1 animate-in zoom-in-50 duration-200">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                        checked={selectedFeeIds.includes(fee.id)}
-                        onChange={() => toggleFeeSelection(fee.id)}
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-slate-900">{fee.associateName}</span>
-                      <Badge variant={fee.status === 'LATE' ? 'danger' : 'warning'}>
-                        {translateStatus(fee.status)}
-                      </Badge>
-                    </div>
-                    <div className="text-xs text-slate-500 flex gap-3">
-                      <span className="flex items-center gap-1"><Calendar size={12} /> Venc: {(() => {
-                        const [y, m, d] = fee.dueDate.split('-');
-                        return `${d}/${m}/${y}`;
-                      })()}</span>
-                      <span>Ref: {fee.monthRef}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto ${isSelectionMode ? 'ml-8' : ''} md:ml-0`}>
-                  <span className="font-black text-slate-700 text-lg">R$ {fee.amount.toFixed(2)}</span>
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEditFee(fee)}
-                      className="h-9 text-xs font-bold px-4 flex-1 sm:flex-none border-slate-200 bg-white hover:bg-slate-50"
-                    >
-                      <Edit3 size={14} className="mr-1.5" />
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleSelectFeeToPay(fee)}
-                      className="h-9 text-xs font-bold px-4 flex-1 sm:flex-none shadow-sm"
-                    >
-                      Registrar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {sortedFees.filter(f => f.status !== 'PAID').length === 0 && (
-              <div className="text-center py-8 text-slate-500">
-                <CheckCircle2 size={32} className="mx-auto mb-2 text-green-500" />
-                <p>
-                  {filterAssociateId === 'ALL'
-                    ? 'Tudo em dia! Nenhuma mensalidade pendente.'
-                    : 'Nenhuma pendência para este associado.'}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    if (feePaymentStep === 'EDIT') {
-      return (
-        <form onSubmit={processFeeEdit} className="space-y-4 animate-in fade-in slide-in-from-right-4">
-          <div className="flex items-center gap-2 text-slate-600 mb-4 cursor-pointer hover:text-brand-600" onClick={() => setFeePaymentStep('LIST')}>
-            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
-          </div>
-
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
-            <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
-              <Edit3 size={16} className="text-blue-600" />
-              Editar Mensalidade
-            </h4>
-            <div className="text-sm text-slate-600">
-              Associado: <span className="font-semibold">{selectedFee?.associateName}</span>
-            </div>
-            <div className="text-xs text-slate-500 mt-1">
-              Referência Original: {selectedFee?.monthRef}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Novo Valor (R$)"
-              type="number"
-              step="0.01"
-              value={editFeeForm.amount}
-              onChange={e => setEditFeeForm({ ...editFeeForm, amount: e.target.value })}
-              required
-            />
-            <Input
-              label="Nova Data de Vencimento"
-              type="date"
-              value={editFeeForm.dueDate}
-              onChange={e => setEditFeeForm({ ...editFeeForm, dueDate: e.target.value })}
-              required
-            />
-          </div>
-
-          <Textarea
-            label="Observações sobre a Alteração"
-            placeholder="Ex: Valor ajustado por acordo especial..."
-            value={editFeeForm.description}
-            onChange={e => setEditFeeForm({ ...editFeeForm, description: e.target.value })}
-            className="h-24"
-          />
-
-          <div className="flex gap-3 pt-2">
-            <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700">
-              <CheckCircle2 size={18} className="mr-2" /> Salvar Alterações
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleDeleteSingleFee}
-              className="border-red-200 text-red-600 hover:bg-red-50"
-              title="Excluir Mensalidade"
-            >
-              <Trash2 size={18} />
-            </Button>
-          </div>
-        </form>
-      );
-    }
-
-    if (feePaymentStep === 'PAYMENT') {
-      return (
-        <form onSubmit={processFeePayment} className="space-y-4 animate-in fade-in slide-in-from-right-4">
-          <div className="flex items-center gap-2 text-slate-600 mb-4 cursor-pointer hover:text-brand-600" onClick={() => setFeePaymentStep('LIST')}>
-            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
-          </div>
-
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4">
-            <h4 className="font-bold text-slate-900 mb-1">{selectedFee?.associateName}</h4>
-            <div className="text-sm text-slate-500 flex justify-between">
-              <span>Referência: {selectedFee?.monthRef}</span>
-              <span className="font-semibold text-slate-700">Valor Original: R$ {selectedFee?.amount.toFixed(2)}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Data do Pagamento"
-              type="date"
-              value={paymentForm.date}
-              onChange={e => setPaymentForm({ ...paymentForm, date: e.target.value })}
-              required
-            />
-            <Input
-              label="Valor Recebido (R$)"
-              type="number"
-              step="0.01"
-              value={paymentForm.amount}
-              onChange={e => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Forma de Pagamento</label>
-            <select
-              className="w-full h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:border-brand-500"
-              value={paymentForm.method}
-              onChange={e => setPaymentForm({ ...paymentForm, method: e.target.value })}
-            >
-              <option value="PIX">Pix</option>
-              <option value="CASH">Dinheiro / Espécie</option>
-              <option value="CARD">Cartão de Crédito/Débito</option>
-              <option value="BANK">Transferência Bancária</option>
-            </select>
-          </div>
-
-          <Input
-            label="Observações"
-            placeholder="Ex: Pagamento parcial, restante mês que vem..."
-            value={paymentForm.observation}
-            onChange={e => setPaymentForm({ ...paymentForm, observation: e.target.value })}
-          />
-
-          <Button type="submit" className="w-full mt-2 bg-green-600 hover:bg-green-700">
-            <CheckCircle2 size={18} className="mr-2" /> Confirmar Pagamento
-          </Button>
-        </form>
-      );
-    }
-
-    return null;
-  };
+  const renderFeesManagerContent = () => (
+    <FeesManager
+      fees={feesList}
+      associates={realAssociates}
+      filterAssociateId={filterAssociateId}
+      setFilterAssociateId={setFilterAssociateId}
+      isSelectionMode={isSelectionMode}
+      setIsSelectionMode={setIsSelectionMode}
+      selectedFeeIds={selectedFeeIds}
+      toggleFeeSelection={toggleFeeSelection}
+      selectAll={selectAllFilteredFees}
+      deselectAll={deselectAllFees}
+      onDeleteBulk={deleteSelectedFees}
+      onEdit={handleEditFee}
+      onPay={handleSelectFeeToPay}
+      canEdit={canEdit}
+      loading={transactions.length === 0}
+    />
+  );
 
   const [registrationStep, setRegistrationStep] = useState<'LIST' | 'FORM' | 'PAYMENT'>('LIST');
 
@@ -805,228 +544,17 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
   const [registrationFilter, setRegistrationFilter] = useState({ search: '', status: 'ALL' });
 
-  const renderRegistrationManagerContent = () => {
-    if (registrationStep === 'LIST') {
-      const filteredRegistrations = registrations.filter(reg => {
-        const matchesSearch = reg.full_name.toLowerCase().includes(registrationFilter.search.toLowerCase());
-        const isPaid = reg.total_paid >= reg.target_amount;
-        const matchesStatus = registrationFilter.status === 'ALL' ||
-          (registrationFilter.status === 'PAID' && isPaid) ||
-          (registrationFilter.status === 'PENDING' && !isPaid);
-        return matchesSearch && matchesStatus;
-      });
+  const renderRegistrationManagerContent = () => (
+    <RegistrationBoard
+      registrations={registrations}
+      onAdd={() => { setRegistrationForm({ fullName: '', targetAmount: '250.00', deadline: '2026-04-15' }); setRegistrationStep('FORM'); }}
+      onEdit={(reg) => { setEditingRegistrationId(reg.id); setRegistrationForm({ fullName: reg.full_name, targetAmount: reg.target_amount.toString(), deadline: reg.deadline }); setRegistrationStep('FORM'); }}
+      onDelete={handleDeleteRegistration}
+      onPay={(reg) => { setRegistrationPaymentForm({ ...registrationPaymentForm, registrationId: reg.id, amount: (reg.target_amount - reg.total_paid).toString() }); setRegistrationStep('PAYMENT'); }}
+      loading={registrations.length === 0}
+    />
+  );
 
-      return (
-        <div className="space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
-                <input
-                  type="text"
-                  placeholder="Buscar inscrito..."
-                  className="pl-9 h-9 w-48 text-xs bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-brand-500 outline-none"
-                  value={registrationFilter.search}
-                  onChange={e => setRegistrationFilter({ ...registrationFilter, search: e.target.value })}
-                />
-              </div>
-              <select
-                className="h-9 px-3 text-xs bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-brand-500 outline-none"
-                value={registrationFilter.status}
-                onChange={e => setRegistrationFilter({ ...registrationFilter, status: e.target.value })}
-              >
-                <option value="ALL">Todos Status</option>
-                <option value="PAID">Pagos</option>
-                <option value="PENDING">Pendentes</option>
-              </select>
-            </div>
-            <Button size="sm" onClick={() => {
-              setEditingRegistrationId(null);
-              setRegistrationForm({ fullName: '', targetAmount: '250.00', deadline: '2026-04-15' });
-              setRegistrationStep('FORM');
-            }}>
-              <Plus size={14} className="mr-1" /> Novo Inscrito
-            </Button>
-          </div>
-
-          <div className="max-h-[500px] overflow-y-auto pr-1 space-y-3">
-            {filteredRegistrations.map(reg => {
-              const remaining = reg.target_amount - reg.total_paid;
-              const isPaid = reg.total_paid >= reg.target_amount;
-              const deadlineDate = new Date(reg.deadline + 'T12:00:00');
-              const isNearDeadline = !isPaid && deadlineDate < new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
-              const isOverdue = !isPaid && deadlineDate < new Date();
-
-              return (
-                <div key={reg.id} className="p-4 rounded-xl border border-slate-100 shadow-sm bg-white hover:border-slate-300 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-slate-900">{reg.full_name}</span>
-                      {isPaid ? (
-                        <Badge variant="success">Pago</Badge>
-                      ) : (
-                        <Badge variant={isOverdue ? 'danger' : (isNearDeadline ? 'warning' : 'neutral')}>
-                          {isOverdue ? 'Atrasado' : (isNearDeadline ? 'Próximo do Prazo' : 'Pendente')}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-xs text-slate-500 flex gap-4">
-                      <span className="flex items-center gap-1">
-                        <TrendingUp size={12} className="text-emerald-500" /> Pago: {formatCurrency(reg.total_paid)}
-                      </span>
-                      <span className={`flex items-center gap-1 ${remaining > 0 ? 'text-amber-600 font-medium' : ''}`}>
-                        <DollarSign size={12} /> Restante: {formatCurrency(Math.max(0, remaining))}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar size={12} /> Prazo: {reg.deadline.split('-').reverse().join('/')}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 w-full md:w-auto">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingRegistrationId(reg.id);
-                        setRegistrationForm({
-                          fullName: reg.full_name,
-                          targetAmount: reg.target_amount.toString(),
-                          deadline: reg.deadline
-                        });
-                        setRegistrationStep('FORM');
-                      }}
-                      className="h-9 px-3 border-slate-200"
-                    >
-                      <Edit3 size={14} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDeleteRegistration(reg.id, reg.full_name)}
-                      className="h-9 px-3 border-red-100 text-red-500 hover:bg-red-50"
-                    >
-                      <Trash2 size={14} />
-                    </Button>
-                    {!isPaid && (
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setRegistrationPaymentForm({
-                            ...registrationPaymentForm,
-                            registrationId: reg.id,
-                            amount: Math.max(0, remaining).toFixed(2)
-                          });
-                          setRegistrationStep('PAYMENT');
-                        }}
-                        className="h-9 font-bold bg-emerald-600 hover:bg-emerald-700"
-                      >
-                        Registrar Pagamento
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-            {registrations.length === 0 && (
-              <div className="text-center py-10 text-slate-400">
-                <Users size={40} className="mx-auto mb-2 opacity-20" />
-                <p>Nenhum inscrito cadastrado.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    if (registrationStep === 'FORM') {
-      return (
-        <form onSubmit={handleSaveRegistration} className="space-y-4 animate-in fade-in slide-in-from-right-4">
-          <div className="flex items-center gap-2 text-slate-600 mb-2 cursor-pointer hover:text-brand-600" onClick={() => setRegistrationStep('LIST')}>
-            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">{editingRegistrationId ? 'Editar Inscrito' : 'Novo Inscrito'}</h3>
-          <Input
-            label="Nome Completo"
-            placeholder="Digite o nome completo do interessado"
-            value={registrationForm.fullName}
-            onChange={e => setRegistrationForm({ ...registrationForm, fullName: e.target.value })}
-            required
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Valor da Taxa (R$)"
-              type="number"
-              step="0.01"
-              value={registrationForm.targetAmount}
-              onChange={e => setRegistrationForm({ ...registrationForm, targetAmount: e.target.value })}
-              required
-            />
-            <Input
-              label="Data Limite"
-              type="date"
-              value={registrationForm.deadline}
-              onChange={e => setRegistrationForm({ ...registrationForm, deadline: e.target.value })}
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full h-12 text-lg">
-            {editingRegistrationId ? 'Salvar Alterações' : 'Cadastrar Inscrito'}
-          </Button>
-        </form>
-      );
-    }
-
-    if (registrationStep === 'PAYMENT') {
-      const reg = registrations.find(r => r.id === registrationPaymentForm.registrationId);
-      return (
-        <form onSubmit={handleSaveRegistrationPayment} className="space-y-4 animate-in fade-in slide-in-from-right-4">
-          <div className="flex items-center gap-2 text-slate-600 mb-2 cursor-pointer hover:text-brand-600" onClick={() => setRegistrationStep('LIST')}>
-            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
-          </div>
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-2">
-            <h4 className="font-bold text-slate-900">{reg?.full_name}</h4>
-            <div className="text-sm text-slate-500">
-              Total Pago: {formatCurrency(reg?.total_paid || 0)} / Meta: {formatCurrency(reg?.target_amount || 0)}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Valor Pago (R$)"
-              type="number"
-              step="0.01"
-              value={registrationPaymentForm.amount}
-              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, amount: e.target.value })}
-              required
-            />
-            <Input
-              label="Data do Pagamento"
-              type="date"
-              value={registrationPaymentForm.date}
-              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, date: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Forma de Pagamento</label>
-            <select
-              className="w-full h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:border-brand-500"
-              value={registrationPaymentForm.method}
-              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, method: e.target.value })}
-            >
-              <option value="PIX">Pix</option>
-              <option value="CASH">Dinheiro / Espécie</option>
-              <option value="CARD">Cartão de Crédito/Débito</option>
-              <option value="BANK">Transferência Bancária</option>
-            </select>
-          </div>
-          <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700">
-            Confirmar Pagamento
-          </Button>
-        </form>
-      );
-    }
-    return null;
-  };
 
   // --- End Fee Management Logic ---
 
@@ -1528,27 +1056,13 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard
-          title="Saldo Atual"
-          value={formatCurrency(totalBalance)}
-          icon={<Wallet size={24} />}
-        />
-        <StatCard
-          title="Total Receitas"
-          value={formatCurrency(totalIncome)}
-          icon={<ArrowUpCircle size={24} />}
-          trend="Entradas"
-          trendUp={true}
-        />
-        <StatCard
-          title="Total Despesas"
-          value={formatCurrency(totalExpense)}
-          icon={<ArrowDownCircle size={24} />}
-          trend="Saídas"
-          trendUp={false}
-        />
-      </div>
+      <FinanceStats
+        totalBalance={totalBalance}
+        monthlyIncome={totalIncome}
+        monthlyExpense={totalExpense}
+        overdueCount={overdueCount}
+        loading={transactions.length === 0}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 p-6">
@@ -1620,64 +1134,12 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         </div>
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-          <h3 className="font-bold text-slate-900">Histórico de Movimentações</h3>
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
-            <Input placeholder="Buscar..." className="pl-10 h-9 text-sm" />
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 text-slate-500 text-left border-b border-slate-100">
-                <th className="px-4 py-3 font-medium">Descrição</th>
-                <th className="px-4 py-3 font-medium">Categoria</th>
-                <th className="px-4 py-3 font-medium">Data</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 text-right font-medium">Valor</th>
-                <th className="px-4 py-3 text-right font-medium">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {completedTransactions.map((tx) => (
-                <tr key={tx.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">{tx.description}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant="neutral">{translateCategory(tx.category)}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-slate-500">
-                    {tx.date?.split('-').reverse().join('/')}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col gap-1">
-                      <Badge variant={tx.type === 'INCOME' ? 'success' : 'neutral'}>
-                        {translateTransactionType(tx.type)}
-                      </Badge>
-                      <Badge variant={tx.status === 'COMPLETED' ? 'success' : 'warning'}>
-                        {translateStatus(tx.status)}
-                      </Badge>
-                    </div>
-                  </td>
-                  <td className={`px-4 py-3 text-right font-bold ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900'}`}>
-                    {tx.type === 'EXPENSE' ? '- ' : ''}{formatCurrency(tx.amount)}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {canEdit && (
-                      <Button variant="ghost" size="sm" onClick={() => handleEditTransaction(tx)}>
-                        <Edit3 size={14} />
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <TransactionTable
+        transactions={completedTransactions}
+        onEdit={handleEditTransaction}
+        onDelete={handleDeleteTransaction}
+        loading={transactions.length === 0}
+      />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="lg">
         {renderModalContent()}

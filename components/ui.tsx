@@ -1,12 +1,39 @@
 import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Calendar } from 'lucide-react';
+import { X, Calendar, Loader2 } from 'lucide-react';
+
+// --- Skeleton Component ---
+export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`bg-slate-200 animate-pulse-subtle rounded ${className}`} />
+);
+
+// --- Loading Overlay ---
+export const LoadingOverlay: React.FC = () => (
+  <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-xl animate-in fade-in duration-300">
+    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-lg border border-slate-100">
+      <Loader2 className="animate-spin text-brand-600" size={18} />
+      <span className="text-sm font-bold text-slate-700">Carregando...</span>
+    </div>
+  </div>
+);
 
 // --- Card Component ---
-export const Card: React.FC<{ children: React.ReactNode; className?: string; onClick?: () => void }> = ({ children, className = '', onClick }) => (
+export const Card: React.FC<{ children: React.ReactNode; className?: string; onClick?: () => void; glass?: boolean; hover?: boolean }> = ({ 
+  children, 
+  className = '', 
+  onClick,
+  glass = false,
+  hover = true
+}) => (
   <div
     onClick={onClick}
-    className={`bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+    className={`
+      rounded-xl transition-all duration-300
+      ${glass ? 'glass shadow-premium' : 'bg-white border border-slate-100 shadow-sm'}
+      ${hover ? 'hover:shadow-md hover:border-slate-200' : ''}
+      ${onClick ? 'cursor-pointer active:scale-[0.98]' : ''} 
+      ${className}
+    `}
   >
     {children}
   </div>
@@ -258,22 +285,44 @@ export const Avatar: React.FC<{
 };
 
 // --- Stat Card Component ---
-export const StatCard: React.FC<{ title: string; value: string; trend?: string; trendUp?: boolean; icon: React.ReactNode }> = ({ title, value, trend, trendUp, icon }) => (
-  <Card className="p-6 flex flex-col justify-between h-full">
-    <div className="flex justify-between items-start mb-4">
-      <div className="p-2.5 bg-brand-50 rounded-lg text-brand-600">
-        {icon}
+export const StatCard: React.FC<{ 
+  title: string; 
+  value: string; 
+  trend?: string; 
+  trendUp?: boolean; 
+  icon: React.ReactNode;
+  loading?: boolean;
+}> = ({ title, value, trend, trendUp, icon, loading = false }) => (
+  <Card className="p-6 flex flex-col justify-between h-full hover-lift" glass={false}>
+    {loading ? (
+      <div className="space-y-4">
+        <div className="flex justify-between items-start">
+          <Skeleton className="w-10 h-10 rounded-lg" />
+          <Skeleton className="w-16 h-5 rounded-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="w-24 h-4" />
+          <Skeleton className="w-32 h-8" />
+        </div>
       </div>
-      {trend && (
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${trendUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {trend}
-        </span>
-      )}
-    </div>
-    <div>
-      <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
-      <p className="text-2xl font-bold text-slate-900 tracking-tight">{value}</p>
-    </div>
+    ) : (
+      <>
+        <div className="flex justify-between items-start mb-4">
+          <div className="p-2.5 bg-brand-50 rounded-lg text-brand-600 group-hover:scale-110 transition-transform">
+            {icon}
+          </div>
+          {trend && (
+            <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${trendUp ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+              {trend}
+            </span>
+          )}
+        </div>
+        <div className="animate-slide-up">
+          <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1.5">{title}</h3>
+          <p className="text-2xl font-black text-slate-900 tracking-tight">{value}</p>
+        </div>
+      </>
+    )}
   </Card>
 );
 

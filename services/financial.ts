@@ -2,11 +2,15 @@ import { supabase } from '../lib/supabase';
 import { Transaction } from '../types';
 
 export const financialService = {
-    async getAll(): Promise<Transaction[]> {
+    async getAll(page: number = 0, limit: number = 1000): Promise<Transaction[]> {
+        const from = page * limit;
+        const to = from + limit - 1;
+
         const { data, error } = await supabase
             .from('financial_transactions')
             .select('*')
-            .order('date', { ascending: false });
+            .order('date', { ascending: false })
+            .range(from, to);
 
         if (error) {
             console.error('Error fetching transactions:', error);
@@ -75,11 +79,43 @@ export const financialService = {
             console.error('SERVER ERROR - deleting multiple transactions:', JSON.stringify(error, null, 2));
             throw error;
         }
+    },
+
+    async getSummary() {
+        const { data, error } = await supabase
+            .from('financial_transactions')
+            .select('amount, type, status, date');
+
+        if (error) {
+            console.error('Error fetching financial summary:', error);
+            throw error;
+        }
+
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        return data.reduce((acc, tx) => {
+            if (tx.status !== 'COMPLETED') return acc;
+
+            const amount = Number(tx.amount);
+            const txDate = new Date(tx.date);
+            const isCurrentMonth = txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+
+            if (tx.type === 'INCOME') {
+                acc.totalBalance += amount;
+                if (isCurrentMonth) acc.monthlyIncome += amount;
+            } else {
+                acc.totalBalance -= amount;
+                if (isCurrentMonth) acc.monthlyExpense += amount;
+            }
+
+            return acc;
+        }, { totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0 });
     }
 };
 
 // Helpers to map between Frontend Types and Database Columns (snake_case)
-// Assuming DB Columns: id, description, amount, type, category, date, status
 function mapToFrontend(row: any): Transaction {
     return {
         id: row.id,

@@ -7,6 +7,7 @@ import { associatesService } from '../services/associates';
 import { scheduleService } from '../services/schedule';
 import { financialService } from '../services/financial';
 import { Shift } from '../types';
+import { AssociateDetails } from '../components/associates/AssociateDetails';
 
 interface AssociatesPageProps {
   user: User;
@@ -165,220 +166,26 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
 
   // --- Render Helpers ---
 
-  const renderDetailsContent = () => {
-    if (!selectedAssociate) return null;
-
-    const mockFinancialHistory: Transaction[] = []; // Cleared mock data
-
-    switch (detailsTab) {
-      case 'OVERVIEW':
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-xs text-slate-500 mb-1">E-mail de Contato</p>
-                <p className="text-sm font-semibold text-slate-900">{selectedAssociate.email}</p>
-              </div>
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-xs text-slate-500 mb-1">Telefone / WhatsApp</p>
-                <p className="text-sm font-semibold text-slate-900">{selectedAssociate.phone}</p>
-              </div>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="flex justify-between items-center mb-3">
-                <h4 className="text-sm font-bold text-slate-900">Observações Internas</h4>
-                {canEdit && <Button variant="ghost" size="sm" className="h-7 text-xs">Editar</Button>}
-              </div>
-              <p className="text-sm text-slate-600 leading-relaxed italic">
-                "{associateNotes || 'Nenhuma observação registrada.'}"
-              </p>
-            </div>
-
-            {/* Removed stat cards as requested */}
-          </div>
-        );
-      case 'FINANCIAL':
-        // Filter real fees for this associate
-        const associateFees = allTransactions
-          .filter(tx => (tx.category === 'Mensalidade' || tx.category === 'Mensalidades') && tx.payer_id === selectedAssociate.id)
-          .sort((a, b) => b.date.localeCompare(a.date));
-
-        const pendingFees = associateFees.filter(f => f.status === 'PENDING');
-        const overduePayments = pendingFees.filter(f => {
-          const dObj = new Date(f.date + 'T12:00:00');
-          return dObj < new Date();
+  const renderDetailsContent = () => (
+    <AssociateDetails
+      associate={selectedAssociate!}
+      transactions={allTransactions}
+      shifts={allShifts}
+      tab={detailsTab}
+      notes={associateNotes}
+      onPayFee={(feeId) => {
+        setIsDetailsOpen(false);
+        navigate('/financial', {
+          state: {
+            highlightOverdue: true,
+            associateId: selectedAssociate!.id,
+            feeId
+          }
         });
-
-        const oldestOverdue = overduePayments.length > 0 ? overduePayments[overduePayments.length - 1] : null;
-
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-900 rounded-xl text-white">
-              <div>
-                <p className="text-xs text-slate-400">Situação Atual</p>
-                <p className="text-lg font-bold">
-                  {overduePayments.length > 0 ? 'Atrasado' : (pendingFees.length > 0 ? 'A Vencer' : 'Em dia')}
-                </p>
-                {oldestOverdue && (
-                  <p className="text-xs text-amber-300 mt-1">
-                    Mensalidade em atraso pendente.
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                {oldestOverdue && (
-                  <button
-                    onClick={() => {
-                      setIsDetailsOpen(false);
-                      navigate('/financial', {
-                        state: {
-                          highlightOverdue: true,
-                          associateId: selectedAssociate.id,
-                          feeId: oldestOverdue.id
-                        }
-                      });
-                    }}
-                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <DollarSign size={16} />
-                    Registrar Pagamento
-                  </button>
-                )}
-                <DollarSign size={24} className={overduePayments.length === 0 ? 'text-emerald-400' : 'text-amber-400'} />
-              </div>
-            </div>
-
-            {/* Tabela de Mensalidades */}
-            <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-              <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                <p className="text-sm font-bold text-slate-700">Histórico de Mensalidades</p>
-                <Badge variant="neutral">{associateFees.length} Parcela(s)</Badge>
-              </div>
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-semibold">Vencimento</th>
-                    <th className="px-4 py-2 text-left font-semibold">Status</th>
-                    <th className="px-4 py-2 text-right font-semibold">Valor</th>
-                    <th className="px-4 py-2 text-right font-semibold">Ação</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {associateFees.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-slate-400 italic">
-                        Nenhuma mensalidade gerada para este associado.
-                      </td>
-                    </tr>
-                  ) : (
-                    associateFees.map(fee => {
-                      const isFeeOverdue = fee.status === 'PENDING' && new Date(fee.date + 'T12:00:00') < new Date();
-                      return (
-                        <tr key={fee.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-4 py-3 font-medium">
-                            {(() => {
-                              const [y, m, d] = fee.date.split('-');
-                              return `${d} /${m}/${y} `;
-                            })()}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant={fee.status === 'COMPLETED' ? 'success' : (isFeeOverdue ? 'danger' : 'warning')}>
-                              {fee.status === 'COMPLETED' ? 'Pago' : (isFeeOverdue ? 'Atrasado' : 'Pendente')}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-right font-bold">R$ {fee.amount.toFixed(2)}</td>
-                          <td className="px-4 py-3 text-right">
-                            {fee.status === 'PENDING' && (
-                              <button
-                                onClick={() => {
-                                  setIsDetailsOpen(false);
-                                  navigate('/financial', {
-                                    state: {
-                                      highlightOverdue: true,
-                                      associateId: selectedAssociate.id,
-                                      feeId: fee.id
-                                    }
-                                  });
-                                }}
-                                className="text-xs font-bold text-brand-600 hover:underline"
-                              >
-                                Pagar
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      case 'HISTORY':
-        const today = new Date();
-        const associateShifts = allShifts.filter(s =>
-          s.confirmedMembers.includes(selectedAssociate.name) &&
-          new Date(s.fullDate) < today &&
-          s.status === 'CONFIRMED'
-        );
-
-        const totalRemuneration = associateShifts.reduce((sum, s) => sum + s.amount, 0);
-
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="p-4 bg-brand-50 border-brand-100 flex flex-col items-center justify-center text-center">
-                <div className="p-2 bg-white rounded-lg shadow-sm mb-2">
-                  <Calendar size={18} className="text-brand-600" />
-                </div>
-                <p className="text-[9px] font-black text-brand-600 uppercase tracking-widest mb-1">Plantões Realizados</p>
-                <p className="text-2xl font-black text-slate-900">{associateShifts.length}</p>
-              </Card>
-              <Card className="p-4 bg-emerald-50 border-emerald-100 flex flex-col items-center justify-center text-center">
-                <div className="p-2 bg-white rounded-lg shadow-sm mb-2">
-                  <DollarSign size={18} className="text-emerald-600" />
-                </div>
-                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Retorno Financeiro</p>
-                <p className="text-2xl font-black text-slate-900">R$ {totalRemuneration.toFixed(2)}</p>
-              </Card>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <Clock size={14} /> Detalhamento de Plantões
-              </h4>
-              <div className="space-y-3">
-                {associateShifts.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                    <p className="text-xs italic font-medium">Nenhum plantão concluído até o momento.</p>
-                  </div>
-                ) : (
-                  associateShifts.sort((a, b) => b.fullDate.localeCompare(a.fullDate)).map((shift, i) => (
-                    <div key={i} className="flex gap-4 p-4 bg-white hover:bg-slate-50 rounded-xl transition-all border border-slate-100 group shadow-sm">
-                      <div className="flex flex-col items-center justify-center bg-slate-100 rounded-lg px-3 py-1 h-fit group-hover:bg-brand-50 transition-colors">
-                        <span className="text-[10px] font-black text-brand-600 uppercase leading-tight">{shift.day.substring(0, 3)}</span>
-                        <span className="text-sm font-black text-slate-700">{shift.date}</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                          <h5 className="text-sm font-bold text-slate-900 uppercase">{shift.team}</h5>
-                          <span className="text-xs font-bold text-emerald-600">R$ {shift.amount.toFixed(2)}</span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
-                          <MapPin size={10} /> {shift.location} • <Clock size={10} /> {shift.startTime}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        );
-    }
-  };
+      }}
+      canEdit={canEdit}
+    />
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

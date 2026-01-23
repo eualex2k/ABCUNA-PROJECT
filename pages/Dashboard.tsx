@@ -12,10 +12,10 @@ import {
   Shield,
   BarChart2 as BarChartIcon
 } from 'lucide-react';
-import { StatCard, Card, Badge, Button, Avatar } from '../components/ui';
+import { StatCard, Card, Badge, Button, Avatar, Skeleton } from '../components/ui';
 import { User, UserRole } from '../types';
 import { useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import { associatesService } from '../services/associates';
 import { financialService } from '../services/financial';
 import { inventoryService } from '../services/inventory';
@@ -105,6 +105,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     return data;
   }, [completedTx]);
 
+  const expenseByCategory = React.useMemo(() => {
+    const categories: Record<string, number> = {};
+    completedTx.filter(t => t.type === 'EXPENSE').forEach(t => {
+      categories[t.category] = (categories[t.category] || 0) + t.amount;
+    });
+    return Object.entries(categories).map(([name, value]) => ({ name, value })).slice(0, 5);
+  }, [completedTx]);
+
+  const COLORS = ['#dc2626', '#334155', '#475569', '#64748b', '#94a3b8'];
+
   const recentTransactions = completedTx.slice(0, 5);
 
   const shortcuts = [
@@ -118,9 +128,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   if (isLoading) {
     return (
-      <div className="h-[60vh] flex flex-col items-center justify-center text-slate-400 gap-4">
-        <RefreshCcw className="animate-spin" size={40} />
-        <p className="font-medium">Carregando dados operacionais...</p>
+      <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="flex justify-between items-center">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex gap-3">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => <StatCard key={i} title="" value="" icon={null} loading />)}
+        </div>
       </div>
     );
   }
@@ -193,48 +214,96 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               Resumo Financeiro
             </h3>
           </div>
-          <div className="h-64 w-full">
+          <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} />
                 <Tooltip
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }}
                 />
-                <Bar dataKey="receita" name="Receita" fill="#10b981" radius={[4, 4, 0, 0]} barSize={24} />
-                <Bar dataKey="despesa" name="Despesa" fill="#334155" radius={[4, 4, 0, 0]} barSize={24} />
-              </BarChart>
+                <Area type="monotone" dataKey="receita" name="Receita" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
+                <Area type="monotone" dataKey="despesa" name="Despesa" stroke="#334155" strokeWidth={3} fillOpacity={0} />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        <Card className="p-0">
-          <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-            <h3 className="font-bold text-slate-900 text-sm">Resumo Financeiro</h3>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/financial')} className="text-xs">Ver Tudo</Button>
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-slate-900 text-sm">Distribuição de Saídas</h3>
           </div>
-          <div className="divide-y divide-slate-100">
+          <div className="h-48 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={expenseByCategory}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {expenseByCategory.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 space-y-2">
+            {expenseByCategory.map((item, index) => (
+              <div key={index} className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                  <span className="text-slate-500 font-medium">{item.name}</span>
+                </div>
+                <span className="text-slate-900 font-bold">{formatCurrency(item.value)}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="p-0 lg:col-span-3">
+          <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <h3 className="font-bold text-slate-900 text-sm">Transações Recentes</h3>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/financial')} className="text-xs font-bold text-brand-600">Ver Extrato Completo</Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
             {recentTransactions.length > 0 ? (
               recentTransactions.map((tx) => (
-                <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded ${tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
-                      {tx.type === 'INCOME' ? <ArrowUpRight size={16} /> : <AlertTriangle size={16} />}
+                <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
+                      {tx.type === 'INCOME' ? <ArrowUpRight size={18} /> : <AlertTriangle size={18} />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-900 line-clamp-1">{tx.description}</p>
-                      <p className="text-xs text-slate-500">{new Date(tx.date).toLocaleDateString('pt-BR')}</p>
+                      <p className="text-sm font-bold text-slate-900 line-clamp-1">{tx.description}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{new Date(tx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</p>
                     </div>
                   </div>
-                  <span className={`text-sm font-bold ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900'}`}>
-                    {tx.type === 'EXPENSE' ? '- ' : ''}{formatCurrency(tx.amount)}
-                  </span>
+                  <div className="text-right">
+                    <p className={`text-sm font-black ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                      {tx.type === 'EXPENSE' ? '- ' : ''}{formatCurrency(tx.amount)}
+                    </p>
+                    <Badge variant={tx.type === 'INCOME' ? 'success' : 'neutral'} className="text-[9px] px-1.5 py-0">
+                      {tx.category}
+                    </Badge>
+                  </div>
                 </div>
               ))
             ) : (
-              <div className="p-8 text-center text-slate-400 text-xs">
-                Nenhuma transação recente
+              <div className="p-12 text-center text-slate-400 text-sm md:col-span-2">
+                Nenhuma transação recente para exibir.
               </div>
             )}
           </div>

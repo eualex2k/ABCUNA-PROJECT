@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Plus, Search, Trash2, Wrench, Calendar, DollarSign, Truck, Info, AlertCircle, Edit2, PlusSquare, ArrowUpRight, MapPin } from 'lucide-react';
-import { Card, Button, Input, Badge, Modal } from '../components/ui';
+import { Card, Button, Input, Badge, Modal, Skeleton } from '../components/ui';
 import { InventoryItem, User, UserRole } from '../types';
 import { inventoryService } from '../services/inventory';
 
@@ -219,118 +219,161 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full py-20 text-center text-slate-400 italic">Sincronizando inventário...</div>
-        ) : filteredItems.map(item => {
-          const isExpired = item.expirationDate ? new Date(item.expirationDate) < new Date() : false;
-
-          return (
-            <Card key={item.id} className="group hover:ring-1 hover:ring-brand-500/20 transition-all border-slate-200 overflow-hidden flex flex-col bg-white">
-              <div className="p-6 flex-1">
-                {/* Header Section */}
-                <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 shadow-sm group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
-                      <Package size={28} />
-                    </div>
-                    <div>
-                      <h3 className="font-black text-slate-900 leading-tight text-xl tracking-tight">{item.name}</h3>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em]">{item.category}</p>
-                        <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                        <p className={`text-[11px] font-black uppercase tracking-[0.1em] ${item.itemType === 'REUSABLE' ? 'text-blue-500' : 'text-amber-500'}`}>
-                          {item.itemType === 'REUSABLE' ? 'Reutilizável' : 'Descartável'}
-                        </p>
+          <>
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <Card key={i} className="p-0 border-slate-200 overflow-hidden flex flex-col bg-white h-[400px]">
+                <div className="p-6 flex-1 space-y-6">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="w-14 h-14 rounded-2xl" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-3 w-20" />
                       </div>
                     </div>
+                    <Skeleton className="h-10 w-24 rounded-full" />
                   </div>
-                  <div className={`px-4 py-3 rounded-full text-xs font-bold shadow-sm whitespace-nowrap ${item.condition === 'ADEQUATE' || item.condition === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                    item.condition === 'LOW_STOCK' || item.condition === 'MAINTENANCE' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
-                    }`}>
-                    {item.condition === 'AVAILABLE' ? 'Disponível' :
-                      item.condition === 'ADEQUATE' ? 'Estoque OK' :
-                        item.condition === 'LOW_STOCK' ? 'Estoque Baixo' :
-                          item.condition === 'MAINTENANCE' ? 'Manutenção' : 'Crítico'}
+                  <div className="grid grid-cols-2 gap-4 py-8">
+                    <div className="space-y-2">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-10 w-20" />
+                    </div>
+                    <div className="space-y-2 flex flex-col items-end">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-8 w-24" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-10 w-full rounded-2xl" />
+                </div>
+                <div className="bg-slate-50 border-t border-slate-100 p-4 flex justify-between items-center px-6">
+                  <Skeleton className="h-4 w-20" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-9 w-9 rounded-xl" />
+                    <Skeleton className="h-9 w-9 rounded-xl" />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </>
+        ) : filteredItems.length > 0 ? (
+          filteredItems.map(item => {
+            const isExpired = item.expirationDate ? new Date(item.expirationDate) < new Date() : false;
+
+            return (
+              <Card key={item.id} className="group hover:ring-1 hover:ring-brand-500/20 transition-all border-slate-200 overflow-hidden flex flex-col bg-white">
+                <div className="p-6 flex-1">
+                  {/* Header Section */}
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 shadow-sm group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
+                        <Package size={28} />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-slate-900 leading-tight text-xl tracking-tight">{item.name}</h3>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em]">{item.category}</p>
+                          <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                          <p className={`text-[11px] font-black uppercase tracking-[0.1em] ${item.itemType === 'REUSABLE' ? 'text-blue-500' : 'text-amber-500'}`}>
+                            {item.itemType === 'REUSABLE' ? 'Reutilizável' : 'Descartável'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`px-4 py-3 rounded-full text-xs font-bold shadow-sm whitespace-nowrap ${item.condition === 'ADEQUATE' || item.condition === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                      item.condition === 'LOW_STOCK' || item.condition === 'MAINTENANCE' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
+                      }`}>
+                      {item.condition === 'AVAILABLE' ? 'Disponível' :
+                        item.condition === 'ADEQUATE' ? 'Estoque OK' :
+                          item.condition === 'LOW_STOCK' ? 'Estoque Baixo' :
+                            item.condition === 'MAINTENANCE' ? 'Manutenção' : 'Crítico'}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-100 -mx-6"></div>
+
+                  {/* Info Grid Section */}
+                  <div className="grid grid-cols-2 gap-4 py-8">
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Quantidade</p>
+                      <p className="font-black text-slate-900 text-3xl flex items-baseline gap-1.5">
+                        {item.quantity}
+                        <span className="text-xs font-bold text-slate-400 lowercase tracking-normal">{item.unit || 'un'}</span>
+                      </p>
+                    </div>
+                    <div className="space-y-2 text-right">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Localização</p>
+                      <p className="font-black text-slate-900 text-xl flex items-center justify-end gap-2">
+                        <MapPin size={18} className="text-red-500" /> {item.location}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-100 -mx-6 mb-6"></div>
+
+                  {/* Audit Pill Section */}
+                  <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50/50 rounded-2xl border border-slate-100 w-fit">
+                    <Calendar size={16} className="text-slate-400" />
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      Auditado: <span className="text-slate-800 ml-1">{item.lastInspection ? new Date(item.lastInspection).toLocaleDateString('pt-BR') : 'Pendente'}</span>
+                    </span>
                   </div>
                 </div>
 
-                <div className="border-t border-slate-100 -mx-6"></div>
+                {/* Footer Section */}
+                <div className="bg-slate-50/80 backdrop-blur-md border-t border-slate-100 p-4 flex justify-between items-center px-6">
+                  <button
+                    onClick={() => handleOpenView(item)}
+                    className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-brand-600 transition-colors flex items-center gap-2 group/btn"
+                  >
+                    <Info size={14} className="group-hover/btn:translate-x-0.5 transition-transform" /> Detalhes
+                  </button>
 
-                {/* Info Grid Section */}
-                <div className="grid grid-cols-2 gap-4 py-8">
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Quantidade</p>
-                    <p className="font-black text-slate-900 text-3xl flex items-baseline gap-1.5">
-                      {item.quantity}
-                      <span className="text-xs font-bold text-slate-400 lowercase tracking-normal">{item.unit || 'un'}</span>
-                    </p>
+                  <div className="flex items-center gap-1">
+                    {canEdit && (
+                      <>
+                        <button
+                          onClick={() => handleOpenAddQty(item)}
+                          className="p-2.5 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all active:scale-95"
+                          title="Adicionar Estoque"
+                        >
+                          <PlusSquare size={22} />
+                        </button>
+                        <button
+                          onClick={() => handleOpenEdit(item)}
+                          className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all active:scale-95"
+                          title="Editar Item"
+                        >
+                          <Edit2 size={20} />
+                        </button>
+                        <button
+                          onClick={() => toggleStatus(item)}
+                          className="p-2.5 text-amber-500 hover:bg-amber-50 rounded-xl transition-all active:scale-95"
+                          title="Alternar Manutenção"
+                        >
+                          <Wrench size={20} />
+                        </button>
+                        <div className="w-px h-5 bg-slate-200 mx-2"></div>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-2.5 text-slate-300 hover:text-red-600 transition-all active:scale-95"
+                          title="Remover"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </>
+                    )}
                   </div>
-                  <div className="space-y-2 text-right">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Localização</p>
-                    <p className="font-black text-slate-900 text-xl flex items-center justify-end gap-2">
-                      <MapPin size={18} className="text-red-500" /> {item.location}
-                    </p>
-                  </div>
                 </div>
-
-                <div className="border-t border-slate-100 -mx-6 mb-6"></div>
-
-                {/* Audit Pill Section */}
-                <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50/50 rounded-2xl border border-slate-100 w-fit">
-                  <Calendar size={16} className="text-slate-400" />
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Auditado: <span className="text-slate-800 ml-1">{item.lastInspection ? new Date(item.lastInspection).toLocaleDateString('pt-BR') : 'Pendente'}</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Footer Section */}
-              <div className="bg-slate-50/80 backdrop-blur-md border-t border-slate-100 p-4 flex justify-between items-center px-6">
-                <button
-                  onClick={() => handleOpenView(item)}
-                  className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-brand-600 transition-colors flex items-center gap-2 group/btn"
-                >
-                  <Info size={14} className="group-hover/btn:translate-x-0.5 transition-transform" /> Detalhes
-                </button>
-
-                <div className="flex items-center gap-1">
-                  {canEdit && (
-                    <>
-                      <button
-                        onClick={() => handleOpenAddQty(item)}
-                        className="p-2.5 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all active:scale-95"
-                        title="Adicionar Estoque"
-                      >
-                        <PlusSquare size={22} />
-                      </button>
-                      <button
-                        onClick={() => handleOpenEdit(item)}
-                        className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all active:scale-95"
-                        title="Editar Item"
-                      >
-                        <Edit2 size={20} />
-                      </button>
-                      <button
-                        onClick={() => toggleStatus(item)}
-                        className="p-2.5 text-amber-500 hover:bg-amber-50 rounded-xl transition-all active:scale-95"
-                        title="Alternar Manutenção"
-                      >
-                        <Wrench size={20} />
-                      </button>
-                      <div className="w-px h-5 bg-slate-200 mx-2"></div>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2.5 text-slate-300 hover:text-red-600 transition-all active:scale-95"
-                        title="Remover"
-                      >
-                        <Trash2 size={20} />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+              </Card>
+            );
+          })
+        ) : (
+          <div className="col-span-full py-20 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+            <Package size={48} className="mx-auto mb-4 text-slate-300" />
+            <h4 className="text-lg font-bold text-slate-900">Nenhum item encontrado</h4>
+            <p className="text-slate-500">Tente ajustar sua busca ou adicione um novo equipamento.</p>
+          </div>
+        )}
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Editar Equipamento" : "Cadastrar Novo Item"} maxWidth="xl">
