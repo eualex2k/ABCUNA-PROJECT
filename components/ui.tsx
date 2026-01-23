@@ -18,9 +18,9 @@ export const LoadingOverlay: React.FC = () => (
 );
 
 // --- Card Component ---
-export const Card: React.FC<{ children: React.ReactNode; className?: string; onClick?: () => void; glass?: boolean; hover?: boolean }> = ({ 
-  children, 
-  className = '', 
+export const Card: React.FC<{ children: React.ReactNode; className?: string; onClick?: () => void; glass?: boolean; hover?: boolean }> = ({
+  children,
+  className = '',
   onClick,
   glass = false,
   hover = true
@@ -285,11 +285,11 @@ export const Avatar: React.FC<{
 };
 
 // --- Stat Card Component ---
-export const StatCard: React.FC<{ 
-  title: string; 
-  value: string; 
-  trend?: string; 
-  trendUp?: boolean; 
+export const StatCard: React.FC<{
+  title: string;
+  value: string;
+  trend?: string;
+  trendUp?: boolean;
   icon: React.ReactNode;
   loading?: boolean;
 }> = ({ title, value, trend, trendUp, icon, loading = false }) => (
@@ -336,6 +336,17 @@ interface ModalProps {
 }
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidth = 'lg' }) => {
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const maxWidthClasses = {

@@ -132,7 +132,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 overflow-hidden fixed inset-0">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
@@ -327,7 +327,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
 
               {/* Notification Dropdown */}
               {isNotifOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 glass shadow-premium-xl rounded-xl border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in-95 origin-top-right">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white shadow-premium-xl rounded-2xl border border-slate-200 overflow-hidden z-[100] animate-in fade-in zoom-in-95 origin-top-right">
                   <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white/50">
                     <h3 className="font-bold text-sm text-slate-900">Notificações</h3>
                     <div className="flex gap-2">
@@ -403,8 +403,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           </div>
         </main>
 
-        {/* Mobile Bottom Navigation */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 glass-dark border-t border-white/10 px-4 h-20 flex items-center justify-between z-40">
+        {/* Mobile Bottom Navigation - Highly Refined Design */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-white/5 h-[68px] flex items-center justify-around z-50 px-2 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
           {[
             { label: 'Início', icon: LayoutDashboard, path: '/' },
             { label: 'Financeiro', icon: DollarSign, path: '/financial' },
@@ -418,12 +418,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center gap-1.5 transition-all duration-300 w-16 ${isActive ? 'text-brand-500' : 'text-slate-400 hover:text-slate-100'}`}
+                className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500'}`}
               >
-                <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-500/10 scale-110 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : ''}`}>
-                  <Icon size={20} className={isActive ? 'animate-pulse-subtle' : ''} />
+                <div className={`relative p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]' : ''}`}>
+                  <Icon size={20} />
                 </div>
-                <span className={`text-[10px] font-bold uppercase tracking-tighter ${isActive ? 'opacity-100' : 'opacity-60'}`}>
+                <span className={`text-[9px] font-black uppercase tracking-tight transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
                   {item.label}
                 </span>
               </NavLink>
