@@ -65,7 +65,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const displayName = names.length > 1 ? `${names[0]} ${names[1]}` : names[0];
 
   // --- Calculations ---
-  const completedTx = transactions.filter(t => t.status === 'COMPLETED');
+  const completedTx = transactions
+    .filter(t => t.status === 'COMPLETED')
+    .sort((a, b) => {
+      // 1. Newest Date first
+      if (a.date !== b.date) return b.date.localeCompare(a.date);
+      // 2. Most recently created first (Tie-breaker)
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
   const totalBalance = completedTx.reduce((acc, t) => t.type === 'INCOME' ? acc + t.amount : acc - t.amount, 0);
 
   const activeAssociates = associates.filter(a => a.status === 'ACTIVE');
@@ -288,7 +295,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-900 line-clamp-1">{tx.description}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{new Date(tx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                        {(() => {
+                          const [y, m, d] = tx.date.split('-');
+                          const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                          return `${d} DE ${months[parseInt(m) - 1].toUpperCase()}`;
+                        })()}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">

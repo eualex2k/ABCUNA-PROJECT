@@ -10,6 +10,7 @@ export const financialService = {
             .from('financial_transactions')
             .select('*')
             .order('date', { ascending: false })
+            .order('created_at', { ascending: false })
             .range(from, to);
 
         if (error) {
