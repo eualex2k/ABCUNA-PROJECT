@@ -273,60 +273,6 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     setIsModalOpen(true);
   };
 
-  const handleViewComprovantes = async (tx: Transaction) => {
-    try {
-      showToast('Buscando comprovante...', 'info');
-      const history = await financialService.getComprovantes(tx.id);
-      if (!history || history.length === 0) {
-         showToast('Nenhum comprovante encontrado para esta transação.', 'info');
-         return;
-      }
-      const url = await financialService.getSignedUrl(history[0].file_path);
-      window.open(url, '_blank');
-    } catch (e) {
-      showToast('Erro ao abrir comprovante de pagamento.', 'info');
-    }
-  };
-
-  const handleEditTransaction = (tx: Transaction) => {
-    setEditingTransactionId(tx.id);
-    setIsLoadingComprovantes(true);
-    financialService.getComprovantes(tx.id).then(history => {
-       setComprovantesHistory(history);
-    }).finally(() => setIsLoadingComprovantes(false));
-    
-    if (tx.type === 'INCOME') {
-      setIncomeForm({
-        title: tx.description,
-        amount: tx.amount.toString(),
-        date: tx.date.split('T')[0],
-        category: tx.category,
-        payerId: tx.payer_id || '',
-        description: tx.notes || '',
-        isCustomCategory: true, // defaulting to custom to allow simple editing of the text
-        customCategory: tx.category,
-        isCustomPayer: false,
-        customPayer: ''
-      });
-      setModalStep('INCOME');
-    } else {
-      setExpenseForm({
-        title: tx.description,
-        amount: tx.amount.toString(),
-        date: tx.date.split('T')[0],
-        category: tx.category,
-        recipientId: tx.recipient_id || '',
-        description: tx.notes || '',
-        isCustomCategory: true,
-        customCategory: tx.category,
-        isCustomRecipient: false,
-        customRecipient: ''
-      });
-      setModalStep('EXPENSE');
-    }
-    setIsModalOpen(true);
-  };
-
   // --- Fee Management Logic ---
 
   const handleOpenFeesManager = () => {
@@ -808,6 +754,69 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       setIsUploading(false);
       setIsModalOpen(false);
       resetForms();
+    }
+  };
+
+  const handleEditTransaction = (tx: Transaction) => {
+    setEditingTransactionId(tx.id);
+    setModalStep(tx.type === 'INCOME' ? 'INCOME' : 'EXPENSE');
+    if (tx.type === 'INCOME') {
+      setIncomeForm({
+        title: tx.description,
+        amount: tx.amount.toString(),
+        date: tx.date || '',
+        category: tx.category || 'Doação',
+        payerId: tx.payer_id || '',
+        description: tx.notes || '',
+        isCustomCategory: false,
+        isCustomPayer: false,
+        customCategory: '',
+        customPayer: ''
+      });
+    } else {
+      setExpenseForm({
+        title: tx.description,
+        amount: tx.amount.toString(),
+        date: tx.date || '',
+        category: tx.category || 'Manutenção',
+        recipientId: tx.recipient_id || '',
+        description: tx.notes || '',
+        isCustomCategory: false,
+        isCustomRecipient: false,
+        customCategory: '',
+        customRecipient: ''
+      });
+    }
+    
+    // Load comprovantes history for the modal if editing
+    setIsLoadingComprovantes(true);
+    financialService.getComprovantes(tx.id)
+      .then(history => setComprovantesHistory(history))
+      .catch(err => console.error(err))
+      .finally(() => setIsLoadingComprovantes(false));
+      
+    setIsModalOpen(true);
+  };
+
+  const handleViewComprovantes = async (tx: Transaction) => {
+    try {
+      const history = await financialService.getComprovantes(tx.id);
+      if (!history || history.length === 0) {
+        showToast('Nenhum comprovante encontrado para esta transação.', 'info');
+        return;
+      }
+      
+      // If there's only one, open it directly
+      if (history.length === 1) {
+        const url = await financialService.getSignedUrl(history[0].file_path);
+        window.open(url, '_blank');
+      } else {
+        // If multiple, open the edit modal to show history
+        handleEditTransaction(tx);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao abrir comprovante', 'info');
     }
   };
 

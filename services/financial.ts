@@ -191,7 +191,7 @@ export const financialService = {
             return [];
         }
         
-        return data.map(item => ({
+        return (data || []).map(item => ({
             id: item.id,
             transaction_id: item.transaction_id,
             file_path: item.file_path,
@@ -203,7 +203,7 @@ export const financialService = {
     
     async getSignedUrl(filePath: string): Promise<string> {
         // If it looks like a legacy public URL, extract just the path
-        let path = filePath;
+        let path = (filePath || '').trim();
         if (path.includes('http')) {
              const parts = path.split('/comprovantes-financeiro/');
              if (parts.length > 1) {
@@ -211,13 +211,16 @@ export const financialService = {
              }
         }
         
+        // Clean leading slash if any
+        path = path.replace(/^\//, '');
+        
         const { data, error } = await supabase.storage
             .from('comprovantes-financeiro')
             .createSignedUrl(path, 60); // 60 seconds expiration
             
         if (error || !data) {
-            console.error('Error generating signed URL:', error);
-            throw error;
+            console.error('Error generating signed URL for path:', path, error);
+            throw new Error(`Erro ao acessar o arquivo: ${error?.message || 'Arquivo não encontrado'}`);
         }
         
         return data.signedUrl;
@@ -225,13 +228,16 @@ export const financialService = {
 
     async deleteComprovante(filePath: string): Promise<void> {
         try {
-            let path = filePath;
+            let path = (filePath || '').trim();
             if (path.includes('http')) {
                  const parts = path.split('/comprovantes-financeiro/');
                  if (parts.length > 1) {
                      path = parts[1];
                  }
             }
+            
+            // Clean leading slash
+            path = path.replace(/^\//, '');
             
             const { error } = await supabase.storage
                 .from('comprovantes-financeiro')
