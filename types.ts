@@ -179,6 +179,7 @@ export interface Transaction {
   recipient_id?: string;
   notes?: string;
   registration_id?: string;
+  comprovante_url?: string;
   createdAt?: string;
 }
 

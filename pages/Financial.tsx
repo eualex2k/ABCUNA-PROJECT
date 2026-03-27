@@ -162,6 +162,11 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   });
 
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  
+  const [incomeFile, setIncomeFile] = useState<File | null>(null);
+  const [expenseFile, setExpenseFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentComprovanteUrl, setCurrentComprovanteUrl] = useState<string | null>(null);
 
   // Payment Form State
   const [paymentForm, setPaymentForm] = useState({
@@ -269,6 +274,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
   const handleEditTransaction = (tx: Transaction) => {
     setEditingTransactionId(tx.id);
+    setCurrentComprovanteUrl(tx.comprovante_url || null);
     if (tx.type === 'INCOME') {
       setIncomeForm({
         title: tx.description,
@@ -662,22 +668,39 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
   const handleSaveIncome = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (incomeFile && incomeFile.size > 5 * 1024 * 1024) {
+      showToast('O comprovante não pode ter mais que 5MB.', 'info');
+      return;
+    }
+    
+    setIsUploading(true);
 
-    // Determine Category
-    const finalCategory = incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category;
-
-    const txData: Omit<Transaction, 'id'> = {
-      description: incomeForm.title,
-      amount: parseFloat(incomeForm.amount),
-      type: 'INCOME',
-      category: finalCategory || 'Geral',
-      status: 'COMPLETED',
-      date: incomeForm.date,
-      payer_id: incomeForm.payerId || undefined,
-      notes: incomeForm.description
-    };
+    let comprovante_url = currentComprovanteUrl;
 
     try {
+      if (incomeFile) {
+        if (currentComprovanteUrl) {
+           await financialService.deleteComprovante(currentComprovanteUrl);
+        }
+        comprovante_url = await financialService.uploadComprovante(incomeFile);
+      }
+
+      // Determine Category
+      const finalCategory = incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category;
+
+      const txData: Omit<Transaction, 'id'> = {
+        description: incomeForm.title,
+        amount: parseFloat(incomeForm.amount),
+        type: 'INCOME',
+        category: finalCategory || 'Geral',
+        status: 'COMPLETED',
+        date: incomeForm.date,
+        payer_id: incomeForm.payerId || undefined,
+        notes: incomeForm.description,
+        comprovante_url: comprovante_url || undefined
+      };
+
       if (editingTransactionId) {
         await financialService.update(editingTransactionId, txData);
         showToast('Movimentação atualizada com sucesso!');
@@ -689,30 +712,48 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     } catch (err: any) {
       console.error(err);
       showToast(`Erro ao salvar registro: ${err.message || 'Erro desconhecido'}`, 'info');
+    } finally {
+      setIsUploading(false);
+      setIsModalOpen(false);
+      resetForms();
     }
-
-    setIsModalOpen(false);
-    resetForms();
   };
 
   const handleSaveExpense = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Determine Category
-    const finalCategory = expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category;
+    if (expenseFile && expenseFile.size > 5 * 1024 * 1024) {
+      showToast('O comprovante não pode ter mais que 5MB.', 'info');
+      return;
+    }
 
-    const txData: Omit<Transaction, 'id'> = {
-      description: expenseForm.title,
-      amount: parseFloat(expenseForm.amount),
-      type: 'EXPENSE',
-      category: finalCategory || 'Geral',
-      status: 'COMPLETED',
-      date: expenseForm.date,
-      recipient_id: expenseForm.recipientId || undefined,
-      notes: expenseForm.description
-    };
+    setIsUploading(true);
+
+    let comprovante_url = currentComprovanteUrl;
 
     try {
+      if (expenseFile) {
+        if (currentComprovanteUrl) {
+           await financialService.deleteComprovante(currentComprovanteUrl);
+        }
+        comprovante_url = await financialService.uploadComprovante(expenseFile);
+      }
+
+      // Determine Category
+      const finalCategory = expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category;
+
+      const txData: Omit<Transaction, 'id'> = {
+        description: expenseForm.title,
+        amount: parseFloat(expenseForm.amount),
+        type: 'EXPENSE',
+        category: finalCategory || 'Geral',
+        status: 'COMPLETED',
+        date: expenseForm.date,
+        recipient_id: expenseForm.recipientId || undefined,
+        notes: expenseForm.description,
+        comprovante_url: comprovante_url || undefined
+      };
+
       if (editingTransactionId) {
         await financialService.update(editingTransactionId, txData);
         showToast('Movimentação atualizada com sucesso!');
@@ -724,10 +765,11 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     } catch (err: any) {
       console.error(err);
       showToast(`Erro ao salvar registro: ${err.message || 'Erro desconhecido'}`, 'info');
+    } finally {
+      setIsUploading(false);
+      setIsModalOpen(false);
+      resetForms();
     }
-
-    setIsModalOpen(false);
-    resetForms();
   };
 
   const handleDeleteTransaction = async () => {
@@ -815,6 +857,9 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const resetForms = () => {
     setIncomeForm({ title: '', amount: '', date: '', category: 'Doação', payerId: '', description: '', isCustomCategory: false, isCustomPayer: false, customCategory: '', customPayer: '' });
     setExpenseForm({ title: '', amount: '', date: '', category: 'Manutenção', recipientId: '', description: '', isCustomCategory: false, isCustomRecipient: false, customCategory: '', customRecipient: '' });
+    setIncomeFile(null);
+    setExpenseFile(null);
+    setCurrentComprovanteUrl(null);
 
     // Default to the 1st of the next month
     const nextMonth = new Date();
@@ -935,9 +980,28 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             </div>
             <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} className="h-24" />
 
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
+                Comprovante / Recibo (Opcional)
+              </label>
+              <input 
+                type="file" 
+                accept=".pdf, image/jpeg, image/png, image/jpg" 
+                onChange={e => setIncomeFile(e.target.files?.[0] || null)}
+                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 border border-slate-200 rounded-lg p-2" 
+              />
+              {currentComprovanteUrl && !incomeFile && (
+                <div className="mt-2 text-xs">
+                  <a href={currentComprovanteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                    <ArrowUpRight size={14} /> Ver comprovante atual
+                  </a>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3 pt-2">
-              <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700">
-                {editingTransactionId ? 'Salvar Alterações' : 'Confirmar Entrada'}
+              <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700" disabled={isUploading}>
+                {isUploading ? 'Salvando...' : editingTransactionId ? 'Salvar Alterações' : 'Confirmar Entrada'}
               </Button>
               {editingTransactionId && (
                 <Button
@@ -1017,9 +1081,28 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             </div>
             <Textarea label="Descrição Detalhada" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} className="h-24" />
 
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
+                Comprovante / Recibo (Opcional)
+              </label>
+              <input 
+                type="file" 
+                accept=".pdf, image/jpeg, image/png, image/jpg" 
+                onChange={e => setExpenseFile(e.target.files?.[0] || null)}
+                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 border border-slate-200 rounded-lg p-2" 
+              />
+              {currentComprovanteUrl && !expenseFile && (
+                <div className="mt-2 text-xs">
+                  <a href={currentComprovanteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                    <ArrowUpRight size={14} /> Ver comprovante atual
+                  </a>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3 pt-2">
-              <Button type="submit" className="flex-1 bg-red-600 hover:bg-red-700">
-                {editingTransactionId ? 'Salvar Alterações' : 'Confirmar Saída'}
+              <Button type="submit" className="flex-1 bg-red-600 hover:bg-red-700" disabled={isUploading}>
+                {isUploading ? 'Salvando...' : editingTransactionId ? 'Salvar Alterações' : 'Confirmar Saída'}
               </Button>
               {editingTransactionId && (
                 <Button

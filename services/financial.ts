@@ -113,6 +113,46 @@ export const financialService = {
 
             return acc;
         }, { totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0 });
+    },
+
+    async uploadComprovante(file: File): Promise<string> {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('comprovantes-financeiro')
+            .upload(filePath, file);
+
+        if (uploadError) {
+            console.error('Error uploading comprovante:', uploadError);
+            throw uploadError;
+        }
+
+        const { data } = supabase.storage
+            .from('comprovantes-financeiro')
+            .getPublicUrl(filePath);
+
+        return data.publicUrl;
+    },
+
+    async deleteComprovante(url: string): Promise<void> {
+        try {
+            // Extract file path from public URL
+            const urlParts = url.split('/');
+            const fileName = urlParts[urlParts.length - 1];
+            
+            const { error } = await supabase.storage
+                .from('comprovantes-financeiro')
+                .remove([fileName]);
+
+            if (error) {
+                console.error('Error deleting comprovante:', error);
+                throw error;
+            }
+        } catch (error) {
+           console.error('Failed to delete comprovante from storage', error);
+        }
     }
 };
 
@@ -130,6 +170,7 @@ function mapToFrontend(row: any): Transaction {
         recipient_id: row.recipient_id,
         notes: row.notes,
         registration_id: row.registration_id,
+        comprovante_url: row.comprovante_url,
         createdAt: row.created_at,
     };
 }
@@ -146,5 +187,7 @@ function mapToDb(tx: Partial<Transaction>): any {
     if (tx.recipient_id !== undefined) dbRow.recipient_id = tx.recipient_id;
     if (tx.notes !== undefined) dbRow.notes = tx.notes;
     if (tx.registration_id !== undefined) dbRow.registration_id = tx.registration_id;
+    if (tx.comprovante_url !== undefined) dbRow.comprovante_url = tx.comprovante_url;
     return dbRow;
 }
+
