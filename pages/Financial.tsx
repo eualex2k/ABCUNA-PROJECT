@@ -18,7 +18,7 @@ import { FeesManager } from '../components/financial/FeesManager';
 
 
 
-type ModalStep = 'MENU' | 'INCOME' | 'EXPENSE' | 'FEES';
+type ModalStep = 'MENU' | 'INCOME' | 'EXPENSE' | 'FEES' | 'DETAILS';
 
 // --- New Types for Fee Management ---
 interface FeeRecord {
@@ -799,25 +799,17 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   };
 
   const handleViewComprovantes = async (tx: Transaction) => {
-    try {
-      const history = await financialService.getComprovantes(tx.id);
-      if (!history || history.length === 0) {
-        showToast('Nenhum comprovante encontrado para esta transação.', 'info');
-        return;
-      }
+    setEditingTransactionId(tx.id);
+    setModalStep('DETAILS');
+    
+    // Load comprovantes history for the modal
+    setIsLoadingComprovantes(true);
+    financialService.getComprovantes(tx.id)
+      .then(history => setComprovantesHistory(history))
+      .catch(err => console.error(err))
+      .finally(() => setIsLoadingComprovantes(false));
       
-      // If there's only one, open it directly
-      if (history.length === 1) {
-        const url = await financialService.getSignedUrl(history[0].file_path);
-        window.open(url, '_blank');
-      } else {
-        // If multiple, open the edit modal to show history
-        handleEditTransaction(tx);
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Erro ao abrir comprovante', 'info');
-    }
+    setIsModalOpen(true);
   };
 
   const handleDeleteTransaction = async (tx?: Transaction) => {
@@ -1264,6 +1256,118 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             </div>
             <Button type="submit" className="w-full">Gerar Mensalidades</Button>
           </form>
+        );
+      case 'DETAILS':
+        const tx = transactions.find(t => t.id === editingTransactionId);
+        if (!tx) return <p className="text-center py-8 text-slate-500">Transação não encontrada</p>;
+
+        return (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+             <div className="flex items-center gap-2 text-slate-400 hover:text-slate-600 mb-4 cursor-pointer transition-colors" onClick={() => setIsModalOpen(false)}>
+              <X size={20} /> <span className="text-sm font-medium">Fechar</span>
+            </div>
+
+            <div className="flex flex-col items-center text-center pb-4 border-b border-slate-100">
+               <div className={`p-4 rounded-full mb-4 ${tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                 {tx.type === 'INCOME' ? <ArrowUpRight size={32} /> : <TrendingUp size={32} className="rotate-180" />}
+               </div>
+               <h3 className="text-xl font-bold text-slate-900">{tx.description}</h3>
+               <p className={`text-2xl font-black mt-1 ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                 {tx.type === 'INCOME' ? '+' : '-'} {formatCurrency(tx.amount)}
+               </p>
+               <Badge
+                 className="mt-3"
+                 variant={tx.type === 'INCOME' ? 'success' : 'danger'}
+               >
+                 {tx.category}
+               </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-y-4 text-sm">
+                <div>
+                   <p className="text-slate-400 font-medium">Data</p>
+                   <p className="text-slate-900 font-semibold">{new Date(tx.date + 'T12:00:00').toLocaleDateString('pt-BR')}</p>
+                </div>
+                <div>
+                   <p className="text-slate-400 font-medium">Status</p>
+                   <p className="text-slate-900 font-semibold flex items-center gap-1">
+                      {tx.status === 'COMPLETED' ? <><CheckCircle2 size={14} className="text-emerald-500" /> Confirmado</> : <><AlertTriangle size={14} className="text-amber-500" /> Pendente</>}
+                   </p>
+                </div>
+                <div className="col-span-2 text-left">
+                   <p className="text-slate-400 font-medium">{tx.type === 'INCOME' ? 'Pagador' : 'Beneficiário'}</p>
+                   <p className="text-slate-900 font-semibold">{
+                     tx.type === 'INCOME' 
+                       ? (realAssociates.find(a => a.id === tx.payer_id)?.name || 'Externo / Outros')
+                       : (realAssociates.find(a => a.id === tx.recipient_id)?.name || 'Externo / Outros')
+                   }</p>
+                </div>
+                {tx.notes && (
+                  <div className="col-span-2 text-left">
+                    <p className="text-slate-400 font-medium">Observações</p>
+                    <p className="text-slate-700 italic bg-slate-50 p-2 rounded border border-slate-100 mt-1">{tx.notes}</p>
+                  </div>
+                )}
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-slate-100 text-left">
+               <h4 className="font-bold text-slate-900 flex items-center gap-2">
+                 <Download size={18} className="text-slate-400" />
+                 Comprovantes / Recibos
+               </h4>
+               
+               {isLoadingComprovantes ? (
+                 <div className="animate-pulse flex space-x-4 p-4 items-center justify-center bg-slate-50 rounded-lg">
+                    <div className="h-4 bg-slate-200 rounded w-24"></div>
+                 </div>
+               ) : comprovantesHistory.length > 0 ? (
+                 <div className="space-y-3">
+                   {comprovantesHistory.map(comp => (
+                     <Button 
+                       key={comp.id}
+                       variant="outline"
+                       className="w-full flex items-center justify-between py-6 px-4 hover:border-brand-500 hover:bg-brand-50"
+                       onClick={async () => {
+                         try {
+                           const url = await financialService.getSignedUrl(comp.file_path);
+                           window.open(url, '_blank');
+                         } catch (e) {
+                           showToast('Erro ao abrir comprovante', 'info');
+                         }
+                       }}
+                     >
+                       <div className="flex items-center gap-3 text-left">
+                          <Download className="text-slate-400" size={20} />
+                          <div>
+                            <p className="font-bold text-slate-900 text-sm">Visualizar Recibo</p>
+                            <p className="text-xs text-slate-400 uppercase">Anexado em {new Date(comp.created_at).toLocaleDateString('pt-BR')}</p>
+                          </div>
+                       </div>
+                       <ChevronLeft className="rotate-180 text-slate-400" size={16} />
+                     </Button>
+                   ))}
+                 </div>
+               ) : (
+                 <div className="text-center p-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    <AlertTriangle size={32} className="text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-500 text-sm italic">Nenhum comprovante anexado a esta movimentação.</p>
+                 </div>
+               )}
+            </div>
+
+            {canEdit && (
+              <Button 
+                variant="outline" 
+                className="w-full border-slate-200 text-slate-600 flex items-center justify-center gap-2 h-12"
+                onClick={() => {
+                   setModalStep(tx.type === 'INCOME' ? 'INCOME' : 'EXPENSE');
+                   handleEditTransaction(tx);
+                }}
+              >
+                <Edit3 size={18} /> Editar Movimentação
+              </Button>
+            )}
+          </div>
         );
     }
   };

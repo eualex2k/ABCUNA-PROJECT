@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, ArrowUpCircle, ArrowDownCircle, AlertCircle, Edit3, Trash2, Download, FileText } from 'lucide-react';
+import { Search, Filter, ArrowUpCircle, ArrowDownCircle, AlertCircle, Edit3, Trash2, Download, FileText, Eye } from 'lucide-react';
 import { Card, Button, Badge, Skeleton, Input } from '../ui';
 import { Transaction, translateTransactionType } from '../../types';
 
@@ -134,16 +134,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                                         </Badge>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {tx.has_comprovantes && (
-                                                <button
-                                                    onClick={() => onViewComprovantes && onViewComprovantes(tx)}
-                                                    className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all"
-                                                    title="Ver Comprovantes"
-                                                >
-                                                    <FileText size={16} />
-                                                </button>
-                                            )}
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => onViewComprovantes && onViewComprovantes(tx)}
+                                                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                title="Ver Detalhes e Comprovante"
+                                            >
+                                                <Eye size={16} />
+                                            </button>
                                             <button
                                                 onClick={() => onEdit(tx)}
                                                 className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all"
