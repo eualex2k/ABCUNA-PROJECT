@@ -1,14 +1,26 @@
 import { supabase } from '../lib/supabase';
-import { Transaction } from '../types';
+import { Transaction, FinancialComprovante, FinancialAuditLog } from '../types';
 
 export const financialService = {
+    async logAudit(transaction_id: string, action: string, detalhes: any = {}) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        await supabase.from('financial_audit_log').insert({
+            transaction_id,
+            user_id: user.id,
+            action,
+            detalhes
+        });
+    },
+
     async getAll(page: number = 0, limit: number = 1000): Promise<Transaction[]> {
         const from = page * limit;
         const to = from + limit - 1;
 
         const { data, error } = await supabase
             .from('financial_transactions')
-            .select('*')
+            .select('*, financial_comprovantes(id)')
             .order('date', { ascending: false })
             .order('created_at', { ascending: false })
             .range(from, to);
@@ -35,6 +47,7 @@ export const financialService = {
             throw error;
         }
 
+        await this.logAudit(data.id, 'CREATE', dbRow);
         return mapToFrontend(data);
     },
 
@@ -53,10 +66,13 @@ export const financialService = {
             throw error;
         }
 
+        await this.logAudit(id, 'UPDATE', dbUpdates);
         return mapToFrontend(data);
     },
 
     async delete(id: string): Promise<void> {
+        await this.logAudit(id, 'DELETE');
+        
         const { error } = await supabase
             .from('financial_transactions')
             .delete()
@@ -70,6 +86,12 @@ export const financialService = {
 
     async deleteBulk(ids: string[]): Promise<void> {
         if (!ids || ids.length === 0) return;
+
+        // Log deleting each transaction
+        // Ideally we'd log this in bulk, but for simplicity here we can skip or log individual
+        for (const id of ids) {
+            await this.logAudit(id, 'DELETE', { bulk: true });
+        }
 
         const { error } = await supabase
             .from('financial_transactions')
@@ -129,25 +151,94 @@ export const financialService = {
             throw uploadError;
         }
 
-        const { data } = supabase.storage
+        return filePath;
+    },
+    
+    async attachComprovante(transaction_id: string, filePath: string) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        const { error } = await supabase
+            .from('financial_comprovantes')
+            .insert({
+                transaction_id,
+                file_path: filePath,
+                created_by: user.id
+            });
+            
+        if (error) {
+            console.error('Error attaching comprovante:', error);
+            throw error;
+        }
+        
+        await this.logAudit(transaction_id, 'UPLOAD_COMPROVANTE', { file_path: filePath });
+    },
+    
+    async getComprovantes(transaction_id: string): Promise<FinancialComprovante[]> {
+        const { data, error } = await supabase
+            .from('financial_comprovantes')
+            .select(`
+                *,
+                profiles:created_by (
+                    full_name
+                )
+            `)
+            .eq('transaction_id', transaction_id)
+            .order('created_at', { ascending: false });
+            
+        if (error) {
+            console.error('Error listing comprovantes:', error);
+            return [];
+        }
+        
+        return data.map(item => ({
+            id: item.id,
+            transaction_id: item.transaction_id,
+            file_path: item.file_path,
+            created_at: item.created_at,
+            created_by: item.created_by,
+            user_name: item.profiles?.full_name || 'Usuário Desconhecido'
+        }));
+    },
+    
+    async getSignedUrl(filePath: string): Promise<string> {
+        // If it looks like a legacy public URL, extract just the path
+        let path = filePath;
+        if (path.includes('http')) {
+             const parts = path.split('/comprovantes-financeiro/');
+             if (parts.length > 1) {
+                 path = parts[1];
+             }
+        }
+        
+        const { data, error } = await supabase.storage
             .from('comprovantes-financeiro')
-            .getPublicUrl(filePath);
-
-        return data.publicUrl;
+            .createSignedUrl(path, 60); // 60 seconds expiration
+            
+        if (error || !data) {
+            console.error('Error generating signed URL:', error);
+            throw error;
+        }
+        
+        return data.signedUrl;
     },
 
-    async deleteComprovante(url: string): Promise<void> {
+    async deleteComprovante(filePath: string): Promise<void> {
         try {
-            // Extract file path from public URL
-            const urlParts = url.split('/');
-            const fileName = urlParts[urlParts.length - 1];
+            let path = filePath;
+            if (path.includes('http')) {
+                 const parts = path.split('/comprovantes-financeiro/');
+                 if (parts.length > 1) {
+                     path = parts[1];
+                 }
+            }
             
             const { error } = await supabase.storage
                 .from('comprovantes-financeiro')
-                .remove([fileName]);
+                .remove([path]);
 
             if (error) {
-                console.error('Error deleting comprovante:', error);
+                console.error('Error deleting comprovante storage object:', error);
                 throw error;
             }
         } catch (error) {
@@ -170,7 +261,7 @@ function mapToFrontend(row: any): Transaction {
         recipient_id: row.recipient_id,
         notes: row.notes,
         registration_id: row.registration_id,
-        comprovante_url: row.comprovante_url,
+        has_comprovantes: (row.financial_comprovantes && row.financial_comprovantes.length > 0),
         createdAt: row.created_at,
     };
 }
@@ -187,7 +278,5 @@ function mapToDb(tx: Partial<Transaction>): any {
     if (tx.recipient_id !== undefined) dbRow.recipient_id = tx.recipient_id;
     if (tx.notes !== undefined) dbRow.notes = tx.notes;
     if (tx.registration_id !== undefined) dbRow.registration_id = tx.registration_id;
-    if (tx.comprovante_url !== undefined) dbRow.comprovante_url = tx.comprovante_url;
     return dbRow;
 }
-

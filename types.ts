@@ -179,8 +179,26 @@ export interface Transaction {
   recipient_id?: string;
   notes?: string;
   registration_id?: string;
-  comprovante_url?: string;
+  has_comprovantes?: boolean;
   createdAt?: string;
+}
+
+export interface FinancialComprovante {
+  id: string;
+  transaction_id: string;
+  file_path: string;
+  created_at: string;
+  created_by?: string;
+  user_name?: string; // To be populated when joining
+}
+
+export interface FinancialAuditLog {
+  id: string;
+  transaction_id: string;
+  user_id: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'UPLOAD_COMPROVANTE';
+  timestamp: string;
+  detalhes?: any;
 }
 
 export interface Registration {

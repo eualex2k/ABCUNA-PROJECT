@@ -7,6 +7,7 @@ interface TransactionTableProps {
     transactions: Transaction[];
     onEdit: (tx: Transaction) => void;
     onDelete: (tx: Transaction) => void;
+    onViewComprovantes?: (tx: Transaction) => void;
     onExport?: () => void;
     loading?: boolean;
 }
@@ -15,6 +16,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     transactions,
     onEdit,
     onDelete,
+    onViewComprovantes,
     onExport,
     loading = false
 }) => {
@@ -133,16 +135,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {tx.comprovante_url && (
-                                                <a
-                                                    href={tx.comprovante_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                            {tx.has_comprovantes && (
+                                                <button
+                                                    onClick={() => onViewComprovantes && onViewComprovantes(tx)}
                                                     className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all"
-                                                    title="Ver Comprovante"
+                                                    title="Ver Comprovantes"
                                                 >
                                                     <FileText size={16} />
-                                                </a>
+                                                </button>
                                             )}
                                             <button
                                                 onClick={() => onEdit(tx)}

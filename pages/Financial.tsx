@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DollarSign, ArrowUpCircle, ArrowDownCircle, PieChart, Download, Users, ChevronLeft, Calendar, Wallet, BellRing, CheckCircle2, AlertTriangle, X, CreditCard, Search, Banknote, Filter, Send, Edit3, Plus, RotateCcw, ArrowUpRight, Shield, TrendingUp, Trash2 } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input, Avatar, Textarea, StatCard } from '../components/ui';
-import { Transaction, Associate, User, UserRole, translateStatus, translateTransactionType, translateCategory } from '../types';
+import { Transaction, Associate, User, UserRole, translateStatus, translateTransactionType, translateCategory, FinancialComprovante } from '../types';
 import { associatesService } from '../services/associates';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { notificationService } from '../services/notifications';
@@ -166,7 +166,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const [incomeFile, setIncomeFile] = useState<File | null>(null);
   const [expenseFile, setExpenseFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [currentComprovanteUrl, setCurrentComprovanteUrl] = useState<string | null>(null);
+  const [comprovantesHistory, setComprovantesHistory] = useState<FinancialComprovante[]>([]);
+  const [isLoadingComprovantes, setIsLoadingComprovantes] = useState(false);
 
   // Payment Form State
   const [paymentForm, setPaymentForm] = useState({
@@ -272,9 +273,28 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     setIsModalOpen(true);
   };
 
+  const handleViewComprovantes = async (tx: Transaction) => {
+    try {
+      showToast('Buscando comprovante...', 'info');
+      const history = await financialService.getComprovantes(tx.id);
+      if (!history || history.length === 0) {
+         showToast('Nenhum comprovante encontrado para esta transação.', 'info');
+         return;
+      }
+      const url = await financialService.getSignedUrl(history[0].file_path);
+      window.open(url, '_blank');
+    } catch (e) {
+      showToast('Erro ao abrir comprovante de pagamento.', 'info');
+    }
+  };
+
   const handleEditTransaction = (tx: Transaction) => {
     setEditingTransactionId(tx.id);
-    setCurrentComprovanteUrl(tx.comprovante_url || null);
+    setIsLoadingComprovantes(true);
+    financialService.getComprovantes(tx.id).then(history => {
+       setComprovantesHistory(history);
+    }).finally(() => setIsLoadingComprovantes(false));
+    
     if (tx.type === 'INCOME') {
       setIncomeForm({
         title: tx.description,
@@ -569,7 +589,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
           <div className="flex items-center gap-2 text-slate-600 mb-2 cursor-pointer hover:text-brand-600" onClick={() => { setRegistrationStep('LIST'); setEditingRegistrationId(null); }}>
             <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
           </div>
-          <h3 className="text-lg font-bold text-slate-900">{editingRegistrationId ? 'Editar Inscrito' : 'Novo Inscrito' || 'Cadastrar Inscrito'}</h3>
+          <h3 className="text-lg font-bold text-slate-900">{editingRegistrationId ? 'Editar Inscrito' : 'Novo Inscrito'}</h3>
           <Input
             label="Nome Completo"
             placeholder="Digite o nome completo do interessado"
@@ -666,6 +686,17 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
   // --- End Fee Management Logic ---
 
+  const canModifyTransaction = (tx: Transaction) => {
+    if (user.role === UserRole.ADMIN) return true;
+    const dateStr = tx.createdAt || tx.date;
+    const createdTime = new Date(dateStr).getTime();
+    if (isNaN(createdTime)) return false; // Fail safe
+    
+    const now = Date.now();
+    const diffHours = (now - createdTime) / (1000 * 60 * 60);
+    return diffHours <= 24;
+  };
+
   const handleSaveIncome = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -676,16 +707,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     
     setIsUploading(true);
 
-    let comprovante_url = currentComprovanteUrl;
-
     try {
-      if (incomeFile) {
-        if (currentComprovanteUrl) {
-           await financialService.deleteComprovante(currentComprovanteUrl);
-        }
-        comprovante_url = await financialService.uploadComprovante(incomeFile);
-      }
-
       // Determine Category
       const finalCategory = incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category;
 
@@ -697,17 +719,30 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         status: 'COMPLETED',
         date: incomeForm.date,
         payer_id: incomeForm.payerId || undefined,
-        notes: incomeForm.description,
-        comprovante_url: comprovante_url || undefined
+        notes: incomeForm.description
       };
 
-      if (editingTransactionId) {
-        await financialService.update(editingTransactionId, txData);
+      let txId = editingTransactionId;
+      if (txId) {
+        const txToEdit = transactions.find(t => t.id === txId);
+        if (txToEdit && !canModifyTransaction(txToEdit)) {
+          showToast('Apenas administradores podem editar após 24 horas.', 'info');
+          setIsUploading(false);
+          return;
+        }
+        await financialService.update(txId, txData);
         showToast('Movimentação atualizada com sucesso!');
       } else {
-        await financialService.create(txData);
+        const result = await financialService.create(txData);
+        txId = result.id;
         showToast('Entrada registrada com sucesso!');
       }
+      
+      if (incomeFile && txId) {
+        const filePath = await financialService.uploadComprovante(incomeFile);
+        await financialService.attachComprovante(txId, filePath);
+      }
+
       loadTransactions(); // Reload to get fresh data
     } catch (err: any) {
       console.error(err);
@@ -729,16 +764,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
     setIsUploading(true);
 
-    let comprovante_url = currentComprovanteUrl;
-
     try {
-      if (expenseFile) {
-        if (currentComprovanteUrl) {
-           await financialService.deleteComprovante(currentComprovanteUrl);
-        }
-        comprovante_url = await financialService.uploadComprovante(expenseFile);
-      }
-
       // Determine Category
       const finalCategory = expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category;
 
@@ -750,17 +776,30 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         status: 'COMPLETED',
         date: expenseForm.date,
         recipient_id: expenseForm.recipientId || undefined,
-        notes: expenseForm.description,
-        comprovante_url: comprovante_url || undefined
+        notes: expenseForm.description
       };
 
-      if (editingTransactionId) {
-        await financialService.update(editingTransactionId, txData);
+      let txId = editingTransactionId;
+      if (txId) {
+        const txToEdit = transactions.find(t => t.id === txId);
+        if (txToEdit && !canModifyTransaction(txToEdit)) {
+          showToast('Apenas administradores podem editar após 24 horas.', 'info');
+          setIsUploading(false);
+          return;
+        }
+        await financialService.update(txId, txData);
         showToast('Movimentação atualizada com sucesso!');
       } else {
-        await financialService.create(txData);
+        const result = await financialService.create(txData);
+        txId = result.id;
         showToast('Saída registrada com sucesso!');
       }
+      
+      if (expenseFile && txId) {
+        const filePath = await financialService.uploadComprovante(expenseFile);
+        await financialService.attachComprovante(txId, filePath);
+      }
+
       loadTransactions();
     } catch (err: any) {
       console.error(err);
@@ -772,22 +811,26 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     }
   };
 
-  const handleDeleteTransaction = async () => {
-    if (!editingTransactionId) return;
+  const handleDeleteTransaction = async (tx?: Transaction) => {
+    const targetId = tx?.id || editingTransactionId;
+    if (!targetId) return;
 
-    if (!confirm('Tem certeza que deseja excluir esta movimentação? Esta ação não pode ser desfeita.')) {
+    const txToEdit = tx || transactions.find(t => t.id === targetId);
+    if (txToEdit && !canModifyTransaction(txToEdit)) {
+      showToast('Apenas administradores podem excluir após 24 horas.', 'info');
       return;
     }
 
+    if (!confirm('Tem certeza que deseja excluir esta movimentação?')) return;
     try {
-      await financialService.delete(editingTransactionId);
+      await financialService.delete(targetId);
       showToast('Movimentação excluída com sucesso!');
       loadTransactions();
       setIsModalOpen(false);
       resetForms();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      showToast('Erro ao excluir movimentação.', 'info');
+      showToast('Erro ao excluir transação', 'info');
     }
   };
 
@@ -859,7 +902,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     setExpenseForm({ title: '', amount: '', date: '', category: 'Manutenção', recipientId: '', description: '', isCustomCategory: false, isCustomRecipient: false, customCategory: '', customRecipient: '' });
     setIncomeFile(null);
     setExpenseFile(null);
-    setCurrentComprovanteUrl(null);
+    setComprovantesHistory([]);
 
     // Default to the 1st of the next month
     const nextMonth = new Date();
@@ -982,7 +1025,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
             <div className="mt-4">
               <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
-                Comprovante / Recibo (Opcional)
+                Novo Comprovante / Recibo (Opcional)
               </label>
               <input 
                 type="file" 
@@ -990,14 +1033,43 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                 onChange={e => setIncomeFile(e.target.files?.[0] || null)}
                 className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 border border-slate-200 rounded-lg p-2" 
               />
-              {currentComprovanteUrl && !incomeFile && (
-                <div className="mt-2 text-xs">
-                  <a href={currentComprovanteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                    <ArrowUpRight size={14} /> Ver comprovante atual
-                  </a>
-                </div>
-              )}
             </div>
+
+            {editingTransactionId && (
+              <div className="mt-4">
+                <label className="block text-sm font-bold text-slate-700 mb-2">Histórico de Comprovantes</label>
+                {isLoadingComprovantes ? (
+                  <p className="text-xs text-slate-500">Carregando...</p>
+                ) : comprovantesHistory.length > 0 ? (
+                  <ul className="space-y-2">
+                    {comprovantesHistory.map(comp => (
+                      <li key={comp.id} className="flex flex-col text-xs bg-slate-50 p-2 rounded border border-slate-100">
+                        <div className="flex justify-between font-medium">
+                          <span>Anexado por {comp.user_name}</span>
+                          <span>{new Date(comp.created_at).toLocaleString('pt-BR')}</span>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={async () => {
+                             try {
+                               const url = await financialService.getSignedUrl(comp.file_path);
+                               window.open(url, '_blank');
+                             } catch (e) {
+                               showToast('Erro ao carregar comprovante', 'info');
+                             }
+                          }}
+                          className="text-blue-600 hover:underline mt-1 text-left flex items-center gap-1 w-fit"
+                        >
+                           <ArrowUpRight size={14} /> Ver Arquivo
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-slate-500">Nenhum comprovante anexado a esta movimentação.</p>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700" disabled={isUploading}>
@@ -1083,7 +1155,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
             <div className="mt-4">
               <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
-                Comprovante / Recibo (Opcional)
+                Novo Comprovante / Recibo (Opcional)
               </label>
               <input 
                 type="file" 
@@ -1091,14 +1163,43 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                 onChange={e => setExpenseFile(e.target.files?.[0] || null)}
                 className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 border border-slate-200 rounded-lg p-2" 
               />
-              {currentComprovanteUrl && !expenseFile && (
-                <div className="mt-2 text-xs">
-                  <a href={currentComprovanteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                    <ArrowUpRight size={14} /> Ver comprovante atual
-                  </a>
-                </div>
-              )}
             </div>
+
+            {editingTransactionId && (
+              <div className="mt-4">
+                <label className="block text-sm font-bold text-slate-700 mb-2">Histórico de Comprovantes</label>
+                {isLoadingComprovantes ? (
+                  <p className="text-xs text-slate-500">Carregando...</p>
+                ) : comprovantesHistory.length > 0 ? (
+                  <ul className="space-y-2">
+                    {comprovantesHistory.map(comp => (
+                      <li key={comp.id} className="flex flex-col text-xs bg-slate-50 p-2 rounded border border-slate-100">
+                        <div className="flex justify-between font-medium">
+                          <span>Anexado por {comp.user_name}</span>
+                          <span>{new Date(comp.created_at).toLocaleString('pt-BR')}</span>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={async () => {
+                             try {
+                               const url = await financialService.getSignedUrl(comp.file_path);
+                               window.open(url, '_blank');
+                             } catch (e) {
+                               showToast('Erro ao carregar comprovante', 'info');
+                             }
+                          }}
+                          className="text-blue-600 hover:underline mt-1 text-left flex items-center gap-1 w-fit"
+                        >
+                           <ArrowUpRight size={14} /> Ver Arquivo
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-slate-500">Nenhum comprovante anexado a esta movimentação.</p>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" className="flex-1 bg-red-600 hover:bg-red-700" disabled={isUploading}>
@@ -1379,6 +1480,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         transactions={completedTransactions}
         onEdit={handleEditTransaction}
         onDelete={handleDeleteTransaction}
+        onViewComprovantes={handleViewComprovantes}
         onExport={handleExportPDF}
         loading={isLoadingTransactions}
       />
