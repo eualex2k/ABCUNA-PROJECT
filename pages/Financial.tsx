@@ -1403,7 +1403,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         monthlyIncome={totalIncome}
         monthlyExpense={totalExpense}
         overdueCount={overdueCount}
-        loading={transactions.length === 0}
+        loading={isLoadingTransactions}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
