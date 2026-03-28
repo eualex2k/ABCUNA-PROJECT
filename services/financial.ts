@@ -266,6 +266,33 @@ export const financialService = {
         } catch (error) {
            console.error('Failed to delete comprovante from storage', error);
         }
+    },
+
+    async updateCategory(oldName: string, newName: string = 'Geral'): Promise<void> {
+        const { error } = await supabase
+            .from('financial_transactions')
+            .update({ category: newName })
+            .eq('category', oldName);
+        
+        if (error) throw error;
+    },
+
+    async updatePayer(oldName: string, newName?: string): Promise<void> {
+        const { error } = await supabase
+            .from('financial_transactions')
+            .update({ custom_payer: newName === '' ? null : newName })
+            .eq('custom_payer', oldName);
+        
+        if (error) throw error;
+    },
+
+    async updateRecipient(oldName: string, newName?: string): Promise<void> {
+        const { error } = await supabase
+            .from('financial_transactions')
+            .update({ custom_recipient: newName === '' ? null : newName })
+            .eq('custom_recipient', oldName);
+        
+        if (error) throw error;
     }
 };
 

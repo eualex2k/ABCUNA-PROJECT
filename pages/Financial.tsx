@@ -21,11 +21,12 @@ import { FeesManager } from '../components/financial/FeesManager';
 const SearchableSelect: React.FC<{
   label: string;
   value: string;
-  options: { value: string; label: string; icon?: React.ReactNode }[];
+  options: { value: string; label: string; isFixed?: boolean }[];
   onChange: (val: string) => void;
+  onDelete?: (val: string) => void;
   placeholder?: string;
   allowCustom?: boolean;
-}> = ({ label, value, options, onChange, placeholder = "Pesquisar...", allowCustom }) => {
+}> = ({ label, value, options, onChange, onDelete, placeholder = "Pesquisar...", allowCustom }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -48,14 +49,25 @@ const SearchableSelect: React.FC<{
 
   return (
     <div className="relative" ref={containerRef}>
-      <label className="block text-sm font-bold text-slate-700 mb-1.5">{label}</label>
+      <div className="flex justify-between items-center mb-1.5 px-0.5">
+        <label className="text-sm font-bold text-slate-700">{label}</label>
+        {allowCustom && (
+          <button 
+            type="button"
+            onClick={() => { setIsOpen(true); setSearchTerm(""); }}
+            className="text-[10px] font-black uppercase tracking-widest text-brand-600 hover:text-brand-700 flex items-center gap-1 transition-colors"
+          >
+            <Plus size={10} /> Novo
+          </button>
+        )}
+      </div>
       
       <div 
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full h-12 px-4 bg-white border ${isOpen ? 'border-brand-500' : 'border-slate-300'} rounded-lg flex items-center justify-between cursor-pointer transition-all shadow-sm`}
       >
         <div className="flex items-center gap-2 truncate">
-          <span className={`text-base ${selectedOption ? 'text-slate-900' : 'text-slate-400'}`}>
+          <span className={`text-base font-medium ${selectedOption ? 'text-slate-900' : 'text-slate-400'}`}>
             {selectedOption?.label || placeholder}
           </span>
         </div>
@@ -63,43 +75,56 @@ const SearchableSelect: React.FC<{
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden">
+        <div className="absolute z-[100] w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
           <div className="p-2 bg-slate-50 border-b border-slate-100">
             <input
               type="text"
               className="w-full px-3 py-2 bg-white border border-slate-200 rounded text-sm outline-none focus:border-brand-500"
-              placeholder="Digite para filtrar..."
+              placeholder="Digite para filtrar ou adicionar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               autoFocus
             />
           </div>
-          <div className="max-h-60 overflow-y-auto p-1">
+          <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
             {filteredOptions.length > 0 ? (
               filteredOptions.map(opt => (
                 <div
                   key={opt.value}
+                  className={`flex items-center justify-between gap-3 px-3 py-2 rounded cursor-pointer group ${value === opt.value ? 'bg-brand-50 text-brand-700 font-bold' : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-medium'}`}
                   onClick={() => { onChange(opt.value); setIsOpen(false); setSearchTerm(""); }}
-                  className={`flex items-center gap-3 px-3 py-2 rounded cursor-pointer ${value === opt.value ? 'bg-brand-50 text-brand-700 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}
                 >
-                  <span className="text-sm">{opt.label}</span>
-                  {value === opt.value && <CheckCircle2 size={14} className="ml-auto" />}
+                  <span className="text-sm truncate">{opt.label}</span>
+                  <div className="flex items-center gap-2">
+                    {onDelete && !opt.isFixed && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onDelete(opt.value); }}
+                        className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 rounded transition-all"
+                        title="Remover"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
+                    {value === opt.value && <CheckCircle2 size={14} className="text-brand-500" />}
+                  </div>
                 </div>
               ))
             ) : (
-              <div className="px-4 py-6 text-center text-slate-400 text-xs">
+              <div className="px-4 py-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest bg-slate-50/50">
                 Nenhum resultado
-                {allowCustom && searchTerm && (
-                  <div className="mt-2">
-                    <button 
-                      type="button"
-                      onClick={() => { onChange(searchTerm); setIsOpen(false); setSearchTerm(""); }}
-                      className="text-brand-600 font-bold hover:underline"
-                    >
-                      Usar "{searchTerm}"
-                    </button>
-                  </div>
-                )}
+              </div>
+            )}
+            
+            {allowCustom && searchTerm && !filteredOptions.some(o => o.label.toLowerCase() === searchTerm.toLowerCase()) && (
+              <div 
+                onClick={() => { onChange(searchTerm); setIsOpen(false); setSearchTerm(""); }}
+                className="mt-1 border-t border-slate-100 p-2 hover:bg-brand-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center gap-2 text-brand-600 px-2 py-1">
+                  <Plus size={14} />
+                  <span className="text-sm font-black uppercase tracking-wider">Adicionar "{searchTerm}"</span>
+                </div>
               </div>
             )}
           </div>
@@ -365,37 +390,6 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     return { amount: '30.00', quantity: 1, startDate: dateStr, associateId: 'ALL' };
   });
 
-  // Derived dynamic lists for categories and custom entities
-  const dynamicIncomeCategories = React.useMemo(() => {
-    const defaults = ['Doação', 'Patrocínio', 'Eventos', 'Venda de Ativos', 'Mensalidades', 'Outros'];
-    const fromTransactions = transactions
-      .filter(t => t.type === 'INCOME' && t.category)
-      .map(t => t.category);
-    return Array.from(new Set([...defaults, ...fromTransactions])).filter(Boolean).sort();
-  }, [transactions]);
-
-  const dynamicExpenseCategories = React.useMemo(() => {
-    const defaults = ['Manutenção', 'Equipamento', 'Aluguel', 'Energia', 'Internet', 'Água', 'Reembolso', 'Outros'];
-    const fromTransactions = transactions
-      .filter(t => t.type === 'EXPENSE' && t.category)
-      .map(t => t.category);
-    return Array.from(new Set([...defaults, ...fromTransactions])).filter(Boolean).sort();
-  }, [transactions]);
-
-  const dynamicPayers = React.useMemo(() => {
-    const fromTransactions = transactions
-      .filter(t => t.type === 'INCOME' && t.custom_payer)
-      .map(t => t.custom_payer!) || [];
-    return Array.from(new Set(fromTransactions)).filter(Boolean).sort();
-  }, [transactions]);
-
-  const dynamicRecipients = React.useMemo(() => {
-    const fromTransactions = transactions
-      .filter(t => t.type === 'EXPENSE' && t.custom_recipient)
-      .map(t => t.custom_recipient!) || [];
-    return Array.from(new Set(fromTransactions)).filter(Boolean).sort();
-  }, [transactions]);
-
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   
   const [incomeFile, setIncomeFile] = useState<File | null>(null);
@@ -403,6 +397,86 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [comprovantesHistory, setComprovantesHistory] = useState<FinancialComprovante[]>([]);
   const [isLoadingComprovantes, setIsLoadingComprovantes] = useState(false);
+
+  const fixedIncomeCategories = ['Doação', 'Patrocínio', 'Eventos', 'Venda de Ativos', 'Mensalidades', 'Outros'];
+  const fixedExpenseCategories = ['Manutenção', 'Equipamento', 'Aluguel', 'Energia', 'Internet', 'Água', 'Reembolso', 'Outros'];
+
+  // Derived dynamic lists for categories and custom entities
+  const dynamicIncomeCategories = React.useMemo(() => {
+    const fromTransactions = transactions
+      .filter(t => t.type === 'INCOME' && t.category)
+      .map(t => t.category);
+    return Array.from(new Set([...fixedIncomeCategories, ...fromTransactions]))
+        .filter(Boolean)
+        .sort()
+        .map(cat => ({ value: cat, label: cat, isFixed: fixedIncomeCategories.includes(cat) }));
+  }, [transactions]);
+
+  const dynamicExpenseCategories = React.useMemo(() => {
+    const fromTransactions = transactions
+      .filter(t => t.type === 'EXPENSE' && t.category)
+      .map(t => t.category);
+    return Array.from(new Set([...fixedExpenseCategories, ...fromTransactions]))
+        .filter(Boolean)
+        .sort()
+        .map(cat => ({ value: cat, label: cat, isFixed: fixedExpenseCategories.includes(cat) }));
+  }, [transactions]);
+
+  const dynamicPayers = React.useMemo(() => {
+    const fromTransactions = transactions
+        .filter(t => t.type === 'INCOME' && t.custom_payer)
+        .map(t => t.custom_payer!) || [];
+    return Array.from(new Set(fromTransactions))
+        .filter(Boolean)
+        .sort()
+        .map(p => ({ value: p, label: p, isFixed: false }));
+  }, [transactions]);
+
+  const dynamicRecipients = React.useMemo(() => {
+    const fromTransactions = transactions
+        .filter(t => t.type === 'EXPENSE' && t.custom_recipient)
+        .map(t => t.custom_recipient!) || [];
+    return Array.from(new Set(fromTransactions))
+        .filter(Boolean)
+        .sort()
+        .map(r => ({ value: r, label: r, isFixed: false }));
+  }, [transactions]);
+
+  const handleDeleteCategoryFromList = async (category: string) => {
+    if (!confirm(`Tem certeza que deseja remover a categoria "${category}"? Todos os lançamentos desta categoria serão alterados para "Geral".`)) return;
+    try {
+      await financialService.updateCategory(category, 'Geral');
+      showToast(`Categoria "${category}" atualizada para "Geral".`);
+      loadTransactions();
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao remover categoria', 'info');
+    }
+  };
+
+  const handleDeletePayerFromList = async (payer: string) => {
+    if (!confirm(`Tem certeza que deseja remover o pagador "${payer}" da lista? Isso limpará o nome deste pagador de todos os lançamentos customizados.`)) return;
+    try {
+      await financialService.updatePayer(payer, '');
+      showToast(`Pagador "${payer}" removido.`);
+      loadTransactions();
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao remover pagador', 'info');
+    }
+  };
+
+  const handleDeleteRecipientFromList = async (recipient: string) => {
+    if (!confirm(`Tem certeza que deseja remover o beneficiário "${recipient}" da lista? Isso limpará o nome deste beneficiário de todos os lançamentos customizados.`)) return;
+    try {
+      await financialService.updateRecipient(recipient, '');
+      showToast(`Beneficiário "${recipient}" removido.`);
+      loadTransactions();
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao remover beneficiário', 'info');
+    }
+  };
 
   // Payment Form State
   const [paymentForm, setPaymentForm] = useState({
@@ -1326,11 +1400,12 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             <SearchableSelect
               label="Categoria"
               value={incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category}
-              options={dynamicIncomeCategories.map(cat => ({ value: cat, label: cat }))}
+              options={dynamicIncomeCategories}
               onChange={(val) => {
-                const isExisting = dynamicIncomeCategories.includes(val);
+                const isExisting = fixedIncomeCategories.includes(val) || dynamicIncomeCategories.some(c => c.value === val);
                 setIncomeForm({ ...incomeForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
               }}
+              onDelete={handleDeleteCategoryFromList}
               allowCustom
               placeholder="Selecione ou digite..."
             />
@@ -1339,8 +1414,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               label="Pagador"
               value={incomeForm.isCustomPayer ? incomeForm.customPayer : incomeForm.payerId}
               options={[
-                ...realAssociates.map(a => ({ value: a.id, label: a.name })),
-                ...dynamicPayers.map(p => ({ value: p, label: p }))
+                ...realAssociates.map(a => ({ value: a.id, label: a.name, isFixed: true })),
+                ...dynamicPayers
               ]}
               onChange={(val) => {
                 const assoc = realAssociates.find(a => a.id === val);
@@ -1350,6 +1425,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                   setIncomeForm({ ...incomeForm, payerId: '', isCustomPayer: true, customPayer: val });
                 }
               }}
+              onDelete={handleDeletePayerFromList}
               allowCustom
               placeholder="Associado ou Externo..."
             />
@@ -1399,11 +1475,12 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             <SearchableSelect
               label="Categoria"
               value={expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category}
-              options={dynamicExpenseCategories.map(cat => ({ value: cat, label: cat }))}
+              options={dynamicExpenseCategories}
               onChange={(val) => {
-                const isExisting = dynamicExpenseCategories.includes(val);
+                const isExisting = fixedExpenseCategories.includes(val) || dynamicExpenseCategories.some(c => c.value === val);
                 setExpenseForm({ ...expenseForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
               }}
+              onDelete={handleDeleteCategoryFromList}
               allowCustom
               placeholder="Selecione ou digite..."
             />
@@ -1412,8 +1489,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               label="Beneficiário"
               value={expenseForm.isCustomRecipient ? expenseForm.customRecipient : expenseForm.recipientId}
               options={[
-                ...realAssociates.map(a => ({ value: a.id, label: a.name })),
-                ...dynamicRecipients.map(r => ({ value: r, label: r }))
+                ...realAssociates.map(a => ({ value: a.id, label: a.name, isFixed: true })),
+                ...dynamicRecipients
               ]}
               onChange={(val) => {
                 const assoc = realAssociates.find(a => a.id === val);
@@ -1423,6 +1500,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                   setExpenseForm({ ...expenseForm, recipientId: '', isCustomRecipient: true, customRecipient: val });
                 }
               }}
+              onDelete={handleDeleteRecipientFromList}
               allowCustom
               placeholder="Associado ou Externo..."
             />
