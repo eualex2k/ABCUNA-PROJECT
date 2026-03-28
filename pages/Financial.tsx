@@ -1190,7 +1190,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         title: tx.description,
         amount: tx.amount.toString(),
         date: tx.date || '',
-        category: isCustomIncomeCategory ? '' : (tx.category || 'Doação'),
+        category: isCustomIncomeCategory ? '' : (tx.category || ''),
         payerId: tx.payer_id || '',
         description: tx.notes || '',
         isCustomCategory: isCustomIncomeCategory,
@@ -1203,7 +1203,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         title: tx.description,
         amount: tx.amount.toString(),
         date: tx.date || '',
-        category: isCustomExpenseCategory ? '' : (tx.category || 'Manutenção'),
+        category: isCustomExpenseCategory ? '' : (tx.category || ''),
         recipientId: tx.recipient_id || '',
         description: tx.notes || '',
         isCustomCategory: isCustomExpenseCategory,
@@ -1393,12 +1393,12 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
             <Input label="Título da Entrada" placeholder="Ex: Doação Municipal" value={incomeForm.title} onChange={e => setIncomeForm({ ...incomeForm, title: e.target.value })} required />
             
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Input label="Valor (R$)" type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
               <Input label="Data" type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} required />
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <SearchableSelect
                 label="Categoria"
                 value={incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category}
@@ -1471,12 +1471,12 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
             <Input label="Título da Saída" placeholder="Ex: Compra de Material" value={expenseForm.title} onChange={e => setExpenseForm({ ...expenseForm, title: e.target.value })} required />
             
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Input label="Valor (R$)" type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} required />
               <Input label="Data" type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <SearchableSelect
                 label="Categoria"
                 value={expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category}
