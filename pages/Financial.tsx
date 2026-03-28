@@ -161,6 +161,37 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     return { amount: '30.00', quantity: 1, startDate: dateStr, associateId: 'ALL' };
   });
 
+  // Derived dynamic lists for categories and custom entities
+  const dynamicIncomeCategories = React.useMemo(() => {
+    const defaults = ['Doação', 'Patrocínio', 'Eventos', 'Venda de Ativos', 'Mensalidades', 'Outros'];
+    const fromTransactions = transactions
+      .filter(t => t.type === 'INCOME' && t.category)
+      .map(t => t.category);
+    return Array.from(new Set([...defaults, ...fromTransactions])).filter(Boolean).sort();
+  }, [transactions]);
+
+  const dynamicExpenseCategories = React.useMemo(() => {
+    const defaults = ['Manutenção', 'Equipamento', 'Aluguel', 'Energia', 'Internet', 'Água', 'Reembolso', 'Outros'];
+    const fromTransactions = transactions
+      .filter(t => t.type === 'EXPENSE' && t.category)
+      .map(t => t.category);
+    return Array.from(new Set([...defaults, ...fromTransactions])).filter(Boolean).sort();
+  }, [transactions]);
+
+  const dynamicPayers = React.useMemo(() => {
+    const fromTransactions = transactions
+      .filter(t => t.type === 'INCOME' && t.custom_payer)
+      .map(t => t.custom_payer!) || [];
+    return Array.from(new Set(fromTransactions)).filter(Boolean).sort();
+  }, [transactions]);
+
+  const dynamicRecipients = React.useMemo(() => {
+    const fromTransactions = transactions
+      .filter(t => t.type === 'EXPENSE' && t.custom_recipient)
+      .map(t => t.custom_recipient!) || [];
+    return Array.from(new Set(fromTransactions)).filter(Boolean).sort();
+  }, [transactions]);
+
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   
   const [incomeFile, setIncomeFile] = useState<File | null>(null);
@@ -773,6 +804,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         status: 'COMPLETED',
         date: incomeForm.date,
         payer_id: incomeForm.payerId || undefined,
+        custom_payer: incomeForm.isCustomPayer ? incomeForm.customPayer : undefined,
         notes: incomeForm.description
       };
 
@@ -830,6 +862,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         status: 'COMPLETED',
         date: expenseForm.date,
         recipient_id: expenseForm.recipientId || undefined,
+        custom_recipient: expenseForm.isCustomRecipient ? expenseForm.customRecipient : undefined,
         notes: expenseForm.description
       };
 
@@ -1083,50 +1116,70 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               <Input label="Valor (R$)" type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
               <Input label="Data" type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} required />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
-                  Categoria
-                  <button type="button" onClick={() => setIncomeForm({ ...incomeForm, isCustomCategory: !incomeForm.isCustomCategory, customCategory: '' })} className="text-xs text-brand-600 hover:underline flex items-center gap-1">
-                    {incomeForm.isCustomCategory ? <><RotateCcw size={10} /> Selecionar</> : <><Plus size={10} /> Novo</>}
+                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
+                  <span>Categoria</span>
+                  <button type="button" onClick={() => setIncomeForm({ ...incomeForm, isCustomCategory: !incomeForm.isCustomCategory, customCategory: '' })} className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1">
+                    {incomeForm.isCustomCategory ? <><RotateCcw size={10} /> Lista</> : <><Plus size={10} /> Novo</>}
                   </button>
                 </label>
                 {incomeForm.isCustomCategory ? (
                   <Input
-                    placeholder="Digite a categoria..."
+                    placeholder="Digite a nova categoria..."
                     value={incomeForm.customCategory}
                     onChange={e => setIncomeForm({ ...incomeForm, customCategory: e.target.value })}
-                    required // Only required if custom is active
+                    required
                   />
                 ) : (
-                  <select className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base focus:border-brand-500" value={incomeForm.category} onChange={e => setIncomeForm({ ...incomeForm, category: e.target.value })}>
-                    <option value="Doação">Doação</option>
-                    <option value="Patrocínio">Patrocínio</option>
-                    <option value="Eventos">Eventos</option>
-                    <option value="Venda de Ativos">Venda de Ativos</option>
-                    <option value="Mensalidades">Mensalidades</option>
-                    <option value="Outros">Outros</option>
-                  </select>
+                  <div className="relative group">
+                    <select 
+                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer pr-10" 
+                      value={incomeForm.category} 
+                      onChange={e => setIncomeForm({ ...incomeForm, category: e.target.value })}
+                    >
+                      {dynamicIncomeCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-brand-500 transition-colors">
+                      <Search size={16} />
+                    </div>
+                  </div>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
-                  Pagador
-                  <button type="button" onClick={() => setIncomeForm({ ...incomeForm, isCustomPayer: !incomeForm.isCustomPayer, customPayer: '' })} className="text-xs text-brand-600 hover:underline flex items-center gap-1">
-                    {incomeForm.isCustomPayer ? <><RotateCcw size={10} /> Selecionar</> : <><Plus size={10} /> Novo</>}
+                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
+                  <span>Pagador</span>
+                  <button type="button" onClick={() => setIncomeForm({ ...incomeForm, isCustomPayer: !incomeForm.isCustomPayer, customPayer: '' })} className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1">
+                    {incomeForm.isCustomPayer ? <><RotateCcw size={10} /> Lista</> : <><Plus size={10} /> Novo</>}
                   </button>
                 </label>
                 {incomeForm.isCustomPayer ? (
-                  <Input
-                    placeholder="Nome do Pagador..."
-                    value={incomeForm.customPayer}
-                    onChange={e => setIncomeForm({ ...incomeForm, customPayer: e.target.value })}
-                  />
+                  <div className="relative">
+                    <Input
+                      placeholder="Nome do Pagador..."
+                      value={incomeForm.customPayer}
+                      onChange={e => setIncomeForm({ ...incomeForm, customPayer: e.target.value })}
+                      list="recent-payers"
+                      required
+                    />
+                    <datalist id="recent-payers">
+                      {dynamicPayers.map(p => <option key={p} value={p} />)}
+                    </datalist>
+                  </div>
                 ) : (
-                  <select className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base focus:border-brand-500" value={incomeForm.payerId} onChange={e => setIncomeForm({ ...incomeForm, payerId: e.target.value })}>
-                    <option value="">Externo / Anônimo</option>
-                    {realAssociates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                  </select>
+                  <div className="relative group">
+                    <select 
+                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer pr-10" 
+                      value={incomeForm.payerId} 
+                      onChange={e => setIncomeForm({ ...incomeForm, payerId: e.target.value })}
+                    >
+                      <option value="">Externo / Anônimo</option>
+                      {realAssociates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-brand-500 transition-colors">
+                      <Users size={16} />
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -1213,50 +1266,70 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               <Input label="Valor (R$)" type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} required />
               <Input label="Data" type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
-                  Categoria
-                  <button type="button" onClick={() => setExpenseForm({ ...expenseForm, isCustomCategory: !expenseForm.isCustomCategory, customCategory: '' })} className="text-xs text-brand-600 hover:underline flex items-center gap-1">
-                    {expenseForm.isCustomCategory ? <><RotateCcw size={10} /> Selecionar</> : <><Plus size={10} /> Novo</>}
+                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
+                  <span>Categoria</span>
+                  <button type="button" onClick={() => setExpenseForm({ ...expenseForm, isCustomCategory: !expenseForm.isCustomCategory, customCategory: '' })} className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1">
+                    {expenseForm.isCustomCategory ? <><RotateCcw size={10} /> Lista</> : <><Plus size={10} /> Novo</>}
                   </button>
                 </label>
                 {expenseForm.isCustomCategory ? (
                   <Input
-                    placeholder="Digite a categoria..."
+                    placeholder="Digite a nova categoria..."
                     value={expenseForm.customCategory}
                     onChange={e => setExpenseForm({ ...expenseForm, customCategory: e.target.value })}
                     required
                   />
                 ) : (
-                  <select className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base focus:border-brand-500" value={expenseForm.category} onChange={e => setExpenseForm({ ...expenseForm, category: e.target.value })}>
-                    <option value="Manutenção">Manutenção</option>
-                    <option value="Equipamentos">Equipamentos</option>
-                    <option value="Serviços">Serviços</option>
-                    <option value="Alimentação">Alimentação</option>
-                    <option value="Combustível">Combustível</option>
-                    <option value="Pagamento a Associado">Pagamento a Associado</option>
-                  </select>
+                  <div className="relative group">
+                    <select 
+                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer pr-10" 
+                      value={expenseForm.category} 
+                      onChange={e => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                    >
+                      {dynamicExpenseCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-brand-500 transition-colors">
+                      <Search size={16} />
+                    </div>
+                  </div>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
-                  Beneficiário
-                  <button type="button" onClick={() => setExpenseForm({ ...expenseForm, isCustomRecipient: !expenseForm.isCustomRecipient, customRecipient: '' })} className="text-xs text-brand-600 hover:underline flex items-center gap-1">
-                    {expenseForm.isCustomRecipient ? <><RotateCcw size={10} /> Selecionar</> : <><Plus size={10} /> Novo</>}
+                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
+                  <span>Beneficiário</span>
+                  <button type="button" onClick={() => setExpenseForm({ ...expenseForm, isCustomRecipient: !expenseForm.isCustomRecipient, customRecipient: '' })} className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1">
+                    {expenseForm.isCustomRecipient ? <><RotateCcw size={10} /> Lista</> : <><Plus size={10} /> Novo</>}
                   </button>
                 </label>
                 {expenseForm.isCustomRecipient ? (
-                  <Input
-                    placeholder="Nome do Beneficiário..."
-                    value={expenseForm.customRecipient}
-                    onChange={e => setExpenseForm({ ...expenseForm, customRecipient: e.target.value })}
-                  />
+                  <div className="relative">
+                    <Input
+                      placeholder="Nome do Beneficiário..."
+                      value={expenseForm.customRecipient}
+                      onChange={e => setExpenseForm({ ...expenseForm, customRecipient: e.target.value })}
+                      list="recent-recipients"
+                      required
+                    />
+                    <datalist id="recent-recipients">
+                      {dynamicRecipients.map(r => <option key={r} value={r} />)}
+                    </datalist>
+                  </div>
                 ) : (
-                  <select className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base focus:border-brand-500" value={expenseForm.recipientId} onChange={e => setExpenseForm({ ...expenseForm, recipientId: e.target.value })}>
-                    <option value="">Fornecedor Externo</option>
-                    {realAssociates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                  </select>
+                  <div className="relative group">
+                    <select 
+                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer pr-10" 
+                      value={expenseForm.recipientId} 
+                      onChange={e => setExpenseForm({ ...expenseForm, recipientId: e.target.value })}
+                    >
+                      <option value="">Externo / Outros</option>
+                      {realAssociates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-brand-500 transition-colors">
+                      <Users size={16} />
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

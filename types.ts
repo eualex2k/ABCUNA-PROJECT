@@ -177,6 +177,8 @@ export interface Transaction {
   category: string;
   payer_id?: string;
   recipient_id?: string;
+  custom_payer?: string;
+  custom_recipient?: string;
   notes?: string;
   registration_id?: string;
   has_comprovantes?: boolean;
