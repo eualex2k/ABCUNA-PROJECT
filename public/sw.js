@@ -19,22 +19,28 @@ self.addEventListener('push', function (event) {
 
     const title = data.title || 'ABCUNA';
     const options = {
-        body: data.message || data.body || 'Nova notificação recebida',
-        icon: '/logo.svg',
+        body: data.body || data.message || 'Nova notificação recebida',
+        icon: data.icon || '/logo.svg',
         badge: '/logo.svg',
         data: {
-            url: data.link || data.url || '/'
+            url: data.url || data.link || '/'
         },
         vibrate: [100, 50, 100],
-        tag: 'abcuna-notification',
+        tag: data.tag || 'abcuna-notification',
         renotify: true,
-        requireInteraction: true // Faz a notificação ficar até o usuário fechar
+        requireInteraction: true
     };
+
+    console.log('[Service Worker] Showing notification with options:', options);
 
     event.waitUntil(
         self.registration.showNotification(title, options)
             .then(() => console.log('[Service Worker] Notification shown successfully'))
-            .catch(err => console.error('[Service Worker] ERROR showing notification:', err))
+            .catch(err => {
+                console.error('[Service Worker] ERROR showing notification:', err);
+                // Tentativa de fallback sem algumas opções se falhar
+                return self.registration.showNotification(title, { body: options.body });
+            })
     );
 });
 

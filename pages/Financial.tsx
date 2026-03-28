@@ -18,6 +18,112 @@ import { FeesManager } from '../components/financial/FeesManager';
 
 
 
+// Componente de Seleção com Busca (Interno ao modulo Financeiro)
+const SearchableSelect: React.FC<{
+  label: string;
+  value: string;
+  options: { value: string; label: string; icon?: React.ReactNode }[];
+  onChange: (val: string) => void;
+  placeholder?: string;
+  onAddNew?: () => void;
+  allowCustom?: boolean;
+}> = ({ label, value, options, onChange, placeholder = "Pesquisar...", onAddNew, allowCustom }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter(opt => 
+    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const selectedOption = options.find(opt => opt.value === value) || (value ? { value, label: value } : null);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
+        <span>{label}</span>
+        {onAddNew && (
+          <button 
+            type="button" 
+            onClick={onAddNew}
+            className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1"
+          >
+            <Plus size={10} /> Novo
+          </button>
+        )}
+      </label>
+      
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full h-12 px-4 bg-white border ${isOpen ? 'border-brand-500 ring-4 ring-brand-500/10' : 'border-slate-200'} rounded-xl flex items-center justify-between cursor-pointer transition-all`}
+      >
+        <div className="flex items-center gap-2 truncate">
+          {selectedOption?.icon || (selectedOption ? <div className="w-1.5 h-1.5 rounded-full bg-brand-500" /> : null)}
+          <span className={`text-sm font-bold ${selectedOption ? 'text-slate-900' : 'text-slate-400'}`}>
+            {selectedOption?.label || placeholder}
+          </span>
+        </div>
+        <Search size={16} className={`${isOpen ? 'text-brand-500' : 'text-slate-400'} transition-colors`} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="p-2 border-b border-slate-100">
+            <input
+              type="text"
+              className="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-sm focus:ring-0 outline-none"
+              placeholder="Digite para filtrar..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map(opt => (
+                <div
+                  key={opt.value}
+                  onClick={() => { onChange(opt.value); setIsOpen(false); setSearchTerm(""); }}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${value === opt.value ? 'bg-brand-50 text-brand-700' : 'hover:bg-slate-50 text-slate-700'}`}
+                >
+                  {opt.icon || <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />}
+                  <span className="text-sm font-bold">{opt.label}</span>
+                  {value === opt.value && <CheckCircle2 size={14} className="ml-auto" />}
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-8 text-center text-slate-400 text-xs italic">
+                Nenhum resultado encontrado
+                {allowCustom && searchTerm && (
+                  <div className="mt-2">
+                    <button 
+                      type="button"
+                      onClick={() => { onChange(searchTerm); setIsOpen(false); setSearchTerm(""); }}
+                      className="text-brand-600 font-bold hover:underline"
+                    >
+                      Usar "{searchTerm}" como novo
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 type ModalStep = 'MENU' | 'INCOME' | 'EXPENSE' | 'FEES' | 'DETAILS';
 
 // --- New Types for Fee Management ---
@@ -394,6 +500,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   };
 
   const handleSelectFeeToPay = (fee: FeeRecord) => {
+    console.log('[Financeiro] Selecionando mensalidade para receber:', fee);
     setSelectedFee(fee);
     setPaymentForm({
       date: (() => {
@@ -901,31 +1008,36 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const handleEditTransaction = (tx: Transaction) => {
     setEditingTransactionId(tx.id);
     setModalStep(tx.type === 'INCOME' ? 'INCOME' : 'EXPENSE');
+    
+    // Check if category/entity is custom or in defaults
+    const isCustomIncomeCategory = tx.type === 'INCOME' && tx.category && !['Doação', 'Patrocínio', 'Eventos', 'Venda de Ativos', 'Mensalidades', 'Outros'].includes(tx.category);
+    const isCustomExpenseCategory = tx.type === 'EXPENSE' && tx.category && !['Manutenção', 'Equipamento', 'Aluguel', 'Energia', 'Internet', 'Água', 'Reembolso', 'Outros'].includes(tx.category);
+
     if (tx.type === 'INCOME') {
       setIncomeForm({
         title: tx.description,
         amount: tx.amount.toString(),
         date: tx.date || '',
-        category: tx.category || 'Doação',
+        category: isCustomIncomeCategory ? '' : (tx.category || 'Doação'),
         payerId: tx.payer_id || '',
         description: tx.notes || '',
-        isCustomCategory: false,
-        isCustomPayer: false,
-        customCategory: '',
-        customPayer: ''
+        isCustomCategory: isCustomIncomeCategory,
+        isCustomPayer: !!tx.custom_payer,
+        customCategory: isCustomIncomeCategory ? (tx.category || '') : '',
+        customPayer: tx.custom_payer || ''
       });
     } else {
       setExpenseForm({
         title: tx.description,
         amount: tx.amount.toString(),
         date: tx.date || '',
-        category: tx.category || 'Manutenção',
+        category: isCustomExpenseCategory ? '' : (tx.category || 'Manutenção'),
         recipientId: tx.recipient_id || '',
         description: tx.notes || '',
-        isCustomCategory: false,
-        isCustomRecipient: false,
-        customCategory: '',
-        customRecipient: ''
+        isCustomCategory: isCustomExpenseCategory,
+        isCustomRecipient: !!tx.custom_recipient,
+        customCategory: isCustomExpenseCategory ? (tx.category || '') : '',
+        customRecipient: tx.custom_recipient || ''
       });
     }
     
@@ -1116,73 +1228,70 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               <Input label="Valor (R$)" type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
               <Input label="Data" type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} required />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
-                  <span>Categoria</span>
-                  <button type="button" onClick={() => setIncomeForm({ ...incomeForm, isCustomCategory: !incomeForm.isCustomCategory, customCategory: '' })} className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1">
-                    {incomeForm.isCustomCategory ? <><RotateCcw size={10} /> Lista</> : <><Plus size={10} /> Novo</>}
-                  </button>
-                </label>
-                {incomeForm.isCustomCategory ? (
-                  <Input
-                    placeholder="Digite a nova categoria..."
-                    value={incomeForm.customCategory}
-                    onChange={e => setIncomeForm({ ...incomeForm, customCategory: e.target.value })}
-                    required
-                  />
-                ) : (
-                  <div className="relative group">
-                    <select 
-                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer pr-10" 
-                      value={incomeForm.category} 
-                      onChange={e => setIncomeForm({ ...incomeForm, category: e.target.value })}
-                    >
-                      {dynamicIncomeCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-brand-500 transition-colors">
-                      <Search size={16} />
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
-                  <span>Pagador</span>
-                  <button type="button" onClick={() => setIncomeForm({ ...incomeForm, isCustomPayer: !incomeForm.isCustomPayer, customPayer: '' })} className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1">
-                    {incomeForm.isCustomPayer ? <><RotateCcw size={10} /> Lista</> : <><Plus size={10} /> Novo</>}
-                  </button>
-                </label>
-                {incomeForm.isCustomPayer ? (
-                  <div className="relative">
+                <SearchableSelect
+                  label="Categoria"
+                  value={incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category}
+                  options={dynamicIncomeCategories.map(cat => ({ 
+                    value: cat, 
+                    label: cat,
+                    icon: cat === 'Mensalidades' ? <CreditCard size={14} className="text-slate-400" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                  }))}
+                  onChange={(val) => {
+                    const isExisting = dynamicIncomeCategories.includes(val);
+                    setIncomeForm({ ...incomeForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
+                  }}
+                  onAddNew={() => setIncomeForm({ ...incomeForm, isCustomCategory: true, customCategory: '' })}
+                  allowCustom
+                  placeholder="Selecione ou digite..."
+                />
+                {incomeForm.isCustomCategory && (
+                  <div className="mt-2 animate-in slide-in-from-top-1">
                     <Input
-                      placeholder="Nome do Pagador..."
-                      value={incomeForm.customPayer}
-                      onChange={e => setIncomeForm({ ...incomeForm, customPayer: e.target.value })}
-                      list="recent-payers"
+                      placeholder="Confirmar nome da nova categoria..."
+                      value={incomeForm.customCategory}
+                      onChange={e => setIncomeForm({ ...incomeForm, customCategory: e.target.value })}
                       required
                     />
-                    <datalist id="recent-payers">
-                      {dynamicPayers.map(p => <option key={p} value={p} />)}
-                    </datalist>
-                  </div>
-                ) : (
-                  <div className="relative group">
-                    <select 
-                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer pr-10" 
-                      value={incomeForm.payerId} 
-                      onChange={e => setIncomeForm({ ...incomeForm, payerId: e.target.value })}
-                    >
-                      <option value="">Externo / Anônimo</option>
-                      {realAssociates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-brand-500 transition-colors">
-                      <Users size={16} />
-                    </div>
                   </div>
                 )}
               </div>
-            </div>
+              <div>
+                <SearchableSelect
+                  label="Pagador"
+                  value={incomeForm.isCustomPayer ? incomeForm.customPayer : incomeForm.payerId}
+                  options={[
+                    ...realAssociates.map(a => ({ value: a.id, label: a.name, icon: <Users size={14} /> })),
+                    ...dynamicPayers.map(p => ({ value: p, label: p, icon: <Shield size={14} /> }))
+                  ]}
+                  onChange={(val) => {
+                    const assoc = realAssociates.find(a => a.id === val);
+                    const isDynamic = dynamicPayers.includes(val);
+                    
+                    if (assoc) {
+                      setIncomeForm({ ...incomeForm, payerId: val, isCustomPayer: false, customPayer: '' });
+                    } else if (isDynamic) {
+                      setIncomeForm({ ...incomeForm, payerId: '', isCustomPayer: true, customPayer: val });
+                    } else {
+                      // Se não for nenhum, assume novo custom
+                      setIncomeForm({ ...incomeForm, payerId: '', isCustomPayer: true, customPayer: val });
+                    }
+                  }}
+                  onAddNew={() => setIncomeForm({ ...incomeForm, isCustomPayer: true, customPayer: '' })}
+                  allowCustom
+                  placeholder="Associado ou Externo..."
+                />
+                {incomeForm.isCustomPayer && !dynamicPayers.includes(incomeForm.customPayer) && (
+                  <div className="mt-2 animate-in slide-in-from-top-1">
+                    <Input
+                      placeholder="Confirmar nome do novo pagador..."
+                      value={incomeForm.customPayer}
+                      onChange={e => setIncomeForm({ ...incomeForm, customPayer: e.target.value })}
+                      required
+                    />
+                  </div>
+                )}
+              </div>
             <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} className="h-24" />
 
             <div className="mt-4">
@@ -1241,7 +1350,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={handleDeleteTransaction}
+                  onClick={() => handleDeleteTransaction()}
                   className="border-red-200 text-red-600 hover:bg-red-50"
                   title="Excluir Movimentação"
                 >
@@ -1268,67 +1377,63 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
-                  <span>Categoria</span>
-                  <button type="button" onClick={() => setExpenseForm({ ...expenseForm, isCustomCategory: !expenseForm.isCustomCategory, customCategory: '' })} className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1">
-                    {expenseForm.isCustomCategory ? <><RotateCcw size={10} /> Lista</> : <><Plus size={10} /> Novo</>}
-                  </button>
-                </label>
-                {expenseForm.isCustomCategory ? (
-                  <Input
-                    placeholder="Digite a nova categoria..."
-                    value={expenseForm.customCategory}
-                    onChange={e => setExpenseForm({ ...expenseForm, customCategory: e.target.value })}
-                    required
-                  />
-                ) : (
-                  <div className="relative group">
-                    <select 
-                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer pr-10" 
-                      value={expenseForm.category} 
-                      onChange={e => setExpenseForm({ ...expenseForm, category: e.target.value })}
-                    >
-                      {dynamicExpenseCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-brand-500 transition-colors">
-                      <Search size={16} />
-                    </div>
+                <SearchableSelect
+                  label="Categoria"
+                  value={expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category}
+                  options={dynamicExpenseCategories.map(cat => ({ 
+                    value: cat, 
+                    label: cat,
+                    icon: <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                  }))}
+                  onChange={(val) => {
+                    const isExisting = dynamicExpenseCategories.includes(val);
+                    setExpenseForm({ ...expenseForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
+                  }}
+                  onAddNew={() => setExpenseForm({ ...expenseForm, isCustomCategory: true, customCategory: '' })}
+                  allowCustom
+                  placeholder="Selecione ou digite..."
+                />
+                {expenseForm.isCustomCategory && (
+                  <div className="mt-2 animate-in slide-in-from-top-1">
+                    <Input
+                      placeholder="Confirmar nome da nova categoria..."
+                      value={expenseForm.customCategory}
+                      onChange={e => setExpenseForm({ ...expenseForm, customCategory: e.target.value })}
+                      required
+                    />
                   </div>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
-                  <span>Beneficiário</span>
-                  <button type="button" onClick={() => setExpenseForm({ ...expenseForm, isCustomRecipient: !expenseForm.isCustomRecipient, customRecipient: '' })} className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1">
-                    {expenseForm.isCustomRecipient ? <><RotateCcw size={10} /> Lista</> : <><Plus size={10} /> Novo</>}
-                  </button>
-                </label>
-                {expenseForm.isCustomRecipient ? (
-                  <div className="relative">
+                <SearchableSelect
+                  label="Recebedor / Beneficiário"
+                  value={expenseForm.isCustomRecipient ? expenseForm.customRecipient : expenseForm.recipientId}
+                  options={[
+                    ...realAssociates.map(a => ({ value: a.id, label: a.name, icon: <Users size={14} /> })),
+                    ...dynamicRecipients.map(r => ({ value: r, label: r, icon: <Shield size={14} /> }))
+                  ]}
+                  onChange={(val) => {
+                    const assoc = realAssociates.find(a => a.id === val);
+                    const isDynamic = dynamicRecipients.includes(val);
+                    
+                    if (assoc) {
+                      setExpenseForm({ ...expenseForm, recipientId: val, isCustomRecipient: false, customRecipient: '' });
+                    } else {
+                      setExpenseForm({ ...expenseForm, recipientId: '', isCustomRecipient: true, customRecipient: val });
+                    }
+                  }}
+                  onAddNew={() => setExpenseForm({ ...expenseForm, isCustomRecipient: true, customRecipient: '' })}
+                  allowCustom
+                  placeholder="Selecione ou digite..."
+                />
+                {expenseForm.isCustomRecipient && !dynamicRecipients.includes(expenseForm.customRecipient) && (
+                  <div className="mt-2 animate-in slide-in-from-top-1">
                     <Input
-                      placeholder="Nome do Beneficiário..."
+                      placeholder="Confirmar nome do novo recebedor..."
                       value={expenseForm.customRecipient}
                       onChange={e => setExpenseForm({ ...expenseForm, customRecipient: e.target.value })}
-                      list="recent-recipients"
                       required
                     />
-                    <datalist id="recent-recipients">
-                      {dynamicRecipients.map(r => <option key={r} value={r} />)}
-                    </datalist>
-                  </div>
-                ) : (
-                  <div className="relative group">
-                    <select 
-                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer pr-10" 
-                      value={expenseForm.recipientId} 
-                      onChange={e => setExpenseForm({ ...expenseForm, recipientId: e.target.value })}
-                    >
-                      <option value="">Externo / Outros</option>
-                      {realAssociates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-brand-500 transition-colors">
-                      <Users size={16} />
-                    </div>
                   </div>
                 )}
               </div>
@@ -1391,7 +1496,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={handleDeleteTransaction}
+                  onClick={() => handleDeleteTransaction()}
                   className="border-red-200 text-red-600 hover:bg-red-50"
                   title="Excluir Movimentação"
                 >
