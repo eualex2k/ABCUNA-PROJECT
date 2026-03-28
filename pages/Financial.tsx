@@ -18,16 +18,14 @@ import { FeesManager } from '../components/financial/FeesManager';
 
 
 
-// Componente de Seleção com Busca (Interno ao modulo Financeiro)
 const SearchableSelect: React.FC<{
   label: string;
   value: string;
   options: { value: string; label: string; icon?: React.ReactNode }[];
   onChange: (val: string) => void;
   placeholder?: string;
-  onAddNew?: () => void;
   allowCustom?: boolean;
-}> = ({ label, value, options, onChange, placeholder = "Pesquisar...", onAddNew, allowCustom }) => {
+}> = ({ label, value, options, onChange, placeholder = "Pesquisar...", allowCustom }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -50,60 +48,47 @@ const SearchableSelect: React.FC<{
 
   return (
     <div className="relative" ref={containerRef}>
-      <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5 flex justify-between items-center">
-        <span>{label}</span>
-        {onAddNew && (
-          <button 
-            type="button" 
-            onClick={onAddNew}
-            className="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full hover:bg-brand-100 transition-colors flex items-center gap-1"
-          >
-            <Plus size={10} /> Novo
-          </button>
-        )}
-      </label>
+      <label className="block text-sm font-bold text-slate-700 mb-1.5">{label}</label>
       
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full h-12 px-4 bg-white border ${isOpen ? 'border-brand-500 ring-4 ring-brand-500/10' : 'border-slate-200'} rounded-xl flex items-center justify-between cursor-pointer transition-all`}
+        className={`w-full h-12 px-4 bg-white border ${isOpen ? 'border-brand-500' : 'border-slate-300'} rounded-lg flex items-center justify-between cursor-pointer transition-all shadow-sm`}
       >
         <div className="flex items-center gap-2 truncate">
-          {selectedOption?.icon || (selectedOption ? <div className="w-1.5 h-1.5 rounded-full bg-brand-500" /> : null)}
-          <span className={`text-sm font-bold ${selectedOption ? 'text-slate-900' : 'text-slate-400'}`}>
+          <span className={`text-base ${selectedOption ? 'text-slate-900' : 'text-slate-400'}`}>
             {selectedOption?.label || placeholder}
           </span>
         </div>
-        <Search size={16} className={`${isOpen ? 'text-brand-500' : 'text-slate-400'} transition-colors`} />
+        <Search size={18} className="text-slate-400" />
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="p-2 border-b border-slate-100">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden">
+          <div className="p-2 bg-slate-50 border-b border-slate-100">
             <input
               type="text"
-              className="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-sm focus:ring-0 outline-none"
+              className="w-full px-3 py-2 bg-white border border-slate-200 rounded text-sm outline-none focus:border-brand-500"
               placeholder="Digite para filtrar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               autoFocus
             />
           </div>
-          <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
+          <div className="max-h-60 overflow-y-auto p-1">
             {filteredOptions.length > 0 ? (
               filteredOptions.map(opt => (
                 <div
                   key={opt.value}
                   onClick={() => { onChange(opt.value); setIsOpen(false); setSearchTerm(""); }}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${value === opt.value ? 'bg-brand-50 text-brand-700' : 'hover:bg-slate-50 text-slate-700'}`}
+                  className={`flex items-center gap-3 px-3 py-2 rounded cursor-pointer ${value === opt.value ? 'bg-brand-50 text-brand-700 font-bold' : 'hover:bg-slate-50 text-slate-700'}`}
                 >
-                  {opt.icon || <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />}
-                  <span className="text-sm font-bold">{opt.label}</span>
+                  <span className="text-sm">{opt.label}</span>
                   {value === opt.value && <CheckCircle2 size={14} className="ml-auto" />}
                 </div>
               ))
             ) : (
-              <div className="px-4 py-8 text-center text-slate-400 text-xs italic">
-                Nenhum resultado encontrado
+              <div className="px-4 py-6 text-center text-slate-400 text-xs">
+                Nenhum resultado
                 {allowCustom && searchTerm && (
                   <div className="mt-2">
                     <button 
@@ -111,7 +96,7 @@ const SearchableSelect: React.FC<{
                       onClick={() => { onChange(searchTerm); setIsOpen(false); setSearchTerm(""); }}
                       className="text-brand-600 font-bold hover:underline"
                     >
-                      Usar "{searchTerm}" como novo
+                      Usar "{searchTerm}"
                     </button>
                   </div>
                 )}
@@ -1329,131 +1314,57 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
       case 'INCOME':
         return (
-          <form onSubmit={handleSaveIncome} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="flex items-center gap-2 text-green-600 mb-4 cursor-pointer" onClick={() => setModalStep('MENU')}>
-              <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar</span>
-            </div>
-
-            <h3 className="text-lg font-bold text-slate-900">{editingTransactionId ? 'Editar Entrada' : 'Nova Entrada'}</h3>
+          <form onSubmit={handleSaveIncome} className="space-y-4">
+            <h3 className="text-lg font-bold text-slate-900 mb-4">{editingTransactionId ? 'Editar Entrada' : 'Nova Entrada'}</h3>
 
             <Input label="Título da Entrada" placeholder="Ex: Doação Prefeitura" value={incomeForm.title} onChange={e => setIncomeForm({ ...incomeForm, title: e.target.value })} required />
-            <div className="grid grid-cols-2 gap-4">
-              <Input label="Valor (R$)" type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
-              <Input label="Data" type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} required />
-            </div>
-              <div>
-                <SearchableSelect
-                  label="Categoria"
-                  value={incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category}
-                  options={dynamicIncomeCategories.map(cat => ({ 
-                    value: cat, 
-                    label: cat,
-                    icon: cat === 'Mensalidades' ? <CreditCard size={14} className="text-slate-400" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                  }))}
-                  onChange={(val) => {
-                    const isExisting = dynamicIncomeCategories.includes(val);
-                    setIncomeForm({ ...incomeForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
-                  }}
-                  onAddNew={() => setIncomeForm({ ...incomeForm, isCustomCategory: true, customCategory: '' })}
-                  allowCustom
-                  placeholder="Selecione ou digite..."
-                />
-                {incomeForm.isCustomCategory && (
-                  <div className="mt-2 animate-in slide-in-from-top-1">
-                    <Input
-                      placeholder="Confirmar nome da nova categoria..."
-                      value={incomeForm.customCategory}
-                      onChange={e => setIncomeForm({ ...incomeForm, customCategory: e.target.value })}
-                      required
-                    />
-                  </div>
-                )}
-              </div>
-              <div>
-                <SearchableSelect
-                  label="Pagador"
-                  value={incomeForm.isCustomPayer ? incomeForm.customPayer : incomeForm.payerId}
-                  options={[
-                    ...realAssociates.map(a => ({ value: a.id, label: a.name, icon: <Users size={14} /> })),
-                    ...dynamicPayers.map(p => ({ value: p, label: p, icon: <Shield size={14} /> }))
-                  ]}
-                  onChange={(val) => {
-                    const assoc = realAssociates.find(a => a.id === val);
-                    const isDynamic = dynamicPayers.includes(val);
-                    
-                    if (assoc) {
-                      setIncomeForm({ ...incomeForm, payerId: val, isCustomPayer: false, customPayer: '' });
-                    } else if (isDynamic) {
-                      setIncomeForm({ ...incomeForm, payerId: '', isCustomPayer: true, customPayer: val });
-                    } else {
-                      // Se não for nenhum, assume novo custom
-                      setIncomeForm({ ...incomeForm, payerId: '', isCustomPayer: true, customPayer: val });
-                    }
-                  }}
-                  onAddNew={() => setIncomeForm({ ...incomeForm, isCustomPayer: true, customPayer: '' })}
-                  allowCustom
-                  placeholder="Associado ou Externo..."
-                />
-                {incomeForm.isCustomPayer && !dynamicPayers.includes(incomeForm.customPayer) && (
-                  <div className="mt-2 animate-in slide-in-from-top-1">
-                    <Input
-                      placeholder="Confirmar nome do novo pagador..."
-                      value={incomeForm.customPayer}
-                      onChange={e => setIncomeForm({ ...incomeForm, customPayer: e.target.value })}
-                      required
-                    />
-                  </div>
-                )}
-              </div>
-            <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} className="h-24" />
+            
+            <Input label="Valor (R$)" type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
+            
+            <Input label="Data" type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} required />
+
+            <SearchableSelect
+              label="Categoria"
+              value={incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category}
+              options={dynamicIncomeCategories.map(cat => ({ value: cat, label: cat }))}
+              onChange={(val) => {
+                const isExisting = dynamicIncomeCategories.includes(val);
+                setIncomeForm({ ...incomeForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
+              }}
+              allowCustom
+              placeholder="Selecione ou digite..."
+            />
+
+            <SearchableSelect
+              label="Pagador"
+              value={incomeForm.isCustomPayer ? incomeForm.customPayer : incomeForm.payerId}
+              options={[
+                ...realAssociates.map(a => ({ value: a.id, label: a.name })),
+                ...dynamicPayers.map(p => ({ value: p, label: p }))
+              ]}
+              onChange={(val) => {
+                const assoc = realAssociates.find(a => a.id === val);
+                if (assoc) {
+                  setIncomeForm({ ...incomeForm, payerId: val, isCustomPayer: false, customPayer: '' });
+                } else {
+                  setIncomeForm({ ...incomeForm, payerId: '', isCustomPayer: true, customPayer: val });
+                }
+              }}
+              allowCustom
+              placeholder="Associado ou Externo..."
+            />
+
+            <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} />
 
             <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
-                Novo Comprovante / Recibo (Opcional)
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5 font-bold">Enviar Comprovante (Opcional)</label>
               <input 
                 type="file" 
-                accept=".pdf, image/jpeg, image/png, image/jpg" 
+                accept=".pdf, image/*" 
                 onChange={e => setIncomeFile(e.target.files?.[0] || null)}
-                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 border border-slate-200 rounded-lg p-2" 
+                className="w-full text-sm text-slate-500 border border-slate-200 rounded-lg p-2" 
               />
             </div>
-
-            {editingTransactionId && (
-              <div className="mt-4">
-                <label className="block text-sm font-bold text-slate-700 mb-2">Histórico de Comprovantes</label>
-                {isLoadingComprovantes ? (
-                  <p className="text-xs text-slate-500">Carregando...</p>
-                ) : comprovantesHistory.length > 0 ? (
-                  <ul className="space-y-2">
-                    {comprovantesHistory.map(comp => (
-                      <li key={comp.id} className="flex flex-col text-xs bg-slate-50 p-2 rounded border border-slate-100">
-                        <div className="flex justify-between font-medium">
-                          <span>Anexado por {comp.user_name}</span>
-                          <span>{new Date(comp.created_at).toLocaleString('pt-BR')}</span>
-                        </div>
-                        <button 
-                          type="button"
-                          onClick={async () => {
-                             try {
-                               const url = await financialService.getSignedUrl(comp.file_path);
-                               window.open(url, '_blank');
-                             } catch (e) {
-                               showToast('Erro ao carregar comprovante', 'info');
-                             }
-                          }}
-                          className="text-blue-600 hover:underline mt-1 text-left flex items-center gap-1 w-fit"
-                        >
-                           <ArrowUpRight size={14} /> Ver Arquivo
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-slate-500">Nenhum comprovante anexado a esta movimentação.</p>
-                )}
-              </div>
-            )}
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700" disabled={isUploading}>
@@ -1476,130 +1387,57 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
       case 'EXPENSE':
         return (
-          <form onSubmit={handleSaveExpense} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="flex items-center gap-2 text-red-600 mb-4 cursor-pointer" onClick={() => setModalStep('MENU')}>
-              <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar</span>
-            </div>
-
-            <h3 className="text-lg font-bold text-slate-900">{editingTransactionId ? 'Editar Saída' : 'Nova Saída'}</h3>
+          <form onSubmit={handleSaveExpense} className="space-y-4">
+            <h3 className="text-lg font-bold text-slate-900 mb-4">{editingTransactionId ? 'Editar Saída' : 'Nova Saída'}</h3>
 
             <Input label="Título da Saída" placeholder="Ex: Compra de Combustível" value={expenseForm.title} onChange={e => setExpenseForm({ ...expenseForm, title: e.target.value })} required />
-            <div className="grid grid-cols-2 gap-4">
-              <Input label="Valor (R$)" type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} required />
-              <Input label="Data" type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <SearchableSelect
-                  label="Categoria"
-                  value={expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category}
-                  options={dynamicExpenseCategories.map(cat => ({ 
-                    value: cat, 
-                    label: cat,
-                    icon: <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                  }))}
-                  onChange={(val) => {
-                    const isExisting = dynamicExpenseCategories.includes(val);
-                    setExpenseForm({ ...expenseForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
-                  }}
-                  onAddNew={() => setExpenseForm({ ...expenseForm, isCustomCategory: true, customCategory: '' })}
-                  allowCustom
-                  placeholder="Selecione ou digite..."
-                />
-                {expenseForm.isCustomCategory && (
-                  <div className="mt-2 animate-in slide-in-from-top-1">
-                    <Input
-                      placeholder="Confirmar nome da nova categoria..."
-                      value={expenseForm.customCategory}
-                      onChange={e => setExpenseForm({ ...expenseForm, customCategory: e.target.value })}
-                      required
-                    />
-                  </div>
-                )}
-              </div>
-              <div>
-                <SearchableSelect
-                  label="Recebedor / Beneficiário"
-                  value={expenseForm.isCustomRecipient ? expenseForm.customRecipient : expenseForm.recipientId}
-                  options={[
-                    ...realAssociates.map(a => ({ value: a.id, label: a.name, icon: <Users size={14} /> })),
-                    ...dynamicRecipients.map(r => ({ value: r, label: r, icon: <Shield size={14} /> }))
-                  ]}
-                  onChange={(val) => {
-                    const assoc = realAssociates.find(a => a.id === val);
-                    const isDynamic = dynamicRecipients.includes(val);
-                    
-                    if (assoc) {
-                      setExpenseForm({ ...expenseForm, recipientId: val, isCustomRecipient: false, customRecipient: '' });
-                    } else {
-                      setExpenseForm({ ...expenseForm, recipientId: '', isCustomRecipient: true, customRecipient: val });
-                    }
-                  }}
-                  onAddNew={() => setExpenseForm({ ...expenseForm, isCustomRecipient: true, customRecipient: '' })}
-                  allowCustom
-                  placeholder="Selecione ou digite..."
-                />
-                {expenseForm.isCustomRecipient && !dynamicRecipients.includes(expenseForm.customRecipient) && (
-                  <div className="mt-2 animate-in slide-in-from-top-1">
-                    <Input
-                      placeholder="Confirmar nome do novo recebedor..."
-                      value={expenseForm.customRecipient}
-                      onChange={e => setExpenseForm({ ...expenseForm, customRecipient: e.target.value })}
-                      required
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <Textarea label="Descrição Detalhada" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} className="h-24" />
+            
+            <Input label="Valor (R$)" type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} required />
+            
+            <Input label="Data" type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
+
+            <SearchableSelect
+              label="Categoria"
+              value={expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category}
+              options={dynamicExpenseCategories.map(cat => ({ value: cat, label: cat }))}
+              onChange={(val) => {
+                const isExisting = dynamicExpenseCategories.includes(val);
+                setExpenseForm({ ...expenseForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
+              }}
+              allowCustom
+              placeholder="Selecione ou digite..."
+            />
+
+            <SearchableSelect
+              label="Beneficiário"
+              value={expenseForm.isCustomRecipient ? expenseForm.customRecipient : expenseForm.recipientId}
+              options={[
+                ...realAssociates.map(a => ({ value: a.id, label: a.name })),
+                ...dynamicRecipients.map(r => ({ value: r, label: r }))
+              ]}
+              onChange={(val) => {
+                const assoc = realAssociates.find(a => a.id === val);
+                if (assoc) {
+                  setExpenseForm({ ...expenseForm, recipientId: val, isCustomRecipient: false, customRecipient: '' });
+                } else {
+                  setExpenseForm({ ...expenseForm, recipientId: '', isCustomRecipient: true, customRecipient: val });
+                }
+              }}
+              allowCustom
+              placeholder="Associado ou Externo..."
+            />
+
+            <Textarea label="Descrição / Observação" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} />
 
             <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5 flex justify-between">
-                Novo Comprovante / Recibo (Opcional)
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5 font-bold">Enviar Comprovante (Opcional)</label>
               <input 
                 type="file" 
-                accept=".pdf, image/jpeg, image/png, image/jpg" 
+                accept=".pdf, image/*" 
                 onChange={e => setExpenseFile(e.target.files?.[0] || null)}
-                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 border border-slate-200 rounded-lg p-2" 
+                className="w-full text-sm text-slate-500 border border-slate-200 rounded-lg p-2" 
               />
             </div>
-
-            {editingTransactionId && (
-              <div className="mt-4">
-                <label className="block text-sm font-bold text-slate-700 mb-2">Histórico de Comprovantes</label>
-                {isLoadingComprovantes ? (
-                  <p className="text-xs text-slate-500">Carregando...</p>
-                ) : comprovantesHistory.length > 0 ? (
-                  <ul className="space-y-2">
-                    {comprovantesHistory.map(comp => (
-                      <li key={comp.id} className="flex flex-col text-xs bg-slate-50 p-2 rounded border border-slate-100">
-                        <div className="flex justify-between font-medium">
-                          <span>Anexado por {comp.user_name}</span>
-                          <span>{new Date(comp.created_at).toLocaleString('pt-BR')}</span>
-                        </div>
-                        <button 
-                          type="button"
-                          onClick={async () => {
-                             try {
-                               const url = await financialService.getSignedUrl(comp.file_path);
-                               window.open(url, '_blank');
-                             } catch (e) {
-                               showToast('Erro ao carregar comprovante', 'info');
-                             }
-                          }}
-                          className="text-blue-600 hover:underline mt-1 text-left flex items-center gap-1 w-fit"
-                        >
-                           <ArrowUpRight size={14} /> Ver Arquivo
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-slate-500">Nenhum comprovante anexado a esta movimentação.</p>
-                )}
-              </div>
-            )}
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" className="flex-1 bg-red-600 hover:bg-red-700" disabled={isUploading}>
