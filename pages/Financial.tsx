@@ -150,6 +150,119 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [feesList, setFeesList] = useState<FeeRecord[]>(INITIAL_FEES);
 
+  // Derived state for summary cards
+  const completedTransactions = transactions
+    .filter(t => t.status === 'COMPLETED')
+    .sort((a, b) => {
+      // 1. Sort by transaction date
+      if (b.date !== a.date) {
+        return b.date.localeCompare(a.date);
+      }
+      // 2. Tie-break by creation time (latests at the top)
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+  const totalBalance = completedTransactions.reduce((acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0);
+  const totalIncome = completedTransactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
+  const totalExpense = completedTransactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  };
+
+  // Generate dynamic chart data for the last 30 days
+  const chartData = React.useMemo(() => {
+    const days = 30;
+    const data = [];
+    const today = new Date();
+
+    for (let i = days; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+
+      const dayTransactions = completedTransactions.filter(t => t.date === dateStr);
+      const entry = dayTransactions.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
+      const exit = dayTransactions.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
+
+      data.push({
+        name: d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+        entrada: entry,
+        saida: exit
+      });
+    }
+    return data;
+  }, [completedTransactions]);
+
+  // Calculate stats for expenses by category
+  const categoryStats = React.useMemo(() => {
+    const expenses = completedTransactions.filter(t => t.type === 'EXPENSE');
+    const total = expenses.reduce((s, t) => s + t.amount, 0);
+    if (total === 0) return [];
+
+    const grouped = expenses.reduce((acc: any, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+      return acc;
+    }, {});
+
+    const colors = ['bg-blue-500', 'bg-red-500', 'bg-amber-500', 'bg-emerald-500', 'bg-purple-500', 'bg-indigo-500', 'bg-teal-500'];
+
+    return Object.entries(grouped)
+      .map(([label, val]: [string, any], i) => ({
+        label,
+        val: val as number,
+        percentage: ((val as number) / total * 100).toFixed(0) + '%',
+        color: colors[i % colors.length]
+      }))
+      .sort((a, b) => b.val - a.val);
+  }, [completedTransactions]);
+
+  const handleExportPDF = () => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload = () => {
+      const autoTableScript = document.createElement('script');
+      autoTableScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js';
+      autoTableScript.onload = () => {
+        const { jsPDF } = (window as any).jspdf;
+        const doc = new jsPDF();
+
+        // Header
+        doc.setFontSize(18);
+        doc.text('Relatório Financeiro - ABCUNA', 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+
+        // Stats summary
+        doc.text(`Saldo Total: ${formatCurrency(totalBalance)}`, 14, 40);
+        doc.text(`Entradas: ${formatCurrency(totalIncome)} | Saídas: ${formatCurrency(totalExpense)}`, 14, 46);
+
+        const tableData = completedTransactions.map(tx => [
+          (() => { const [y, m, d] = tx.date.split('-'); return `${d}/${m}/${y}`; })(),
+          tx.description,
+          tx.category,
+          tx.type === 'INCOME' ? 'Entrada' : 'Saída',
+          formatCurrency(tx.amount)
+        ]);
+
+        (doc as any).autoTable({
+          startY: 55,
+          head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
+          body: tableData,
+          headStyles: { fillColor: [15, 23, 42] },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+          margin: { top: 55 }
+        });
+
+        doc.save(`financeiro-abcuna-${new Date().toISOString().split('T')[0]}.pdf`);
+        showToast('PDF gerado com sucesso!');
+      };
+      document.body.appendChild(autoTableScript);
+    };
+    document.body.appendChild(script);
+    showToast('Iniciando geração do PDF...', 'info');
+  };
+
   const [realAssociates, setRealAssociates] = useState<Associate[]>([]);
 
   useEffect(() => {
@@ -1538,7 +1651,13 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                 <option value="ALL">Todos os Associados Ativos</option>
                 <option disabled>--- Individual ---</option>
                 {realAssociates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-       case 'DETAILS':
+              </select>
+            </div>
+            <Button type="submit" className="w-full">Gerar Mensalidades</Button>
+          </form>
+        );
+
+      case 'DETAILS':
         const tx = transactions.find(t => t.id === editingTransactionId);
         if (!tx) return <div className="p-10 text-center font-bold text-slate-400 uppercase tracking-widest text-xs">Movimentação não encontrada</div>;
 
@@ -1688,129 +1807,10 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               </Button>
             </div>
           </div>
-        );x);
-                }}
-              >
-                <Edit3 size={18} /> Editar Movimentação
-              </Button>
-            )}
-          </div>
         );
     }
   };
 
-  // Derived state for summary cards
-  const completedTransactions = transactions
-    .filter(t => t.status === 'COMPLETED')
-    .sort((a, b) => {
-      // 1. Sort by transaction date
-      if (b.date !== a.date) {
-        return b.date.localeCompare(a.date);
-      }
-      // 2. Tie-break by creation time (latests at the top)
-      return (b.createdAt || '').localeCompare(a.createdAt || '');
-    });
-  const totalBalance = completedTransactions.reduce((acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0);
-  const totalIncome = completedTransactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
-  const totalExpense = completedTransactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
-
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-  };
-
-  const handleExportPDF = () => {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    script.onload = () => {
-      const autoTableScript = document.createElement('script');
-      autoTableScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js';
-      autoTableScript.onload = () => {
-        const { jsPDF } = (window as any).jspdf;
-        const doc = new jsPDF();
-
-        // Header
-        doc.setFontSize(18);
-        doc.text('Relatório Financeiro - ABCUNA', 14, 22);
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
-
-        // Stats summary
-        doc.text(`Saldo Total: ${formatCurrency(totalBalance)}`, 14, 40);
-        doc.text(`Entradas: ${formatCurrency(totalIncome)} | Saídas: ${formatCurrency(totalExpense)}`, 14, 46);
-
-        const tableData = completedTransactions.map(tx => [
-          (() => { const [y, m, d] = tx.date.split('-'); return `${d}/${m}/${y}`; })(),
-          tx.description,
-          tx.category,
-          tx.type === 'INCOME' ? 'Entrada' : 'Saída',
-          formatCurrency(tx.amount)
-        ]);
-
-        (doc as any).autoTable({
-          startY: 55,
-          head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
-          body: tableData,
-          headStyles: { fillColor: [15, 23, 42] },
-          alternateRowStyles: { fillColor: [248, 250, 252] },
-          margin: { top: 55 }
-        });
-
-        doc.save(`financeiro-abcuna-${new Date().toISOString().split('T')[0]}.pdf`);
-        showToast('PDF gerado com sucesso!');
-      };
-      document.body.appendChild(autoTableScript);
-    };
-    document.body.appendChild(script);
-    showToast('Iniciando geração do PDF...', 'info');
-  };
-
-  // Generate dynamic chart data for the last 30 days
-  const chartData = React.useMemo(() => {
-    const days = 30;
-    const data = [];
-    const today = new Date();
-
-    for (let i = days; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-
-      const dayTransactions = completedTransactions.filter(t => t.date === dateStr);
-      const entry = dayTransactions.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
-      const exit = dayTransactions.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
-
-      data.push({
-        name: d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
-        entrada: entry,
-        saida: exit
-      });
-    }
-    return data;
-  }, [completedTransactions]);
-
-  // Calculate stats for expenses by category
-  const categoryStats = React.useMemo(() => {
-    const expenses = completedTransactions.filter(t => t.type === 'EXPENSE');
-    const total = expenses.reduce((s, t) => s + t.amount, 0);
-    if (total === 0) return [];
-
-    const grouped = expenses.reduce((acc: any, t) => {
-      acc[t.category] = (acc[t.category] || 0) + t.amount;
-      return acc;
-    }, {});
-
-    const colors = ['bg-blue-500', 'bg-red-500', 'bg-amber-500', 'bg-emerald-500', 'bg-purple-500', 'bg-indigo-500', 'bg-teal-500'];
-
-    return Object.entries(grouped)
-      .map(([label, val]: [string, any], i) => ({
-        label,
-        val: val as number,
-        percentage: ((val as number) / total * 100).toFixed(0) + '%',
-        color: colors[i % colors.length]
-      }))
-      .sort((a, b) => b.val - a.val);
-  }, [completedTransactions]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
