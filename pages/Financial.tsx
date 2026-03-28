@@ -255,7 +255,20 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   };
 
   const confirmNotifyOverdue = () => {
-    // Trigger System Notification
+    // Unique list of overdue associate IDs
+    const targetUserIds = Array.from(new Set(overdueFees.map(f => f.associateId))).filter(Boolean);
+
+    if (targetUserIds.length > 0) {
+      // Notify associates
+      notificationService.add({
+        title: 'Mensalidade em Atraso',
+        message: 'Olá! Identificamos que você possui mensalidades pendentes no sistema. Por favor, regularize assim que possível.',
+        type: 'FINANCIAL',
+        targetUserIds
+      });
+    }
+
+    // Also notify admins/current user as confirmation
     notificationService.add({
       title: 'Cobrança de Atrasados',
       message: `${overdueCount} associados foram notificados sobre pendências financeiras.`,
@@ -263,7 +276,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     });
 
     setIsOverduePreviewOpen(false);
-    showToast(`Lembretes enviados para ${overdueCount} associados com pendências.`, 'success');
+    showToast(`Lembretes enviados para ${targetUserIds.length} associados com pendências.`, 'success');
   };
 
   const handleOpenModal = () => {
@@ -437,25 +450,120 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     return a.associateName.localeCompare(b.associateName);
   });
 
-  const renderFeesManagerContent = () => (
-    <FeesManager
-      fees={feesList}
-      associates={realAssociates}
-      filterAssociateId={filterAssociateId}
-      setFilterAssociateId={setFilterAssociateId}
-      isSelectionMode={isSelectionMode}
-      setIsSelectionMode={setIsSelectionMode}
-      selectedFeeIds={selectedFeeIds}
-      toggleFeeSelection={toggleFeeSelection}
-      selectAll={selectAllFilteredFees}
-      deselectAll={deselectAllFees}
-      onDeleteBulk={deleteSelectedFees}
-      onEdit={handleEditFee}
-      onPay={handleSelectFeeToPay}
-      canEdit={canEdit}
-      loading={isLoadingTransactions || isLoadingAssociates}
-    />
-  );
+  const renderFeesManagerContent = () => {
+    if (feePaymentStep === 'PAYMENT') {
+      return (
+        <form onSubmit={processFeePayment} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="flex items-center gap-2 text-slate-600 mb-2 cursor-pointer hover:text-brand-600 transition-colors" onClick={() => setFeePaymentStep('LIST')}>
+            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
+          </div>
+
+          <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white rounded-xl text-emerald-600 shadow-sm ring-1 ring-emerald-100">
+                <DollarSign size={28} strokeWidth={2.5} />
+              </div>
+              <div className="text-left">
+                <h3 className="font-black text-slate-900 leading-tight">{selectedFee?.associateName}</h3>
+                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-0.5">{selectedFee?.monthRef}</p>
+              </div>
+            </div>
+            <div className="text-center sm:text-right border-t sm:border-t-0 sm:border-l border-emerald-100 pt-4 sm:pt-0 sm:pl-6 w-full sm:w-auto">
+              <p className="text-[10px] text-emerald-600/60 font-black uppercase tracking-widest mb-1">Total a Receber</p>
+              <p className="text-3xl font-black text-emerald-600 tracking-tighter">R$ {selectedFee?.amount.toFixed(2)}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Input
+              label="Data do Recebimento"
+              type="date"
+              value={paymentForm.date}
+              onChange={e => setPaymentForm({ ...paymentForm, date: e.target.value })}
+              required
+            />
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5 px-0.5">Forma de Pagamento</label>
+              <select
+                className="w-full h-12 px-5 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer"
+                value={paymentForm.method}
+                onChange={e => setPaymentForm({ ...paymentForm, method: e.target.value })}
+              >
+                <option value="PIX">PIX</option>
+                <option value="CASH">Dinheiro / Espécie</option>
+                <option value="CARD">Cartão de Crédito/Débito</option>
+                <option value="BANK">Transferência Bancária</option>
+              </select>
+            </div>
+          </div>
+
+          <Textarea
+            label="Observação (Opcional)"
+            value={paymentForm.observation}
+            onChange={e => setPaymentForm({ ...paymentForm, observation: e.target.value })}
+            placeholder="Alguma informação relevante sobre este pagamento?"
+            className="min-h-[100px]"
+          />
+
+          <Button
+            type="submit"
+            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-base font-black uppercase tracking-wider shadow-lg shadow-emerald-600/20 mt-2 active:scale-[0.98] transition-all"
+          >
+            Confirmar Recebimento
+          </Button>
+        </form>
+      );
+    }
+
+    if (feePaymentStep === 'EDIT') {
+      return (
+        <form onSubmit={processFeeEdit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="flex items-center gap-2 text-slate-600 mb-2 cursor-pointer hover:text-brand-600 transition-colors" onClick={() => setFeePaymentStep('LIST')}>
+            <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar para lista</span>
+          </div>
+
+          <div className="flex items-center gap-3 mb-4">
+             <div className="p-2.5 bg-brand-50 text-brand-600 rounded-xl">
+               <Edit3 size={20} />
+             </div>
+             <h3 className="text-xl font-black text-slate-900 tracking-tight">Ajustar Lançamento</h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Input label="Valor da Parcela" type="number" step="0.01" value={editFeeForm.amount} onChange={e => setEditFeeForm({ ...editFeeForm, amount: e.target.value })} required />
+            <Input label="Data de Vencimento" type="date" value={editFeeForm.dueDate} onChange={e => setEditFeeForm({ ...editFeeForm, dueDate: e.target.value })} required />
+          </div>
+
+          <Textarea label="Descrição / Justificativa" value={editFeeForm.description} onChange={e => setEditFeeForm({ ...editFeeForm, description: e.target.value })} placeholder="Ex: Ajuste de valor conforme assembleia..." className="min-h-[80px]" />
+
+          <div className="flex gap-4 pt-4">
+            <Button variant="ghost" type="button" onClick={() => setFeePaymentStep('LIST')} className="flex-1 font-bold">Cancelar</Button>
+            <Button type="submit" className="flex-1 font-black uppercase tracking-wider h-12 shadow-md">Salvar Alterações</Button>
+          </div>
+        </form>
+      );
+    }
+
+    return (
+      <FeesManager
+        fees={feesList}
+        associates={realAssociates}
+        filterAssociateId={filterAssociateId}
+        setFilterAssociateId={setFilterAssociateId}
+        isSelectionMode={isSelectionMode}
+        setIsSelectionMode={setIsSelectionMode}
+        selectedFeeIds={selectedFeeIds}
+        toggleFeeSelection={toggleFeeSelection}
+        selectAll={selectAllFilteredFees}
+        deselectAll={deselectAllFees}
+        onDeleteBulk={deleteSelectedFees}
+        onEdit={handleEditFee}
+        onPay={handleSelectFeeToPay}
+        canEdit={canEdit}
+        loading={isLoadingTransactions || isLoadingAssociates}
+      />
+    );
+  };
 
   const [registrationStep, setRegistrationStep] = useState<'LIST' | 'FORM' | 'PAYMENT'>('LIST');
 
