@@ -326,23 +326,32 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   // Derive feesList automatically
   useEffect(() => {
     const derivedFees: FeeRecord[] = transactions
-      .filter(tx => tx.category === 'Mensalidade' || tx.category === 'Mensalidades')
+      .filter(tx => 
+        tx.category === 'Mensalidade' || 
+        tx.category === 'Mensalidades' || 
+        tx.category === 'Taxa de Inscrição' ||
+        (tx.category === 'Geral' && tx.description.toLowerCase().includes('mensalidade'))
+      )
       .map(tx => {
         const assoc = realAssociates.find(a => a.id === tx.payer_id);
         const dObj = new Date(tx.date + 'T12:00:00');
         const isOverdue = tx.status === 'PENDING' && dObj < new Date();
 
         let monthRef = 'N/A';
-        try {
-          const d = new Date(tx.date + 'T12:00:00'); // Ensure middle of day to avoid TZ shift
-          const m = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-          monthRef = m.charAt(0).toUpperCase() + m.slice(1);
-        } catch (e) { }
+        if (tx.category === 'Taxa de Inscrição') {
+          monthRef = 'Inscrição';
+        } else {
+          try {
+            const d = new Date(tx.date + 'T12:00:00'); 
+            const m = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            monthRef = m.charAt(0).toUpperCase() + m.slice(1);
+          } catch (e) { }
+        }
 
         return {
           id: tx.id,
           associateId: tx.payer_id || '',
-          associateName: assoc ? assoc.name : 'Associado Externo',
+          associateName: assoc ? assoc.name : (tx.description.includes('-') ? tx.description.split('-')[1].trim() : 'Externo'),
           dueDate: tx.date,
           amount: tx.amount,
           status: tx.status === 'COMPLETED' ? 'PAID' : (isOverdue ? 'LATE' : 'OPEN'),
@@ -910,6 +919,11 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       const reg = registrations.find(r => r.id === registrationPaymentForm.registrationId);
       if (!reg) return;
 
+      // Try to find a profile with the same name to link this transaction
+      const matchedAssoc = realAssociates.find(a => 
+         a.name.toLowerCase().trim() === reg.full_name.toLowerCase().trim()
+      );
+
       const txData: Omit<Transaction, 'id'> = {
         description: `Taxa de Inscrição - ${reg.full_name}`,
         amount: parseFloat(registrationPaymentForm.amount),
@@ -918,6 +932,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         status: 'COMPLETED',
         date: registrationPaymentForm.date,
         registration_id: reg.id,
+        payer_id: matchedAssoc ? matchedAssoc.id : undefined,
         notes: `Pagamento via ${registrationPaymentForm.method}`
       };
 

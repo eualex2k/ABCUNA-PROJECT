@@ -67,7 +67,12 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
 
     if (tab === 'FINANCIAL') {
         const associateFees = transactions
-            .filter(tx => (tx.category === 'Mensalidade' || tx.category === 'Mensalidades') && tx.payer_id === associate.id)
+            .filter(tx => (
+                tx.category === 'Mensalidade' || 
+                tx.category === 'Mensalidades' || 
+                tx.category === 'Taxa de Inscrição' ||
+                (tx.category === 'Geral' && tx.description.toLowerCase().includes('mensalidade'))
+            ) && tx.payer_id === associate.id)
             .sort((a, b) => b.date.localeCompare(a.date));
 
         const pendingFees = associateFees.filter(f => f.status === 'PENDING');
@@ -82,13 +87,13 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
             <div className="space-y-4 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between p-5 bg-slate-900 rounded-2xl text-white shadow-xl shadow-slate-200">
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Situação de Mensalidades</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Situação Financeira Geral</p>
                         <p className="text-xl font-black">
                             {overduePayments.length > 0 ? 'PENDÊNCIA IDENTIFICADA' : (pendingFees.length > 0 ? 'PRÓXIMO VENCIMENTO' : 'CONTA EM DIA')}
                         </p>
                         {oldestOverdue && (
                             <p className="text-xs text-rose-400 mt-1 font-bold">
-                                {overduePayments.length} mensalidade(s) em atraso.
+                                {overduePayments.length} parcela(s) em atraso.
                             </p>
                         )}
                     </div>
@@ -109,14 +114,14 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
 
                 <Card className="p-0 overflow-hidden border-slate-100 shadow-sm">
                     <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Histórico de Cobranças</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Histórico de Cobranças / Taxas</p>
                         <Badge variant="neutral" className="font-bold">{associateFees.length} Lançamentos</Badge>
                     </div>
                     <div className="max-h-[300px] overflow-y-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-slate-50/50 text-slate-500 text-[10px] uppercase font-black tracking-widest">
                                 <tr>
-                                    <th className="px-5 py-3 text-left">Referência</th>
+                                    <th className="px-5 py-3 text-left">Referência / Vencim.</th>
                                     <th className="px-5 py-3 text-left">Status</th>
                                     <th className="px-5 py-3 text-right">Valor</th>
                                     <th className="px-5 py-3 text-right">Ação</th>
@@ -133,13 +138,24 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
                                 ) : (
                                     associateFees.map(fee => {
                                         const isFeeOverdue = fee.status === 'PENDING' && new Date(fee.date + 'T12:00:00') < new Date();
+                                        const isRegistration = fee.category === 'Taxa de Inscrição';
+                                        
                                         return (
                                             <tr key={fee.id} className="hover:bg-slate-50 transition-colors group">
                                                 <td className="px-5 py-4 font-bold text-slate-700">
-                                                    {(() => {
-                                                        const [y, m, d] = fee.date.split('-');
-                                                        return `${d}/${m}/${y}`;
-                                                    })()}
+                                                    <div className="flex flex-col">
+                                                        <span>
+                                                            {(() => {
+                                                                const [y, m, d] = fee.date.split('-');
+                                                                return `${d}/${m}/${y}`;
+                                                            })()}
+                                                        </span>
+                                                        {isRegistration ? (
+                                                            <span className="text-[9px] text-brand-500 uppercase font-black">Inscrição</span>
+                                                        ) : (
+                                                            <span className="text-[9px] text-slate-400 uppercase font-bold">Mensalidade</span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-5 py-4">
                                                     <Badge variant={fee.status === 'COMPLETED' ? 'success' : (isFeeOverdue ? 'danger' : 'warning')}>
