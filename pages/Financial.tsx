@@ -380,8 +380,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const overdueCount = overdueFees.length;
 
   // Form States
-  const [incomeForm, setIncomeForm] = useState({ title: '', amount: '', date: '', category: 'Doação', payerId: '', description: '', isCustomCategory: false, isCustomPayer: false, customCategory: '', customPayer: '' });
-  const [expenseForm, setExpenseForm] = useState({ title: '', amount: '', date: '', category: 'Manutenção', recipientId: '', description: '', isCustomCategory: false, isCustomRecipient: false, customCategory: '', customRecipient: '' });
+  const [incomeForm, setIncomeForm] = useState({ title: '', amount: '', date: '', category: '', payerId: '', description: '', isCustomCategory: false, isCustomPayer: false, customCategory: '', customPayer: '' });
+  const [expenseForm, setExpenseForm] = useState({ title: '', amount: '', date: '', category: '', recipientId: '', description: '', isCustomCategory: false, isCustomRecipient: false, customCategory: '', customRecipient: '' });
   const [feesForm, setFeesForm] = useState(() => {
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -1324,8 +1324,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   };
 
   const resetForms = () => {
-    setIncomeForm({ title: '', amount: '', date: '', category: 'Doação', payerId: '', description: '', isCustomCategory: false, isCustomPayer: false, customCategory: '', customPayer: '' });
-    setExpenseForm({ title: '', amount: '', date: '', category: 'Manutenção', recipientId: '', description: '', isCustomCategory: false, isCustomRecipient: false, customCategory: '', customRecipient: '' });
+    setIncomeForm({ title: '', amount: '', date: '', category: '', payerId: '', description: '', isCustomCategory: false, isCustomPayer: false, customCategory: '', customPayer: '' });
+    setExpenseForm({ title: '', amount: '', date: '', category: '', recipientId: '', description: '', isCustomCategory: false, isCustomRecipient: false, customCategory: '', customRecipient: '' });
     setIncomeFile(null);
     setExpenseFile(null);
     setComprovantesHistory([]);
@@ -1388,73 +1388,76 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
       case 'INCOME':
         return (
-          <form onSubmit={handleSaveIncome} className="space-y-4">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">{editingTransactionId ? 'Editar Entrada' : 'Nova Entrada'}</h3>
+          <form onSubmit={handleSaveIncome} className="space-y-5">
+            <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3">{editingTransactionId ? 'Editar Entrada' : 'Nova Entrada'}</h3>
 
-            <Input label="Título da Entrada" placeholder="Ex: Doação Prefeitura" value={incomeForm.title} onChange={e => setIncomeForm({ ...incomeForm, title: e.target.value })} required />
+            <Input label="Título da Entrada" placeholder="Ex: Doação Municipal" value={incomeForm.title} onChange={e => setIncomeForm({ ...incomeForm, title: e.target.value })} required />
             
-            <Input label="Valor (R$)" type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
-            
-            <Input label="Data" type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} required />
+            <div className="grid grid-cols-2 gap-5">
+              <Input label="Valor (R$)" type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
+              <Input label="Data" type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} required />
+            </div>
 
-            <SearchableSelect
-              label="Categoria"
-              value={incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category}
-              options={dynamicIncomeCategories}
-              onChange={(val) => {
-                const isExisting = fixedIncomeCategories.includes(val) || dynamicIncomeCategories.some(c => c.value === val);
-                setIncomeForm({ ...incomeForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
-              }}
-              onDelete={handleDeleteCategoryFromList}
-              allowCustom
-              placeholder="Selecione ou digite..."
-            />
+            <div className="grid grid-cols-2 gap-5">
+              <SearchableSelect
+                label="Categoria"
+                value={incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category}
+                options={dynamicIncomeCategories}
+                onChange={(val) => {
+                  const isExisting = fixedIncomeCategories.includes(val) || dynamicIncomeCategories.some(c => c.value === val);
+                  setIncomeForm({ ...incomeForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
+                }}
+                onDelete={handleDeleteCategoryFromList}
+                allowCustom
+                placeholder="Selecione..."
+              />
 
-            <SearchableSelect
-              label="Pagador"
-              value={incomeForm.isCustomPayer ? incomeForm.customPayer : incomeForm.payerId}
-              options={[
-                ...realAssociates.map(a => ({ value: a.id, label: a.name, isFixed: true })),
-                ...dynamicPayers
-              ]}
-              onChange={(val) => {
-                const assoc = realAssociates.find(a => a.id === val);
-                if (assoc) {
-                  setIncomeForm({ ...incomeForm, payerId: val, isCustomPayer: false, customPayer: '' });
-                } else {
-                  setIncomeForm({ ...incomeForm, payerId: '', isCustomPayer: true, customPayer: val });
-                }
-              }}
-              onDelete={handleDeletePayerFromList}
-              allowCustom
-              placeholder="Associado ou Externo..."
-            />
+              <SearchableSelect
+                label="Pagador"
+                value={incomeForm.isCustomPayer ? incomeForm.customPayer : incomeForm.payerId}
+                options={[
+                  ...realAssociates.map(a => ({ value: a.id, label: a.name, isFixed: true })),
+                  ...dynamicPayers
+                ]}
+                onChange={(val) => {
+                  const assoc = realAssociates.find(a => a.id === val);
+                  if (assoc) {
+                    setIncomeForm({ ...incomeForm, payerId: val, isCustomPayer: false, customPayer: '' });
+                  } else {
+                    setIncomeForm({ ...incomeForm, payerId: '', isCustomPayer: true, customPayer: val });
+                  }
+                }}
+                onDelete={handleDeletePayerFromList}
+                allowCustom
+                placeholder="Selecione..."
+              />
+            </div>
 
-            <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} />
+            <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} className="min-h-[80px]" />
 
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5 font-bold">Enviar Comprovante (Opcional)</label>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
               <input 
                 type="file" 
                 accept=".pdf, image/*" 
                 onChange={e => setIncomeFile(e.target.files?.[0] || null)}
-                className="w-full text-sm text-slate-500 border border-slate-200 rounded-lg p-2" 
+                className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" 
               />
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700" disabled={isUploading}>
-                {isUploading ? 'Salvando...' : editingTransactionId ? 'Salvar Alterações' : 'Confirmar Entrada'}
+            <div className="flex gap-4 pt-4 border-t border-slate-100">
+              <Button type="submit" className="flex-1 h-12 text-base shadow-lg shadow-green-600/10 bg-green-600 hover:bg-green-700" disabled={isUploading}>
+                {isUploading ? 'Salvando...' : editingTransactionId ? 'Salvar Alterações' : 'Confirmar Lançamento'}
               </Button>
               {editingTransactionId && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => handleDeleteTransaction()}
-                  className="border-red-200 text-red-600 hover:bg-red-50"
-                  title="Excluir Movimentação"
+                  className="h-12 w-12 border-red-200 text-red-600 hover:bg-red-50"
+                  title="Excluir"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={20} />
                 </Button>
               )}
             </div>
@@ -1463,73 +1466,76 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
       case 'EXPENSE':
         return (
-          <form onSubmit={handleSaveExpense} className="space-y-4">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">{editingTransactionId ? 'Editar Saída' : 'Nova Saída'}</h3>
+          <form onSubmit={handleSaveExpense} className="space-y-5">
+            <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3">{editingTransactionId ? 'Editar Saída' : 'Nova Saída'}</h3>
 
-            <Input label="Título da Saída" placeholder="Ex: Compra de Combustível" value={expenseForm.title} onChange={e => setExpenseForm({ ...expenseForm, title: e.target.value })} required />
+            <Input label="Título da Saída" placeholder="Ex: Compra de Material" value={expenseForm.title} onChange={e => setExpenseForm({ ...expenseForm, title: e.target.value })} required />
             
-            <Input label="Valor (R$)" type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} required />
-            
-            <Input label="Data" type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
+            <div className="grid grid-cols-2 gap-5">
+              <Input label="Valor (R$)" type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} required />
+              <Input label="Data" type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
+            </div>
 
-            <SearchableSelect
-              label="Categoria"
-              value={expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category}
-              options={dynamicExpenseCategories}
-              onChange={(val) => {
-                const isExisting = fixedExpenseCategories.includes(val) || dynamicExpenseCategories.some(c => c.value === val);
-                setExpenseForm({ ...expenseForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
-              }}
-              onDelete={handleDeleteCategoryFromList}
-              allowCustom
-              placeholder="Selecione ou digite..."
-            />
+            <div className="grid grid-cols-2 gap-5">
+              <SearchableSelect
+                label="Categoria"
+                value={expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category}
+                options={dynamicExpenseCategories}
+                onChange={(val) => {
+                  const isExisting = fixedExpenseCategories.includes(val) || dynamicExpenseCategories.some(c => c.value === val);
+                  setExpenseForm({ ...expenseForm, category: isExisting ? val : '', isCustomCategory: !isExisting, customCategory: isExisting ? '' : val });
+                }}
+                onDelete={handleDeleteCategoryFromList}
+                allowCustom
+                placeholder="Selecione..."
+              />
 
-            <SearchableSelect
-              label="Beneficiário"
-              value={expenseForm.isCustomRecipient ? expenseForm.customRecipient : expenseForm.recipientId}
-              options={[
-                ...realAssociates.map(a => ({ value: a.id, label: a.name, isFixed: true })),
-                ...dynamicRecipients
-              ]}
-              onChange={(val) => {
-                const assoc = realAssociates.find(a => a.id === val);
-                if (assoc) {
-                  setExpenseForm({ ...expenseForm, recipientId: val, isCustomRecipient: false, customRecipient: '' });
-                } else {
-                  setExpenseForm({ ...expenseForm, recipientId: '', isCustomRecipient: true, customRecipient: val });
-                }
-              }}
-              onDelete={handleDeleteRecipientFromList}
-              allowCustom
-              placeholder="Associado ou Externo..."
-            />
+              <SearchableSelect
+                label="Beneficiário"
+                value={expenseForm.isCustomRecipient ? expenseForm.customRecipient : expenseForm.recipientId}
+                options={[
+                  ...realAssociates.map(a => ({ value: a.id, label: a.name, isFixed: true })),
+                  ...dynamicRecipients
+                ]}
+                onChange={(val) => {
+                  const assoc = realAssociates.find(a => a.id === val);
+                  if (assoc) {
+                    setExpenseForm({ ...expenseForm, recipientId: val, isCustomRecipient: false, customRecipient: '' });
+                  } else {
+                    setExpenseForm({ ...expenseForm, recipientId: '', isCustomRecipient: true, customRecipient: val });
+                  }
+                }}
+                onDelete={handleDeleteRecipientFromList}
+                allowCustom
+                placeholder="Selecione..."
+              />
+            </div>
 
-            <Textarea label="Descrição / Observação" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} />
+            <Textarea label="Descrição / Observação" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} className="min-h-[80px]" />
 
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5 font-bold">Enviar Comprovante (Opcional)</label>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
               <input 
                 type="file" 
                 accept=".pdf, image/*" 
                 onChange={e => setExpenseFile(e.target.files?.[0] || null)}
-                className="w-full text-sm text-slate-500 border border-slate-200 rounded-lg p-2" 
+                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" 
               />
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <Button type="submit" className="flex-1 bg-red-600 hover:bg-red-700" disabled={isUploading}>
-                {isUploading ? 'Salvando...' : editingTransactionId ? 'Salvar Alterações' : 'Confirmar Saída'}
+            <div className="flex gap-4 pt-4 border-t border-slate-100">
+              <Button type="submit" className="flex-1 h-12 text-base shadow-lg shadow-red-600/10 bg-red-600 hover:bg-red-700" disabled={isUploading}>
+                {isUploading ? 'Salvando...' : editingTransactionId ? 'Salvar Alterações' : 'Confirmar Lançamento'}
               </Button>
               {editingTransactionId && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => handleDeleteTransaction()}
-                  className="border-red-200 text-red-600 hover:bg-red-50"
-                  title="Excluir Movimentação"
+                  className="h-12 w-12 border-red-200 text-red-600 hover:bg-red-50"
+                  title="Excluir"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={20} />
                 </Button>
               )}
             </div>
@@ -1841,7 +1847,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         loading={isLoadingTransactions}
       />
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="lg">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="2xl">
         {renderModalContent()}
       </Modal>
 
