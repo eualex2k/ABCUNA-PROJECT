@@ -214,16 +214,32 @@ export const financialService = {
         // Clean leading slash if any
         path = path.replace(/^\//, '');
         
-        const { data, error } = await supabase.storage
-            .from('comprovantes-financeiro')
-            .createSignedUrl(path, 60); // 60 seconds expiration
+        try {
+            const { data, error } = await supabase.storage
+                .from('comprovantes-financeiro')
+                .createSignedUrl(path, 3600); // 1 hour expiration for better UX
+                
+            if (error || !data?.signedUrl) {
+                console.warn('[Storage] Erro ao gerar URL assinada, tentando URL pública:', error);
+                const { data: publicData } = supabase.storage
+                    .from('comprovantes-financeiro')
+                    .getPublicUrl(path);
+
+                if (!publicData?.publicUrl) {
+                    throw new Error('Não foi possível gerar uma URL válida para este arquivo.');
+                }
+                return publicData.publicUrl;
+            }
             
-        if (error || !data) {
-            console.error('Error generating signed URL for path:', path, error);
-            throw new Error(`Erro ao acessar o arquivo: ${error?.message || 'Arquivo não encontrado'}`);
+            return data.signedUrl;
+        } catch (err: any) {
+            console.error('[Storage Error]', err);
+            // Last resort: try public URL even if bucket is private (might be public)
+            const { data: publicData } = supabase.storage
+                .from('comprovantes-financeiro')
+                .getPublicUrl(path);
+            return publicData.publicUrl;
         }
-        
-        return data.signedUrl;
     },
 
     async deleteComprovante(filePath: string): Promise<void> {

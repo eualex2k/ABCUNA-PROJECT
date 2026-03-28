@@ -108,7 +108,7 @@ export const RegistrationBoard: React.FC<RegistrationBoardProps> = ({
                                             className="flex-1 font-bold text-xs h-9"
                                             onClick={() => onPay(reg)}
                                         >
-                                            <CreditCard size={14} className="mr-1.5" /> Pagar
+                                            <CreditCard size={14} className="mr-1.5" /> Receber Pagamento
                                         </Button>
                                     )}
                                     <Button

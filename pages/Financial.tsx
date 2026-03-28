@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { DollarSign, ArrowUpCircle, ArrowDownCircle, PieChart, Download, Users, ChevronLeft, Calendar, Wallet, BellRing, CheckCircle2, AlertTriangle, X, CreditCard, Search, Banknote, Filter, Send, Edit3, Plus, RotateCcw, ArrowUpRight, Shield, TrendingUp, Trash2 } from 'lucide-react';
+import { DollarSign, ArrowUpCircle, ArrowDownCircle, PieChart, Download, Users, ChevronLeft, Calendar, Wallet, BellRing, CheckCircle2, AlertTriangle, X, CreditCard, Search, Banknote, Filter, Send, Edit3, Plus, RotateCcw, ArrowUpRight, Shield, TrendingUp, Trash2, Clock, FileText, ChevronRight, Info } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input, Avatar, Textarea, StatCard } from '../components/ui';
 import { Transaction, Associate, User, UserRole, translateStatus, translateTransactionType, translateCategory, FinancialComprovante } from '../types';
 import { associatesService } from '../services/associates';
@@ -1538,116 +1538,157 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                 <option value="ALL">Todos os Associados Ativos</option>
                 <option disabled>--- Individual ---</option>
                 {realAssociates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
-            </div>
-            <Button type="submit" className="w-full">Gerar Mensalidades</Button>
-          </form>
-        );
-      case 'DETAILS':
+       case 'DETAILS':
         const tx = transactions.find(t => t.id === editingTransactionId);
-        if (!tx) return <p className="text-center py-8 text-slate-500">Transação não encontrada</p>;
+        if (!tx) return <div className="p-10 text-center font-bold text-slate-400 uppercase tracking-widest text-xs">Movimentação não encontrada</div>;
 
         return (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-             <div className="flex items-center gap-2 text-slate-400 hover:text-slate-600 mb-4 cursor-pointer transition-colors" onClick={() => setIsModalOpen(false)}>
-              <X size={20} /> <span className="text-sm font-medium">Fechar</span>
+          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center gap-2 text-slate-400 hover:text-slate-600 mb-2 cursor-pointer transition-colors group w-fit" onClick={() => setModalStep('MENU')}>
+              <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" /> 
+              <span className="text-sm font-black uppercase tracking-widest text-[10px]">Voltar ao Menu</span>
             </div>
 
-            <div className="flex flex-col items-center text-center pb-4 border-b border-slate-100">
-               <div className={`p-4 rounded-full mb-4 ${tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                 {tx.type === 'INCOME' ? <ArrowUpRight size={32} /> : <TrendingUp size={32} className="rotate-180" />}
-               </div>
-               <h3 className="text-xl font-bold text-slate-900">{tx.description}</h3>
-               <p className={`text-2xl font-black mt-1 ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                 {tx.type === 'INCOME' ? '+' : '-'} {formatCurrency(tx.amount)}
-               </p>
-               <Badge
-                 className="mt-3"
-                 variant={tx.type === 'INCOME' ? 'success' : 'danger'}
-               >
-                 {tx.category}
-               </Badge>
-            </div>
+            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 shadow-sm overflow-hidden relative">
+              <div className={`absolute top-0 right-0 w-32 h-32 opacity-10 blur-3xl rounded-full -mr-16 -mt-16 ${tx.type === 'INCOME' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
 
-            <div className="grid grid-cols-2 gap-y-4 text-sm">
-                <div>
-                   <p className="text-slate-400 font-medium">Data</p>
-                   <p className="text-slate-900 font-semibold">{new Date(tx.date + 'T12:00:00').toLocaleDateString('pt-BR')}</p>
-                </div>
-                <div>
-                   <p className="text-slate-400 font-medium">Status</p>
-                   <p className="text-slate-900 font-semibold flex items-center gap-1">
-                      {tx.status === 'COMPLETED' ? <><CheckCircle2 size={14} className="text-emerald-500" /> Confirmado</> : <><AlertTriangle size={14} className="text-amber-500" /> Pendente</>}
-                   </p>
-                </div>
-                <div className="col-span-2 text-left">
-                   <p className="text-slate-400 font-medium">{tx.type === 'INCOME' ? 'Pagador' : 'Beneficiário'}</p>
-                   <p className="text-slate-900 font-semibold">{
-                     tx.type === 'INCOME' 
-                       ? (realAssociates.find(a => a.id === tx.payer_id)?.name || 'Externo / Outros')
-                       : (realAssociates.find(a => a.id === tx.recipient_id)?.name || 'Externo / Outros')
-                   }</p>
-                </div>
-                {tx.notes && (
-                  <div className="col-span-2 text-left">
-                    <p className="text-slate-400 font-medium">Observações</p>
-                    <p className="text-slate-700 italic bg-slate-50 p-2 rounded border border-slate-100 mt-1">{tx.notes}</p>
+              <div className="flex justify-between items-start mb-6 relative text-left">
+                <div className="flex-1 pr-4">
+                  <h3 className="text-xl font-bold text-slate-900 leading-tight">{tx.description}</h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant={tx.type === 'INCOME' ? 'success' : 'danger'} className="font-bold py-0.5 px-2 text-[10px] uppercase">
+                      {tx.type === 'INCOME' ? 'Entrada' : 'Saída'}
+                    </Badge>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                      <Calendar size={12} /> {new Date(tx.date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                    </span>
                   </div>
-                )}
+                </div>
+                <div className="text-right">
+                  <span className={`text-2xl font-black block tracking-tighter ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {tx.type === 'INCOME' ? '+' : '-'} {formatCurrency(tx.amount)}
+                  </span>
+                  <div className="flex items-center gap-1 justify-end mt-1 text-[10px] font-black uppercase tracking-widest">
+                     {tx.status === 'COMPLETED' ? (
+                       <span className="flex items-center gap-1 text-emerald-600">
+                         <CheckCircle2 size={12} /> Confirmado
+                       </span>
+                     ) : (
+                       <span className="flex items-center gap-1 text-amber-600">
+                         <AlertTriangle size={12} /> Pendente
+                       </span>
+                     )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-200/60 text-left relative">
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Categoria</span>
+                  <div className="flex items-center gap-2 font-bold text-slate-700 text-sm">
+                    <div className={`w-2 h-2 rounded-full ${tx.type === 'INCOME' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                    {tx.category || 'Geral'}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                    {tx.type === 'INCOME' ? 'Pagador' : 'Beneficiário'}
+                  </span>
+                  <div className="flex items-center gap-2 font-bold text-slate-700 text-sm truncate">
+                    <Users size={14} className="text-slate-400 flex-shrink-0" />
+                    <span className="truncate">{
+                      tx.type === 'INCOME' 
+                        ? (realAssociates.find(a => a.id === tx.payer_id)?.name || 'Externo / Outros')
+                        : (realAssociates.find(a => a.id === tx.recipient_id)?.name || 'Externo / Outros')
+                    }</span>
+                  </div>
+                </div>
+              </div>
+
+              {tx.notes && (
+                <div className="mt-4 p-3 bg-white/50 rounded-xl border border-slate-100 text-left relative">
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Observações</span>
+                   <p className="text-xs text-slate-600 font-medium leading-relaxed">{tx.notes}</p>
+                </div>
+              )}
             </div>
 
-            <div className="space-y-4 pt-4 border-t border-slate-100 text-left">
-               <h4 className="font-bold text-slate-900 flex items-center gap-2">
-                 <Download size={18} className="text-slate-400" />
-                 Comprovantes / Recibos
-               </h4>
-               
-               {isLoadingComprovantes ? (
-                 <div className="animate-pulse flex space-x-4 p-4 items-center justify-center bg-slate-50 rounded-lg">
-                    <div className="h-4 bg-slate-200 rounded w-24"></div>
-                 </div>
-               ) : comprovantesHistory.length > 0 ? (
-                 <div className="space-y-3">
-                   {comprovantesHistory.map(comp => (
-                     <Button 
-                       key={comp.id}
-                       variant="outline"
-                       className="w-full flex items-center justify-between py-6 px-4 hover:border-brand-500 hover:bg-brand-50"
-                       onClick={async () => {
-                         try {
-                           const url = await financialService.getSignedUrl(comp.file_path);
-                           window.open(url, '_blank');
-                         } catch (e) {
-                           showToast('Erro ao abrir comprovante', 'info');
-                         }
-                       }}
-                     >
-                       <div className="flex items-center gap-3 text-left">
-                          <Download className="text-slate-400" size={20} />
-                          <div>
-                            <p className="font-bold text-slate-900 text-sm">Visualizar Recibo</p>
-                            <p className="text-xs text-slate-400 uppercase">Anexado em {new Date(comp.created_at).toLocaleDateString('pt-BR')}</p>
-                          </div>
-                       </div>
-                       <ChevronLeft className="rotate-180 text-slate-400" size={16} />
-                     </Button>
-                   ))}
-                 </div>
-               ) : (
-                 <div className="text-center p-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                    <AlertTriangle size={32} className="text-slate-300 mx-auto mb-2" />
-                    <p className="text-slate-500 text-sm italic">Nenhum comprovante anexado a esta movimentação.</p>
-                 </div>
-               )}
+            <div className="space-y-3 text-left">
+              <div className="flex justify-between items-center mb-1">
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                  <FileText size={14} className="text-brand-600" /> Documentos Anexados
+                </h4>
+                <div className="h-px flex-1 bg-slate-100 ml-4" />
+              </div>
+              
+              {isLoadingComprovantes ? (
+                <div className="flex items-center justify-center p-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                  <div className="flex items-center gap-2">
+                    <RotateCcw size={16} className="animate-spin text-brand-500" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Carregando cofre...</span>
+                  </div>
+                </div>
+              ) : comprovantesHistory.length > 0 ? (
+                <div className="grid grid-cols-1 gap-2">
+                  {comprovantesHistory.map((comp) => (
+                    <button 
+                      key={comp.id}
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const url = await financialService.getSignedUrl(comp.file_path);
+                          window.open(url, '_blank');
+                        } catch (e) {
+                          showToast('Erro ao abrir comprovante', 'info');
+                        }
+                      }}
+                      className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-brand-500 hover:shadow-md transition-all group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                          <Download size={20} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">Ver Documento</p>
+                          <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Anexado em {new Date(comp.created_at).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={20} className="text-slate-300 group-hover:text-brand-600 transition-all" />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                  <Info size={32} className="text-slate-300 mb-2" />
+                  <p className="text-xs font-bold text-slate-500">Nenhum anexo encontrado</p>
+                  <p className="text-[10px] text-slate-400 uppercase font-black mt-1">Anexe ao editar esta transação</p>
+                </div>
+              )}
             </div>
 
-            {canEdit && (
+            <div className="flex gap-3 pt-4 border-t border-slate-100">
               <Button 
                 variant="outline" 
-                className="w-full border-slate-200 text-slate-600 flex items-center justify-center gap-2 h-12"
+                className="flex-1 rounded-xl h-12 font-black uppercase text-[11px] tracking-widest text-slate-700 border-slate-200 hover:bg-slate-50"
                 onClick={() => {
                    setModalStep(tx.type === 'INCOME' ? 'INCOME' : 'EXPENSE');
                    handleEditTransaction(tx);
+                }}
+              >
+                <Edit3 size={18} className="mr-2" /> Editar Dados
+              </Button>
+              <Button 
+                className="bg-slate-900 hover:bg-black text-white px-8 rounded-xl h-12 font-black uppercase text-[11px] tracking-widest"
+                onClick={() => {
+                   setIsModalOpen(false);
+                   resetForms();
+                }}
+              >
+                Fechar
+              </Button>
+            </div>
+          </div>
+        );x);
                 }}
               >
                 <Edit3 size={18} /> Editar Movimentação
