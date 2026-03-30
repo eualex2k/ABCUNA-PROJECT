@@ -58,49 +58,46 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-premium flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-                <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center shadow-sm ring-1 ring-brand-100/50 flex-shrink-0">
-                         <CreditCard size={28} strokeWidth={2.5} />
+            <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-inner">
+                <div className="flex items-center gap-3 px-3">
+                    <div className="p-2 bg-white rounded-lg shadow-sm border border-slate-100 text-brand-600">
+                        <CreditCard size={18} strokeWidth={2.5} />
                     </div>
-                    <div>
-                         <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none">Controle de Mensalidades</h3>
-                         <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-2 mb-0">Gestão de pendências e recebimentos</p>
+                    <div className="hidden sm:block">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Painel de Controle</p>
+                        <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">Fluxo Financeiro</p>
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-2 flex-grow sm:flex-grow-0">
                     {canEdit && (
                         <button
                             onClick={() => {
                                 setIsSelectionMode(!isSelectionMode);
                                 if (!isSelectionMode) deselectAll();
                             }}
-                            className={`flex-1 sm:flex-none h-12 px-6 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all shadow-sm flex items-center justify-center gap-2 ${
+                            className={`h-11 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 border ${
                                 isSelectionMode 
-                                ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' 
-                                : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-500 hover:text-brand-600'
+                                ? 'bg-slate-900 text-white border-slate-900 shadow-lg' 
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-brand-500 hover:text-brand-600 shadow-sm'
                             }`}
                         >
-                            {isSelectionMode ? (
-                                <><X size={15} /> PARAR SELEÇÃO</>
-                            ) : (
-                                <><CheckCircle2 size={15} /> SELEÇÃO EM MASSA</>
-                            )}
+                            {isSelectionMode ? <X size={14} /> : <CheckCircle2 size={14} />}
+                            <span className="hidden md:inline">{isSelectionMode ? 'PARAR SELEÇÃO' : 'SELEÇÃO EM MASSA'}</span>
+                            <span className="md:hidden">{isSelectionMode ? 'PARAR' : 'MASSA'}</span>
                         </button>
                     )}
 
-                    <div className="flex-1 sm:min-w-[280px] h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 flex items-center gap-3 focus-within:ring-4 focus-within:ring-brand-500/10 focus-within:border-brand-500 transition-all">
-                        <Filter size={15} className="text-slate-400" />
-                        <div className="flex-1">
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Filtrar Associado</p>
+                    <div className="flex-1 sm:w-64 h-11 bg-white border border-slate-200 rounded-xl px-3 flex items-center gap-2 focus-within:ring-4 focus-within:ring-brand-500/10 focus-within:border-brand-500 transition-all shadow-sm">
+                        <Filter size={14} className="text-slate-400" />
+                        <div className="flex-1 min-w-0">
                             <select
-                                className="w-full text-[10px] font-black text-slate-900 bg-transparent border-none p-0 focus:ring-0 outline-none cursor-pointer uppercase tracking-widest"
+                                className="w-full text-[10px] font-black text-slate-900 bg-transparent border-none p-0 focus:ring-0 outline-none cursor-pointer uppercase tracking-tight truncate"
                                 value={filterAssociateId}
                                 onChange={(e) => setFilterAssociateId(e.target.value)}
                             >
-                                <option value="ALL">TODOS OS ASSOCIADOS</option>
-                                <optgroup label="Individuais">
+                                <option value="ALL">🔍 TODOS OS ASSOCIADOS</option>
+                                <optgroup label="Filtrar Individual">
                                     {associates
                                       .sort((a, b) => a.name.localeCompare(b.name))
                                       .map(a => (
@@ -109,7 +106,7 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                                 </optgroup>
                             </select>
                         </div>
-                        <ChevronRight size={15} className="text-slate-400 rotate-90" />
+                        <ChevronRight size={14} className="text-slate-300 rotate-90" />
                     </div>
                 </div>
             </div>
