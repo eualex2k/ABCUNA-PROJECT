@@ -574,29 +574,41 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     setIsOverduePreviewOpen(true);
   };
 
-  const confirmNotifyOverdue = () => {
-    // Unique list of overdue associate IDs
-    const targetUserIds = Array.from(new Set(overdueFees.map(f => f.associateId))).filter(Boolean);
+  const [isNotifying, setIsNotifying] = useState(false);
 
-    if (targetUserIds.length > 0) {
-      // Notify associates
-      notificationService.add({
-        title: 'Mensalidade em Atraso',
-        message: 'Olá! Identificamos que você possui mensalidades pendentes no sistema. Por favor, regularize assim que possível.',
-        type: 'FINANCIAL',
-        targetUserIds
+  const confirmNotifyOverdue = async () => {
+    if (isNotifying) return;
+    setIsNotifying(true);
+
+    try {
+      // Unique list of overdue associate IDs
+      const targetUserIds = Array.from(new Set(overdueFees.map(f => f.associateId))).filter(Boolean);
+
+      if (targetUserIds.length > 0) {
+        // Notify associates
+        await notificationService.add({
+          title: 'Mensalidade em Atraso',
+          message: 'Olá! Identificamos que você possui mensalidades pendentes no sistema. Por favor, regularize assim que possível.',
+          type: 'FINANCIAL',
+          targetUserIds
+        });
+      }
+
+      // Also notify admins/current user as confirmation
+      await notificationService.add({
+        title: 'Cobrança de Atrasados',
+        message: `${overdueCount} associados foram notificados sobre pendências financeiras.`,
+        type: 'FINANCIAL'
       });
+
+      setIsOverduePreviewOpen(false);
+      showToast(`Lembretes enviados para ${targetUserIds.length} associados com pendências.`, 'success');
+    } catch (err) {
+      console.error('Erro ao enviar notificações:', err);
+      showToast('Erro ao enviar notificações.', 'info');
+    } finally {
+      setIsNotifying(false);
     }
-
-    // Also notify admins/current user as confirmation
-    notificationService.add({
-      title: 'Cobrança de Atrasados',
-      message: `${overdueCount} associados foram notificados sobre pendências financeiras.`,
-      type: 'FINANCIAL'
-    });
-
-    setIsOverduePreviewOpen(false);
-    showToast(`Lembretes enviados para ${targetUserIds.length} associados com pendências.`, 'success');
   };
 
   const handleOpenModal = () => {
@@ -2019,8 +2031,16 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="ghost" onClick={() => setIsOverduePreviewOpen(false)}>Cancelar</Button>
-            <Button onClick={confirmNotifyOverdue} className="bg-amber-600 hover:bg-amber-700">
-              Enviar Notificações ({overdueCount})
+            <Button 
+              onClick={confirmNotifyOverdue} 
+              className="bg-amber-600 hover:bg-amber-700 disabled:opacity-70 flex items-center gap-2"
+              disabled={isNotifying}
+            >
+              {isNotifying ? (
+                <><RotateCcw size={16} className="animate-spin" /> Processando...</>
+              ) : (
+                <>Enviar Notificações ({overdueCount})</>
+              )}
             </Button>
           </div>
         </div>
