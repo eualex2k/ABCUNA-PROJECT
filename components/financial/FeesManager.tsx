@@ -54,7 +54,11 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
         return a.dueDate.localeCompare(b.dueDate);
     });
 
-    const unpaidFees = sortedFees.filter(f => f.status !== 'PAID');
+    const filteredFees = filterAssociateId === 'ALL' 
+        ? sortedFees 
+        : sortedFees.filter(f => f.associateId === filterAssociateId);
+
+    const unpaidFees = filteredFees.filter(f => f.status !== 'PAID');
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
