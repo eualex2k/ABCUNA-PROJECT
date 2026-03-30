@@ -827,22 +827,24 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             </div>
           </div>
 
-          <Textarea
-            label="Observação (Opcional)"
-            value={paymentForm.observation}
-            onChange={e => setPaymentForm({ ...paymentForm, observation: e.target.value })}
-            placeholder="Alguma informação relevante sobre este pagamento?"
-            className="min-h-[100px]"
-          />
-
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-            <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante do Pagamento (Opcional)</label>
-            <input 
-              type="file" 
-              accept=".pdf, image/*" 
-              onChange={e => setFeeFile(e.target.files?.[0] || null)}
-              className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+            <Textarea
+              label="Observação (Opcional)"
+              value={paymentForm.observation}
+              onChange={e => setPaymentForm({ ...paymentForm, observation: e.target.value })}
+              placeholder="Alguma informação relevante?"
+              className="min-h-[80px]"
             />
+
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center h-full">
+              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
+              <input 
+                type="file" 
+                accept=".pdf, image/*" 
+                onChange={e => setFeeFile(e.target.files?.[0] || null)}
+                className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 file:uppercase file:tracking-widest" 
+              />
+            </div>
           </div>
 
           <Button
@@ -1062,28 +1064,30 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Forma de Pagamento</label>
-            <select
-              className="w-full h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:border-brand-500"
-              value={registrationPaymentForm.method}
-              onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, method: e.target.value })}
-            >
-              <option value="PIX">Pix</option>
-              <option value="CASH">Dinheiro / Espécie</option>
-              <option value="CARD">Cartão de Crédito/Débito</option>
-              <option value="BANK">Transferência Bancária</option>
-            </select>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5 px-0.5">Forma de Pagamento</label>
+              <select
+                className="w-full h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:border-brand-500"
+                value={registrationPaymentForm.method}
+                onChange={e => setRegistrationPaymentForm({ ...registrationPaymentForm, method: e.target.value })}
+              >
+                <option value="PIX">Pix</option>
+                <option value="CASH">Dinheiro / Espécie</option>
+                <option value="CARD">Cartão de Crédito/Débito</option>
+                <option value="BANK">Transferência Bancária</option>
+              </select>
+            </div>
 
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-            <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante do Pagamento (Opcional)</label>
-            <input 
-              type="file" 
-              accept=".pdf, image/*" 
-              onChange={e => setRegPaymentFile(e.target.files?.[0] || null)}
-              className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" 
-            />
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center h-full">
+              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
+              <input 
+                type="file" 
+                accept=".pdf, image/*" 
+                onChange={e => setRegPaymentFile(e.target.files?.[0] || null)}
+                className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 file:uppercase file:tracking-widest" 
+              />
+            </div>
           </div>
 
           <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700" disabled={isUploading}>
@@ -1493,16 +1497,18 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               />
             </div>
 
-            <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} className="min-h-[80px]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+              <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} className="min-h-[80px]" />
 
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
-              <input 
-                type="file" 
-                accept=".pdf, image/*" 
-                onChange={e => setIncomeFile(e.target.files?.[0] || null)}
-                className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" 
-              />
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center h-full">
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
+                <input 
+                  type="file" 
+                  accept=".pdf, image/*" 
+                  onChange={e => setIncomeFile(e.target.files?.[0] || null)}
+                  className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 file:uppercase file:tracking-widest" 
+                />
+              </div>
             </div>
 
             <div className="flex gap-4 pt-4 border-t border-slate-100">
@@ -1571,16 +1577,18 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               />
             </div>
 
-            <Textarea label="Descrição / Observação" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} className="min-h-[80px]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+              <Textarea label="Descrição / Observação" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} className="min-h-[80px]" />
 
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
-              <input 
-                type="file" 
-                accept=".pdf, image/*" 
-                onChange={e => setExpenseFile(e.target.files?.[0] || null)}
-                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" 
-              />
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center h-full">
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
+                <input 
+                  type="file" 
+                  accept=".pdf, image/*" 
+                  onChange={e => setExpenseFile(e.target.files?.[0] || null)}
+                  className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 file:uppercase file:tracking-widest" 
+                />
+              </div>
             </div>
 
             <div className="flex gap-4 pt-4 border-t border-slate-100">
@@ -1907,19 +1915,19 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         loading={isLoadingTransactions}
       />
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="2xl">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="3xl">
         {renderModalContent()}
       </Modal>
 
-      <Modal isOpen={isFeesManagerOpen} onClose={() => setIsFeesManagerOpen(false)} title="Gestão de Mensalidades" maxWidth="3xl">
+      <Modal isOpen={isFeesManagerOpen} onClose={() => setIsFeesManagerOpen(false)} title="Gestão de Mensalidades" maxWidth="4xl">
         {renderFeesManagerContent()}
       </Modal>
 
-      <Modal isOpen={isRegistrationManagerOpen} onClose={() => { setIsRegistrationManagerOpen(false); setEditingRegistrationId(null); setRegistrationStep('LIST'); }} title="Controle de Inscrições" maxWidth="4xl">
+      <Modal isOpen={isRegistrationManagerOpen} onClose={() => { setIsRegistrationManagerOpen(false); setEditingRegistrationId(null); setRegistrationStep('LIST'); }} title="Controle de Inscrições" maxWidth="5xl">
         {renderRegistrationManagerContent()}
       </Modal>
 
-      <Modal isOpen={isOverduePreviewOpen} onClose={() => setIsOverduePreviewOpen(false)} title="Notificar Inadimplentes" maxWidth="2xl">
+      <Modal isOpen={isOverduePreviewOpen} onClose={() => setIsOverduePreviewOpen(false)} title="Notificar Inadimplentes" maxWidth="3xl">
         <div className="space-y-4">
           <div className="bg-amber-50 p-4 rounded-lg flex items-start gap-3">
             <AlertTriangle className="text-amber-600 mt-0.5" size={20} />
