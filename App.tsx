@@ -286,6 +286,12 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } />
 
+            <Route path="/settings/notifications" element={
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
+                <SettingsPage user={user} />
+              </ProtectedRoute>
+            } />
+
             <Route path="/company" element={
               <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
                 <CompanyPage user={user} />
