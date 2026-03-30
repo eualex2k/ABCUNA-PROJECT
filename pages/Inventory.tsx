@@ -376,9 +376,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Editar Equipamento" : "Cadastrar Novo Item"} maxWidth="4xl">
-        <form onSubmit={handleSaveItem} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Editar Equipamento" : "Cadastrar Novo Item"} maxWidth="5xl">
+        <form onSubmit={handleSaveItem} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
             <div className="md:col-span-2">
               <Input
                 label="Nome do Equipamento / Material"
@@ -418,9 +418,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <Input
-                label="Físico em Estoque"
+                label="Qtd"
                 type="number"
                 min="0"
                 value={formItem.quantity}
@@ -428,19 +428,19 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                 required
               />
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Unidade</label>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Unid</label>
                 <select
                   className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-500"
                   value={formItem.unit}
                   onChange={e => setFormItem({ ...formItem, unit: e.target.value })}
                 >
-                  <option value="un">Unidade (un)</option>
+                  <option value="un">un</option>
                   <option value="par">Par</option>
-                  <option value="cx">Caixa (cx)</option>
-                  <option value="kg">Quilo (kg)</option>
-                  <option value="lt">Litro (lt)</option>
+                  <option value="cx">cx</option>
+                  <option value="kg">kg</option>
+                  <option value="lt">lt</option>
                   <option value="kit">Kit</option>
-                  <option value="mt">Metro (mt)</option>
+                  <option value="mt">mt</option>
                 </select>
               </div>
             </div>
@@ -472,19 +472,17 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
               onChange={e => setFormItem({ ...formItem, expirationDate: e.target.value })}
             />
 
-            <div className="md:col-span-2">
-              <Input
-                label="Fornecedor / Fabricante"
-                placeholder="Ex: Loja do Bombeiro Ltda."
-                value={formItem.supplier || ''}
-                onChange={e => setFormItem({ ...formItem, supplier: e.target.value })}
-              />
-            </div>
+            <Input
+              label="Fornecedor / Fabricante"
+              placeholder="Ex: Loja do Bombeiro Ltda."
+              value={formItem.supplier || ''}
+              onChange={e => setFormItem({ ...formItem, supplier: e.target.value })}
+            />
 
-            <div className="md:col-span-2 space-y-1.5">
+            <div className="md:col-span-3 space-y-1.5">
               <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Notas e Descrição</label>
               <textarea
-                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none resize-none h-24 transition-all"
+                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none resize-none h-20 transition-all"
                 placeholder="Detalhes técnicos, condições de uso, etc..."
                 value={formItem.description || ''}
                 onChange={e => setFormItem({ ...formItem, description: e.target.value })}
@@ -493,8 +491,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
           </div>
 
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
-            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="shadow-lg shadow-brand-200">
+            <Button type="button" variant="ghost" className="h-10" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+            <Button type="submit" className="h-10 shadow-lg shadow-brand-200">
               {editingId ? "Salvar Alterações" : "Adicionar ao Inventário"}
             </Button>
           </div>
