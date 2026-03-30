@@ -121,14 +121,17 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
         }
     };
 
-    const saveDeviceName = (id: string) => {
+    const saveDeviceName = (endpoint: string) => {
         if (!editName.trim()) {
             setEditingDevice(null);
             return;
         }
-        const newNames = { ...deviceNames, [id]: editName.trim() };
-        setDeviceNames(newNames);
-        localStorage.setItem('abcuna_device_names', JSON.stringify(newNames));
+        
+        setDeviceNames(prev => {
+            const newNames = { ...prev, [endpoint]: editName.trim() };
+            localStorage.setItem('abcuna_device_names', JSON.stringify(newNames));
+            return newNames;
+        });
         setEditingDevice(null);
     };
 
@@ -256,18 +259,18 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                                     {getDeviceIcon(dev.user_agent)}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    {editingDevice === dev.id ? (
+                                                    {editingDevice === dev.endpoint ? (
                                                         <div className="flex items-center gap-2 mb-1 w-full relative">
                                                             <input 
                                                                 type="text" 
                                                                 className="w-full text-sm font-bold border-b border-brand-500 focus:outline-none bg-transparent py-1 px-1 text-slate-800"
                                                                 value={editName}
                                                                 onChange={e => setEditName(e.target.value)}
-                                                                onKeyDown={e => e.key === 'Enter' && saveDeviceName(dev.id)}
+                                                                onKeyDown={e => e.key === 'Enter' && saveDeviceName(dev.endpoint)}
                                                                 autoFocus
                                                                 placeholder="Dê um nome, ex: 'Celular Pessoal'"
                                                             />
-                                                            <button onClick={() => saveDeviceName(dev.id)} className="text-emerald-500 hover:bg-emerald-50 p-1 rounded">
+                                                            <button onClick={() => saveDeviceName(dev.endpoint)} className="text-emerald-500 hover:bg-emerald-50 p-1 rounded">
                                                                 <Check size={16} />
                                                             </button>
                                                         </div>
@@ -275,7 +278,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <p className="font-bold text-slate-800 text-sm truncate">{customName}</p>
                                                             <button 
-                                                                onClick={() => { setEditingDevice(dev.id); setEditName(customName); }}
+                                                                onClick={() => { setEditingDevice(dev.endpoint); setEditName(deviceNames[dev.endpoint] || ''); }}
                                                                 className="text-slate-300 hover:text-brand-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
                                                                 title="Personalizar nome do aparelho"
                                                             >
