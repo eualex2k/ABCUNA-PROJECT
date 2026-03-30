@@ -376,9 +376,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Editar Equipamento" : "Cadastrar Novo Item"} maxWidth="5xl">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Editar Equipamento" : "Cadastrar Novo Item"} maxWidth="6xl">
         <form onSubmit={handleSaveItem} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-3">
             <div className="md:col-span-2">
               <Input
                 label="Nome do Equipamento / Material"
@@ -413,8 +413,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                 value={formItem.itemType}
                 onChange={e => setFormItem({ ...formItem, itemType: e.target.value as any })}
               >
-                <option value="REUSABLE">Reutilizável (Equipamento)</option>
-                <option value="DISPOSABLE">Descartável (Soro, Gaze, etc.)</option>
+                <option value="REUSABLE">Reutilizável</option>
+                <option value="DISPOSABLE">Descartável</option>
               </select>
             </div>
 
@@ -472,14 +472,16 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
               onChange={e => setFormItem({ ...formItem, expirationDate: e.target.value })}
             />
 
-            <Input
-              label="Fornecedor / Fabricante"
-              placeholder="Ex: Loja do Bombeiro Ltda."
-              value={formItem.supplier || ''}
-              onChange={e => setFormItem({ ...formItem, supplier: e.target.value })}
-            />
+            <div className="md:col-span-2">
+              <Input
+                label="Fornecedor / Fabricante"
+                placeholder="Ex: Loja do Bombeiro Ltda."
+                value={formItem.supplier || ''}
+                onChange={e => setFormItem({ ...formItem, supplier: e.target.value })}
+              />
+            </div>
 
-            <div className="md:col-span-3 space-y-1.5">
+            <div className="md:col-span-2 space-y-1.5">
               <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Notas e Descrição</label>
               <textarea
                 className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none resize-none h-20 transition-all"

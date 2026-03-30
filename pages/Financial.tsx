@@ -1455,14 +1455,14 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
           <form onSubmit={handleSaveIncome} className="space-y-5">
             <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3">{editingTransactionId ? 'Editar Entrada' : 'Nova Entrada'}</h3>
 
-            <Input label="Título da Entrada" placeholder="Ex: Doação Municipal" value={incomeForm.title} onChange={e => setIncomeForm({ ...incomeForm, title: e.target.value })} required />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Input label="Valor (R$)" type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+              <div className="md:col-span-2">
+                <Input label="Título da Entrada" placeholder="Ex: Doação Municipal" value={incomeForm.title} onChange={e => setIncomeForm({ ...incomeForm, title: e.target.value })} required />
+              </div>
               <Input label="Data" type="date" value={incomeForm.date} onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })} required />
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Input label="Valor (R$)" type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} required />
+              
               <SearchableSelect
                 label="Categoria"
                 value={incomeForm.isCustomCategory ? incomeForm.customCategory : incomeForm.category}
@@ -1495,13 +1495,13 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                 allowCustom
                 placeholder="Selecione..."
               />
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-              <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} className="min-h-[80px]" />
+              <div className="md:col-span-2">
+                <Textarea label="Descrição / Observação" value={incomeForm.description} onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })} className="min-h-[80px]" />
+              </div>
 
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center h-full">
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center">
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital</label>
                 <input 
                   type="file" 
                   accept=".pdf, image/*" 
@@ -1535,14 +1535,14 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
           <form onSubmit={handleSaveExpense} className="space-y-5">
             <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3">{editingTransactionId ? 'Editar Saída' : 'Nova Saída'}</h3>
 
-            <Input label="Título da Saída" placeholder="Ex: Compra de Material" value={expenseForm.title} onChange={e => setExpenseForm({ ...expenseForm, title: e.target.value })} required />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Input label="Valor (R$)" type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} required />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+              <div className="md:col-span-2">
+                <Input label="Título da Saída" placeholder="Ex: Compra de Material" value={expenseForm.title} onChange={e => setExpenseForm({ ...expenseForm, title: e.target.value })} required />
+              </div>
               <Input label="Data" type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Input label="Valor (R$)" type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} required />
+              
               <SearchableSelect
                 label="Categoria"
                 value={expenseForm.isCustomCategory ? expenseForm.customCategory : expenseForm.category}
@@ -1575,13 +1575,13 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                 allowCustom
                 placeholder="Selecione..."
               />
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-              <Textarea label="Descrição / Observação" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} className="min-h-[80px]" />
+              <div className="md:col-span-2">
+                <Textarea label="Descrição / Observação" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} className="min-h-[80px]" />
+              </div>
 
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center h-full">
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital (Opcional)</label>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center">
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante Digital</label>
                 <input 
                   type="file" 
                   accept=".pdf, image/*" 
@@ -1915,7 +1915,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         loading={isLoadingTransactions}
       />
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="3xl">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="5xl">
         {renderModalContent()}
       </Modal>
 

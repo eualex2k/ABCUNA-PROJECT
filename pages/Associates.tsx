@@ -349,7 +349,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
       </Card>
 
       {/* Edit/Create Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? 'Editar Associado' : 'Novo Associado'} maxWidth="lg">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? 'Editar Associado' : 'Novo Associado'} maxWidth="4xl">
         <form onSubmit={handleSave} className="space-y-4">
           <Input label="Nome Completo" placeholder="Ex: João da Silva" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
           <Input label="E-mail de Contato" type="email" placeholder="email@exemplo.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
@@ -425,7 +425,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
       </Modal>
 
       {/* Details Modal */}
-      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Detalhes do Associado" maxWidth="2xl">
+      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Detalhes do Associado" maxWidth="4xl">
         {selectedAssociate && (
           <div className="space-y-6">
             <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg">
