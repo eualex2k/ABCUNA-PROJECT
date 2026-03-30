@@ -21,6 +21,10 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
     const [editingDevice, setEditingDevice] = useState<string | null>(null);
     const [editName, setEditName] = useState('');
 
+    const [broadcastTitle, setBroadcastTitle] = useState('');
+    const [broadcastMessage, setBroadcastMessage] = useState('');
+    const [broadcastTarget, setBroadcastTarget] = useState<'me' | 'all'>('me');
+
     // Mock preferences 
     const [prefs, setPrefs] = useState({
         sound: true,
@@ -135,18 +139,33 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
         setEditingDevice(null);
     };
 
-    const handleTestPush = async () => {
+    const handleBroadcastPush = async () => {
+        if (!broadcastTitle.trim() || !broadcastMessage.trim()) {
+            alert('Preencha o título e a mensagem antes de disparar!');
+            return;
+        }
+
+        if (broadcastTarget === 'all' && !confirm('ATENÇÃO: Este chamado será enviado via Push Notification para TODOS os celulares e computadores de todos os usuários do sistema neste exato momento. Tem certeza absoluta que deseja disparar a transmissão?')) {
+            return;
+        }
+
         setTesting(true);
         try {
             await notificationService.add({
-                title: 'Alerta de Teste de ' + user.name,
-                message: 'Você configurou suas notificações com sucesso. O sistema está operante!',
+                title: broadcastTitle,
+                message: broadcastMessage,
                 type: 'SYSTEM',
-                targetUserIds: [user.id]
+                targetUserIds: broadcastTarget === 'me' ? [user.id] : undefined,
+                broadcast: broadcastTarget === 'all'
             });
-            setTimeout(() => { alert('Teste disparado! Cheque suas notificações.'); }, 500);
+            
+            setTimeout(() => { 
+                alert(broadcastTarget === 'me' ? 'Teste disparado para o seu aparelho!' : 'Mensagem transmitida com sucesso para toda a base do sistema!'); 
+                setBroadcastTitle('');
+                setBroadcastMessage('');
+            }, 600);
         } catch (err) {
-            alert('Falha ao disparar teste.');
+            alert('Falha interna ao disparar transmissões.');
         } finally {
             setTesting(false);
         }
@@ -250,7 +269,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                 devices.map((dev, index) => {
                                     const isCurrent = index === 0;
                                     const systemName = parseDeviceSystem(dev.user_agent);
-                                    const customName = deviceNames[dev.id] || (isCurrent ? 'Meu Aparelho Atual' : `Sessão #${index + 1}`);
+                                    const customName = deviceNames[dev.endpoint] || (isCurrent ? 'Meu Aparelho Atual' : `Sessão #${index + 1}`);
 
                                     return (
                                         <div key={dev.id} className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border ${isCurrent ? 'border-brand-300 bg-brand-50/30' : 'border-slate-100 bg-slate-50'} hover:border-brand-400 hover:shadow-md transition-all group gap-4_`}>
@@ -343,6 +362,77 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
 
                 {/* Lado Direito - Preferências & Testes */}
                 <div className="space-y-6">
+                    {/* Central de Transmissão (Broadcast) */}
+                    <Card className="p-0 overflow-hidden border-brand-200">
+                        <div className="bg-brand-600 p-6 flex items-center gap-3">
+                            <Send size={24} className="text-white opacity-90" />
+                            <div>
+                                <h3 className="font-bold text-lg text-white">Central de Transmissão</h3>
+                                <p className="text-brand-100 text-sm">Crie avisos instantâneos via Push</p>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-5 bg-white">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">Público Alvo</label>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                        <input 
+                                            type="radio" 
+                                            name="target" 
+                                            className="w-4 h-4 text-brand-500 focus:ring-brand-500 border-slate-300"
+                                            checked={broadcastTarget === 'me'}
+                                            onChange={() => setBroadcastTarget('me')}
+                                        />
+                                        <span className="text-sm font-medium text-slate-700 group-hover:text-brand-600">Apenas Mim (Teste)</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                        <input 
+                                            type="radio" 
+                                            name="target" 
+                                            className="w-4 h-4 text-red-500 focus:ring-red-500 border-slate-300"
+                                            checked={broadcastTarget === 'all'}
+                                            onChange={() => setBroadcastTarget('all')}
+                                        />
+                                        <span className="text-sm font-medium text-slate-700 group-hover:text-red-600">Todos os Usuários Ativos</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">Título do Alerta</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Ex: Reunião Urgente hoje às 20h"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                    value={broadcastTitle}
+                                    onChange={e => setBroadcastTitle(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">Mensagem</label>
+                                <textarea 
+                                    placeholder="Escreva a mensagem que aparecerá na tela..."
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 min-h-[100px] resize-none"
+                                    value={broadcastMessage}
+                                    onChange={e => setBroadcastMessage(e.target.value)}
+                                />
+                            </div>
+
+                            <Button 
+                                onClick={handleBroadcastPush} 
+                                disabled={testing || permissionStatus !== 'granted'} 
+                                className={`w-full py-3 shadow-lg ${broadcastTarget === 'all' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-brand-500 hover:bg-brand-600 shadow-brand-500/20'}`}
+                            >
+                                {testing ? 'Transmitindo...' : (
+                                    <span className="flex items-center gap-2">
+                                        <Send size={18} /> {broadcastTarget === 'all' ? 'Disparar para a Base Inteira' : 'Enviar Teste Local'}
+                                    </span>
+                                )}
+                            </Button>
+                        </div>
+                    </Card>
+
                     <Card className="p-6">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
@@ -368,30 +458,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                     </div>
                                 </div>
                             ))}
-                        </div>
-                    </Card>
-
-                    {/* Ferramenta de Teste */}
-                    <Card className="p-6 bg-gradient-to-br from-slate-800 to-slate-900 border-none relative overflow-hidden">
-                        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-brand-500 opacity-20 blur-3xl rounded-full"></div>
-                        
-                        <div className="relative z-10 flex flex-col justify-between h-full">
-                            <div>
-                                <div className="flex items-center gap-2 text-white mb-2">
-                                    <Send size={18} className="text-brand-400" />
-                                    <h3 className="font-bold text-lg">Disparar Alerta Falso</h3>
-                                </div>
-                                <p className="text-slate-400 text-sm mb-6">
-                                    Teste se as notificações estão chegando na sua tela enviando um chamado em branco apenas para você mesmo.
-                                </p>
-                            </div>
-                            <Button 
-                                onClick={handleTestPush} 
-                                disabled={testing || permissionStatus !== 'granted'} 
-                                className="w-full bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/20 py-5"
-                            >
-                                {testing ? 'Enviando pacote...' : 'Enviar Teste para Aparelho'}
-                            </Button>
                         </div>
                     </Card>
                 </div>
