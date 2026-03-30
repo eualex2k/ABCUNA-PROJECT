@@ -403,6 +403,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   
   const [incomeFile, setIncomeFile] = useState<File | null>(null);
   const [expenseFile, setExpenseFile] = useState<File | null>(null);
+  const [feeFile, setFeeFile] = useState<File | null>(null);
+  const [regPaymentFile, setRegPaymentFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [comprovantesHistory, setComprovantesHistory] = useState<FinancialComprovante[]>([]);
   const [isLoadingComprovantes, setIsLoadingComprovantes] = useState(false);
@@ -732,6 +734,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     if (!selectedFee) return;
 
     try {
+      setIsUploading(true);
       // Update the existing transaction status to COMPLETED
       const [py, pm, pd] = paymentForm.date.split('-');
       const dateDisplay = `${pd}/${pm}/${py}`;
@@ -741,13 +744,21 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         description: `${selectedFee.monthRef} - ${selectedFee.associateName} (Pago em ${dateDisplay})`
       });
 
+      if (feeFile) {
+        const filePath = await financialService.uploadComprovante(feeFile);
+        await financialService.attachComprovante(selectedFee.id, filePath);
+      }
+
       showToast(`Pagamento de ${selectedFee.associateName} registrado!`);
       loadTransactions();
       setFeePaymentStep('LIST');
       setSelectedFee(null);
+      setFeeFile(null);
     } catch (err: any) {
       console.error(err);
       showToast('Erro ao processar pagamento.', 'info');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -824,11 +835,22 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             className="min-h-[100px]"
           />
 
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante do Pagamento (Opcional)</label>
+            <input 
+              type="file" 
+              accept=".pdf, image/*" 
+              onChange={e => setFeeFile(e.target.files?.[0] || null)}
+              className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" 
+            />
+          </div>
+
           <Button
             type="submit"
             className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-base font-black uppercase tracking-wider shadow-lg shadow-emerald-600/20 mt-2 active:scale-[0.98] transition-all"
+            disabled={isUploading}
           >
-            Confirmar Recebimento
+            {isUploading ? 'Processando...' : 'Confirmar Recebimento'}
           </Button>
         </form>
       );
@@ -916,6 +938,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const handleSaveRegistrationPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setIsUploading(true);
       const reg = registrations.find(r => r.id === registrationPaymentForm.registrationId);
       if (!reg) return;
 
@@ -936,14 +959,23 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         notes: `Pagamento via ${registrationPaymentForm.method}`
       };
 
-      await financialService.create(txData);
+      const result = await financialService.create(txData);
+
+      if (regPaymentFile && result.id) {
+        const filePath = await financialService.uploadComprovante(regPaymentFile);
+        await financialService.attachComprovante(result.id, filePath);
+      }
+
       showToast('Pagamento registrado com sucesso!');
       loadTransactions();
       loadRegistrations();
       setRegistrationStep('LIST');
+      setRegPaymentFile(null);
     } catch (err) {
       console.error(err);
       showToast('Erro ao registrar pagamento', 'info');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -1043,8 +1075,19 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               <option value="BANK">Transferência Bancária</option>
             </select>
           </div>
-          <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700">
-            Confirmar Pagamento
+
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Comprovante do Pagamento (Opcional)</label>
+            <input 
+              type="file" 
+              accept=".pdf, image/*" 
+              onChange={e => setRegPaymentFile(e.target.files?.[0] || null)}
+              className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" 
+            />
+          </div>
+
+          <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700" disabled={isUploading}>
+            {isUploading ? 'Processando...' : 'Confirmar Pagamento'}
           </Button>
         </form>
       );
@@ -1343,6 +1386,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     setExpenseForm({ title: '', amount: '', date: '', category: '', recipientId: '', description: '', isCustomCategory: false, isCustomRecipient: false, customCategory: '', customRecipient: '' });
     setIncomeFile(null);
     setExpenseFile(null);
+    setFeeFile(null);
+    setRegPaymentFile(null);
     setComprovantesHistory([]);
 
     // Default to the 1st of the next month
