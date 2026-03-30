@@ -176,14 +176,50 @@ Deno.serve(async (req) => {
 
                 return { success: true, userId: sub.user_id }
             } catch (err: any) {
-                const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+                let errorMsg = 'Unknown error';
+                let rawStatus = 0;
+
+                // Extração robusta do erro
+                if (err instanceof Error) {
+                    errorMsg = err.message;
+                } else if (err && typeof err === 'object') {
+                    if (typeof err.text === 'function') {
+                        // É provável que seja um objeto Response (fetch failed status)
+                        rawStatus = err.status || 0;
+                        try {
+                            const textBody = await err.text();
+                            errorMsg = `HTTP ${err.status} ${err.statusText}: ${textBody}`;
+                        } catch(e) {
+                            errorMsg = `HTTP ${err.status} ${err.statusText}`;
+                        }
+                    } else {
+                        try {
+                            // Tenta capturar propriedades não-enumeráveis (como em alguns objetos de erro)
+                            const str = JSON.stringify(err, Object.getOwnPropertyNames(err));
+                            if (str !== '{}') errorMsg = str;
+                            else errorMsg = String(err);
+                        } catch(e) {
+                            errorMsg = String(err);
+                        }
+                    }
+                } else {
+                    errorMsg = String(err);
+                }
+
                 console.error(`Erro ao enviar para ${sub.user_id}:`, errorMsg);
 
-                if (errorMsg?.includes('410') || errorMsg?.includes('404') || errorMsg?.includes('invalid P-256')) {
-                    // Invalid subscription or expired
+                const errorLower = errorMsg.toLowerCase();
+                const isInvalid = rawStatus === 410 || rawStatus === 404 || 
+                                  errorLower.includes('410') || errorLower.includes('404') || 
+                                  errorLower.includes('gone') || errorLower.includes('not found') || 
+                                  errorLower.includes('invalid p-256') || errorLower.includes('unauthorized');
+
+                if (isInvalid) {
+                    // Invalid subscription or expired -> Clean it up!
                     await supabaseClient.from('push_subscriptions').delete().eq('id', sub.id);
                     return { success: false, userId: sub.user_id, error: 'Subscription invalid/expired - Removed from DB', details: errorMsg }
                 }
+                
                 return { success: false, userId: sub.user_id, error: errorMsg }
             }
         }))
