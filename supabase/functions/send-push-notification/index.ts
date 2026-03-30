@@ -93,38 +93,43 @@ Deno.serve(async (req) => {
             };
         }
 
-        let query = supabaseClient.from('push_subscriptions').select('*')
+        let query = supabaseClient.from('push_subscriptions').select('*').order('updated_at', { ascending: false })
         if (userIds && userIds.length > 0) {
             query = query.in('user_id', userIds)
         }
-        const { data: subscriptions, error: dbError } = await query
+        const { data: dbSubscriptions, error: dbError } = await query
 
         if (dbError) throw new Error(`Database Error: ${dbError.message}`)
-        if (!subscriptions || subscriptions.length === 0) {
-            // Debug info
-            let tableCount = -1;
-            try {
-                const { count } = await supabaseClient.from('push_subscriptions').select('*', { count: 'exact', head: true });
-                tableCount = count || 0;
-            } catch (e) {
-                console.error('Debug count failed', e);
-            }
-
+        if (!dbSubscriptions || dbSubscriptions.length === 0) {
             return new Response(JSON.stringify({
                 success: true,
                 sent_count: 0,
-                message: 'No subscriptions found',
-                debug: {
-                    receivedIds: userIds,
-                    idsType: Array.isArray(userIds) ? 'array' : typeof userIds,
-                    tableTotal: tableCount,
-                    envServiceKey: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-                }
+                message: 'No subscriptions found'
             }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 200,
             })
         }
+
+        // --- DEDUPLICAÇÃO DE DISPOSITIVOS ---
+        // Limpa notificações repetidas no mesmo usuário caso ele tenha muitas sessões abertas.
+        // Pega as 3 sessões mais recentes (updated_at) por usuário e ignora o resto.
+        const userSubMap = new Map();
+        for (const sub of dbSubscriptions) {
+            if (!userSubMap.has(sub.user_id)) {
+                userSubMap.set(sub.user_id, []);
+            }
+            if (userSubMap.get(sub.user_id).length < 3) {
+                userSubMap.get(sub.user_id).push(sub);
+            }
+        }
+        
+        const subscriptions: any[] = [];
+        for (const subs of userSubMap.values()) {
+            subscriptions.push(...subs);
+        }
+        
+        // ---
 
         const publicVapidKey = Deno.env.get('VAPID_PUBLIC_KEY');
         const privateVapidKey = Deno.env.get('VAPID_PRIVATE_KEY');
@@ -135,11 +140,8 @@ Deno.serve(async (req) => {
 
         let vapidCryptoKeys;
         try {
-            console.log('Importing Server VAPID keys...');
             vapidCryptoKeys = await createVapidKeys(publicVapidKey, privateVapidKey);
-            console.log('Server VAPID keys imported successfully.');
         } catch (keyErr: any) {
-            console.error('SERVER VAPID KEY ERROR:', keyErr);
             throw new Error(`Failed to import Server VAPID Keys: ${keyErr.message}`);
         }
 
@@ -153,8 +155,6 @@ Deno.serve(async (req) => {
                 if (!sub.endpoint || !sub.p256dh || !sub.auth) {
                     throw new Error('Incomplete subscription data');
                 }
-
-                console.log(`Processing sub for user ${sub.user_id}`);
 
                 // Construct subscriber manually to catch key errors
                 const subscriber = appServer.subscribe({
@@ -176,51 +176,17 @@ Deno.serve(async (req) => {
 
                 return { success: true, userId: sub.user_id }
             } catch (err: any) {
-                let errorMsg = 'Unknown error';
-                let rawStatus = 0;
+                let errorMsg = 'Unknown Push Error';
+                try {
+                    errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+                } catch(e) {}
 
-                // Extração robusta do erro
-                if (err instanceof Error) {
-                    errorMsg = err.message;
-                } else if (err && typeof err === 'object') {
-                    if (typeof err.text === 'function') {
-                        // É provável que seja um objeto Response (fetch failed status)
-                        rawStatus = err.status || 0;
-                        try {
-                            const textBody = await err.text();
-                            errorMsg = `HTTP ${err.status} ${err.statusText}: ${textBody}`;
-                        } catch(e) {
-                            errorMsg = `HTTP ${err.status} ${err.statusText}`;
-                        }
-                    } else {
-                        try {
-                            // Tenta capturar propriedades não-enumeráveis (como em alguns objetos de erro)
-                            const str = JSON.stringify(err, Object.getOwnPropertyNames(err));
-                            if (str !== '{}') errorMsg = str;
-                            else errorMsg = String(err);
-                        } catch(e) {
-                            errorMsg = String(err);
-                        }
-                    }
-                } else {
-                    errorMsg = String(err);
-                }
+                // POLÍTICA DRÁSTICA (Mas Segura): 
+                // Qualquer erro ao tentar enviar um push significa que a subscrição parou de funcionar e virou "lixo".
+                // Deletamos incondicionalmente no banco para limpar a tabela de fantasmas permanentemente.
+                await supabaseClient.from('push_subscriptions').delete().eq('id', sub.id);
 
-                console.error(`Erro ao enviar para ${sub.user_id}:`, errorMsg);
-
-                const errorLower = errorMsg.toLowerCase();
-                const isInvalid = rawStatus === 410 || rawStatus === 404 || 
-                                  errorLower.includes('410') || errorLower.includes('404') || 
-                                  errorLower.includes('gone') || errorLower.includes('not found') || 
-                                  errorLower.includes('invalid p-256') || errorLower.includes('unauthorized');
-
-                if (isInvalid) {
-                    // Invalid subscription or expired -> Clean it up!
-                    await supabaseClient.from('push_subscriptions').delete().eq('id', sub.id);
-                    return { success: false, userId: sub.user_id, error: 'Subscription invalid/expired - Removed from DB', details: errorMsg }
-                }
-                
-                return { success: false, userId: sub.user_id, error: errorMsg }
+                return { success: false, userId: sub.user_id, error: 'Subscrição falhou e foi Limpa.', details: errorMsg }
             }
         }))
 
