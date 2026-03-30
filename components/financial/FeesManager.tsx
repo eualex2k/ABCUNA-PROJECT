@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, CheckCircle2, Calendar, Edit3, Trash2, X, AlertTriangle, CreditCard } from 'lucide-react';
+import { Filter, CheckCircle2, Calendar, Edit3, Trash2, X, AlertTriangle, CreditCard, ChevronRight } from 'lucide-react';
 import { Card, Button, Badge, Skeleton } from '../ui';
 import { Associate, translateStatus } from '../../types';
 
@@ -58,50 +58,58 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-2 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                <div>
-                   <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                     <CreditCard size={22} className="text-brand-600" />
-                     Controle de Mensalidades
-                   </h3>
-                   <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Gestão de pendências e recebimentos</p>
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-premium flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center shadow-sm ring-1 ring-brand-100/50 flex-shrink-0">
+                         <CreditCard size={28} strokeWidth={2.5} />
+                    </div>
+                    <div>
+                         <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none">Controle de Mensalidades</h3>
+                         <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-2 mb-0">Gestão de pendências e recebimentos</p>
+                    </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                     {canEdit && (
-                        <Button
-                            variant={isSelectionMode ? "secondary" : "outline"}
-                            size="sm"
+                        <button
                             onClick={() => {
                                 setIsSelectionMode(!isSelectionMode);
                                 if (!isSelectionMode) deselectAll();
                             }}
-                            className="h-10 text-[10px] font-black uppercase tracking-wider px-4 rounded-xl shadow-sm border-slate-200"
+                            className={`flex-1 sm:flex-none h-12 px-6 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all shadow-sm flex items-center justify-center gap-2 ${
+                                isSelectionMode 
+                                ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' 
+                                : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-500 hover:text-brand-600'
+                            }`}
                         >
                             {isSelectionMode ? (
-                                <><X size={14} className="mr-2" /> Sair da Seleção</>
+                                <><X size={15} /> PARAR SELEÇÃO</>
                             ) : (
-                                <><CheckCircle2 size={14} className="mr-2" /> Seleção em Massa</>
+                                <><CheckCircle2 size={15} /> SELEÇÃO EM MASSA</>
                             )}
-                        </Button>
+                        </button>
                     )}
 
-                    <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 h-10 ring-offset-bg focus-within:ring-4 focus-within:ring-brand-500/10 transition-all shadow-sm flex-1 sm:flex-none">
-                        <Filter size={14} className="text-slate-400" />
-                        <select
-                            className="text-[11px] font-black text-slate-700 bg-transparent border-none focus:ring-0 outline-none pr-8 cursor-pointer uppercase tracking-wider"
-                            value={filterAssociateId}
-                            onChange={(e) => setFilterAssociateId(e.target.value)}
-                        >
-                            <option value="ALL">TODOS OS ASSOCIADOS</option>
-                            <optgroup label="Associados Individuais">
-                                {associates
-                                  .sort((a, b) => a.name.localeCompare(b.name))
-                                  .map(a => (
-                                    <option key={a.id} value={a.id}>{a.name.toUpperCase()}</option>
-                                  ))}
-                            </optgroup>
-                        </select>
+                    <div className="flex-1 sm:min-w-[280px] h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 flex items-center gap-3 focus-within:ring-4 focus-within:ring-brand-500/10 focus-within:border-brand-500 transition-all">
+                        <Filter size={15} className="text-slate-400" />
+                        <div className="flex-1">
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Filtrar Associado</p>
+                            <select
+                                className="w-full text-[10px] font-black text-slate-900 bg-transparent border-none p-0 focus:ring-0 outline-none cursor-pointer uppercase tracking-widest"
+                                value={filterAssociateId}
+                                onChange={(e) => setFilterAssociateId(e.target.value)}
+                            >
+                                <option value="ALL">TODOS OS ASSOCIADOS</option>
+                                <optgroup label="Individuais">
+                                    {associates
+                                      .sort((a, b) => a.name.localeCompare(b.name))
+                                      .map(a => (
+                                        <option key={a.id} value={a.id}>{a.name.toUpperCase()}</option>
+                                      ))}
+                                </optgroup>
+                            </select>
+                        </div>
+                        <ChevronRight size={15} className="text-slate-400 rotate-90" />
                     </div>
                 </div>
             </div>
@@ -207,10 +215,12 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                                 </div>
                     ))
                 ) : (
-                    <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
-                        <CheckCircle2 size={48} className="mx-auto mb-4 text-emerald-100" strokeWidth={1} />
-                        <h4 className="text-slate-900 font-bold">Tudo em dia!</h4>
-                        <p className="text-slate-500 text-sm">Nenhuma mensalidade pendente encontrada.</p>
+                    <div className="text-center py-20 bg-white rounded-[2rem] border border-slate-100 shadow-premium">
+                        <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 transform hover:rotate-12 transition-transform duration-500">
+                           <CheckCircle2 size={40} strokeWidth={1.5} />
+                        </div>
+                        <h4 className="text-xl font-black text-slate-900 tracking-tight mb-2">Tudo em dia!</h4>
+                        <p className="text-slate-400 font-medium text-sm">Nenhuma mensalidade pendente encontrada nesta visualização.</p>
                     </div>
                 )}
             </div>
