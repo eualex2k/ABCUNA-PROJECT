@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Calendar, Loader2 } from 'lucide-react';
+import { X, Calendar, Loader2, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 
 // --- Skeleton Component ---
 export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
@@ -82,7 +82,8 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const Input: React.FC<InputProps> = ({ label, error, icon, className = '', onClick, ...props }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const isDate = props.type === 'date' || props.type === 'datetime-local';
+  const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+  const isDate = props.type === 'date';
 
   const isNumericMask = props.mask && ['phone', 'cpf', 'cnpj', 'cep', 'cns'].includes(props.mask);
 
@@ -168,12 +169,8 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
 
   const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
     if (onClick) onClick(e);
-    if (isDate && inputRef.current) {
-      try {
-        if ('showPicker' in inputRef.current) {
-          inputRef.current.showPicker();
-        }
-      } catch (error) { }
+    if (isDate) {
+      setIsCalendarOpen(true);
     }
   };
 
@@ -189,16 +186,26 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
     }
   };
 
+  const getDisplayValue = () => {
+    if (isDate && props.value) {
+      const date = new Date(props.value as string + 'T12:00:00');
+      return date.toLocaleDateString('pt-BR');
+    }
+    return props.value;
+  };
+
   return (
     <div className="w-full">
       {label && <label className="block text-sm font-bold text-slate-700 mb-1.5">{label}</label>}
       <div className="relative">
         <input
           ref={inputRef}
-          type={props.type || (isNumericMask ? "tel" : "text")}
+          type={isDate ? "text" : (props.type || (isNumericMask ? "tel" : "text"))}
+          value={getDisplayValue()}
+          readOnly={isDate}
           inputMode={isNumericMask ? "numeric" : props.inputMode}
           maxLength={getMaxLength(props.mask) || props.maxLength}
-          className={`w-full ${getMinWidth(props.mask)} h-12 px-5 bg-white border border-slate-300 rounded-lg text-base shadow-sm placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all ${error ? 'border-red-500' : ''} ${className} ${isDate ? 'pr-12' : ''} ${icon ? 'pl-11' : ''}`}
+          className={`w-full ${getMinWidth(props.mask)} h-12 px-5 bg-white border border-slate-300 rounded-lg text-base shadow-sm placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all ${error ? 'border-red-500' : ''} ${className} ${isDate ? 'pr-12 cursor-pointer' : ''} ${icon ? 'pl-11' : ''}`}
           onClick={handleInputClick}
           {...props}
           onChange={handleChange}
@@ -219,8 +226,104 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
         )}
       </div>
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+
+      {isDate && (
+        <DatePickerModal
+          isOpen={isCalendarOpen}
+          onClose={() => setIsCalendarOpen(false)}
+          value={props.value as string}
+          onChange={(val) => {
+            const event = {
+                target: { value: val },
+                currentTarget: { value: val }
+            } as any;
+            if (props.onChange) props.onChange(event);
+            setIsCalendarOpen(false);
+          }}
+        />
+      )}
     </div>
   );
+};
+
+// --- Custom Calendar Picker Modal ---
+interface DatePickerModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  value: string;
+  onChange: (val: string) => void;
+}
+
+const DatePickerModal: React.FC<DatePickerModalProps> = ({ isOpen, onClose, value, onChange }) => {
+    const today = new Date();
+    const currentVal = value ? new Date(value + 'T12:00:00') : today;
+    
+    const [viewDate, setViewDate] = React.useState(new Date(currentVal.getFullYear(), currentVal.getMonth(), 1));
+
+    const monthName = viewDate.toLocaleString('pt-BR', { month: 'long' });
+    const year = viewDate.getFullYear();
+
+    const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+    const firstDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+
+    const prevMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
+    const nextMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+
+    const days = [];
+    // Spacers for first day
+    for (let i = 0; i < firstDayOfMonth; i++) {
+        days.push(<div key={`empty-${i}`} className="h-10 w-10" />);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isSelected = value === dateStr;
+        const isToday = today.toISOString().split('T')[0] === dateStr;
+
+        days.push(
+            <button
+                key={d}
+                type="button"
+                onClick={() => onChange(dateStr)}
+                className={`h-11 w-11 rounded-xl flex items-center justify-center text-sm font-bold transition-all
+                    ${isSelected ? 'bg-slate-900 text-white shadow-lg' : isToday ? 'text-brand-600 bg-brand-50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+            >
+                {d}
+            </button>
+        );
+    }
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Selecionar Data" maxWidth="sm">
+            <div className="p-1">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight">{monthName}</h4>
+                        <p className="text-[10px] font-black text-slate-400 tracking-[0.2em]">{year}</p>
+                    </div>
+                    <div className="flex gap-1">
+                        <button type="button" onClick={prevMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900"><ChevronLeft size={20} /></button>
+                        <button type="button" onClick={nextMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900"><ChevronRight size={20} /></button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                    {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, idx) => (
+                        <div key={idx} className="h-10 w-11 flex items-center justify-center text-[10px] font-black text-slate-300 uppercase tracking-widest">{day}</div>
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1">
+                    {days}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-slate-50 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <span>Hoje: {today.toLocaleDateString('pt-BR')}</span>
+                    <button type="button" onClick={() => onChange(today.toISOString().split('T')[0])} className="text-brand-600 hover:underline">Ir para hoje</button>
+                </div>
+            </div>
+        </Modal>
+    );
 };
 
 // --- Textarea Component ---
