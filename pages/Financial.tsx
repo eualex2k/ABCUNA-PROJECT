@@ -581,11 +581,11 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     setIsNotifying(true);
 
     try {
-      // Unique list of overdue associate IDs
+      // Unique list of overdue associate IDs to ensure each person gets only ONE push
       const targetUserIds = Array.from(new Set(overdueFees.map(f => f.associateId))).filter(Boolean);
 
       if (targetUserIds.length > 0) {
-        // Notify associates
+        // Notify associates - One notification per person, even if they have many months late
         await notificationService.add({
           title: 'Mensalidade em Atraso',
           message: 'Olá! Identificamos que você possui mensalidades pendentes no sistema. Por favor, regularize assim que possível.',
@@ -595,9 +595,10 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       }
 
       // Also notify admins/current user as confirmation
+      // We use targetUserIds.length for accurate count of people notified
       await notificationService.add({
         title: 'Cobrança de Atrasados',
-        message: `${overdueCount} associados foram notificados sobre pendências financeiras.`,
+        message: `${targetUserIds.length} associados foram notificados (referente a ${overdueCount} mensalidades pendentes).`,
         type: 'FINANCIAL'
       });
 
