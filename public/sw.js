@@ -26,7 +26,7 @@ self.addEventListener('push', function (event) {
             url: data.url || data.link || '/'
         },
         vibrate: [100, 50, 100],
-        tag: data.tag || 'abcuna-notification',
+        tag: data.tag || `abcuna-notif-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
         renotify: true,
         requireInteraction: true
     };
