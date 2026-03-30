@@ -1611,39 +1611,131 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         );
 
       case 'FEES':
+        const previewDate = feesForm.startDate ? new Date(feesForm.startDate + 'T12:00:00') : new Date();
+        const previewMonth = previewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        const previewMonthFixed = previewMonth.charAt(0).toUpperCase() + previewMonth.slice(1);
+
         return (
-          <form onSubmit={handleGenerateFees} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="flex items-center gap-2 text-brand-600 mb-4 cursor-pointer" onClick={() => setModalStep('MENU')}>
-              <ChevronLeft size={20} /> <span className="text-sm font-medium">Voltar</span>
+          <form onSubmit={handleGenerateFees} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                  <CreditCard size={20} />
+                </div>
+                <div>
+                   <h3 className="text-xl font-black text-slate-900 tracking-tight">Gerar Mensalidades</h3>
+                   <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Emissão automática em lote</p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setModalStep('MENU')}
+                className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-full transition-all"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <div className="bg-blue-50 p-4 rounded-lg mb-4">
-              <p className="text-xs text-blue-700">
-                Esta ação gerará registros de cobrança para os associados selecionados.
-                <br />
-                <span className="font-bold">Nota:</span> O sistema forçará o vencimento para o dia <span className="font-bold underline">01</span> do mês selecionado.
+
+            <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 flex items-start gap-4">
+              <div className="p-2 bg-white rounded-lg text-blue-500 shadow-sm mt-1">
+                <Info size={18} />
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Esta ação criará registros de <span className="font-bold">pendência financeira</span> para os associados. 
+                O sistema configurará automaticamente o vencimento para o <span className="font-bold underline">dia 01</span> do mês.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Input label="Valor Mensal (R$)" type="number" step="0.01" value={feesForm.amount} onChange={e => setFeesForm({ ...feesForm, amount: e.target.value })} required />
-              <Input label="Qtd. Meses" type="number" min="1" max="12" value={feesForm.quantity} onChange={e => setFeesForm({ ...feesForm, quantity: parseInt(e.target.value) })} required />
-            </div>
-            <Input
-              label="Mês de Início"
-              type="date"
-              value={feesForm.startDate}
-              onChange={e => setFeesForm({ ...feesForm, startDate: e.target.value })}
-              required
-            />
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Associados Alvo</label>
-              <select className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base focus:border-brand-500" value={feesForm.associateId} onChange={e => setFeesForm({ ...feesForm, associateId: e.target.value })}>
-                <option value="ALL">Todos os Associados Ativos</option>
-                <option disabled>--- Individual ---</option>
-                {realAssociates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+               <div className="space-y-5">
+                  <Input 
+                    label="Valor da Mensalidade (R$)" 
+                    type="number" 
+                    step="0.01" 
+                    value={feesForm.amount} 
+                    onChange={e => setFeesForm({ ...feesForm, amount: e.target.value })} 
+                    required 
+                    icon={<DollarSign size={18} />}
+                  />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input 
+                      label="Qtd. de Meses" 
+                      type="number" 
+                      min="1" 
+                      max="48" 
+                      value={feesForm.quantity} 
+                      onChange={e => setFeesForm({ ...feesForm, quantity: parseInt(e.target.value) })} 
+                      required 
+                    />
+                    <Input
+                      label="Mês de Início"
+                      type="date"
+                      value={feesForm.startDate}
+                      onChange={e => setFeesForm({ ...feesForm, startDate: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Associados Destino</label>
+                    <div className="relative group">
+                      <Users size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors pointer-events-none" />
+                      <select 
+                        className="w-full h-12 pl-12 pr-10 bg-white border border-slate-300 rounded-xl text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none appearance-none cursor-pointer" 
+                        value={feesForm.associateId} 
+                        onChange={e => setFeesForm({ ...feesForm, associateId: e.target.value })}
+                      >
+                        <option value="ALL">TODOS OS ASSOCIADOS ATIVOS</option>
+                        <optgroup label="Seleção Individual">
+                          {realAssociates
+                            .filter(a => a.status === 'ACTIVE')
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map(a => <option key={a.id} value={a.id}>{a.name.toUpperCase()}</option>)
+                          }
+                        </optgroup>
+                      </select>
+                      <ChevronRight size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                    </div>
+                  </div>
+               </div>
+
+               <div className="bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 p-6 flex flex-col justify-center items-center text-center">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-brand-600 mb-4 ring-1 ring-slate-100">
+                    <Calendar size={32} strokeWidth={2.5} />
+                  </div>
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Previsualização da 1ª Parcela</h4>
+                  <p className="text-xl font-black text-slate-900 tracking-tight">{previewMonthFixed}</p>
+                  <div className="mt-4 py-2 px-4 bg-brand-50 text-brand-700 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                    Vencimento: 01 de {previewMonth.split(' de ')[0]}
+                  </div>
+                  
+                  {feesForm.quantity > 1 && (
+                    <div className="mt-6 pt-6 border-t border-slate-200/60 w-full">
+                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Total do Lote</p>
+                       <p className="text-2xl font-black text-slate-900">R$ {(parseFloat(feesForm.amount || '0') * feesForm.quantity).toFixed(2)}</p>
+                       <p className="text-[9px] font-medium text-slate-400 mt-1">({feesForm.quantity} meses programados)</p>
+                    </div>
+                  )}
+               </div>
             </div>
-            <Button type="submit" className="w-full">Gerar Mensalidades</Button>
+
+            <div className="flex gap-4 pt-4">
+               <Button 
+                variant="ghost" 
+                type="button" 
+                onClick={() => setModalStep('MENU')} 
+                className="flex-1 h-12 font-bold"
+               >
+                 Cancelar
+               </Button>
+               <Button 
+                type="submit" 
+                className="flex-[2] h-12 bg-slate-900 hover:bg-black text-white font-black uppercase tracking-widest text-[11px] shadow-lg active:scale-[0.98] transition-all"
+               >
+                 Processar Geração em Lote
+               </Button>
+            </div>
           </form>
         );
 
