@@ -58,55 +58,43 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-            <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-inner">
-                <div className="flex items-center gap-3 px-3">
-                    <div className="p-2 bg-white rounded-lg shadow-sm border border-slate-100 text-brand-600">
-                        <CreditCard size={18} strokeWidth={2.5} />
-                    </div>
-                    <div className="hidden sm:block">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Painel de Controle</p>
-                        <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">Fluxo Financeiro</p>
-                    </div>
+            <div className="border-b border-slate-100 pb-2 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-6 bg-brand-500 rounded-full" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Controle de Fluxo</span>
                 </div>
 
-                <div className="flex items-center gap-2 flex-grow sm:flex-grow-0">
+                <div className="flex items-center gap-4">
                     {canEdit && (
                         <button
                             onClick={() => {
                                 setIsSelectionMode(!isSelectionMode);
                                 if (!isSelectionMode) deselectAll();
                             }}
-                            className={`h-11 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 border ${
+                            className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
                                 isSelectionMode 
-                                ? 'bg-slate-900 text-white border-slate-900 shadow-lg' 
-                                : 'bg-white text-slate-600 border-slate-200 hover:border-brand-500 hover:text-brand-600 shadow-sm'
+                                ? 'text-brand-600' 
+                                : 'text-slate-400 hover:text-brand-500'
                             }`}
                         >
-                            {isSelectionMode ? <X size={14} /> : <CheckCircle2 size={14} />}
-                            <span className="hidden md:inline">{isSelectionMode ? 'PARAR SELEÇÃO' : 'SELEÇÃO EM MASSA'}</span>
-                            <span className="md:hidden">{isSelectionMode ? 'PARAR' : 'MASSA'}</span>
+                            {isSelectionMode ? 'Sair da Seleção' : 'Seleção em Massa'}
                         </button>
                     )}
 
-                    <div className="flex-1 sm:w-64 h-11 bg-white border border-slate-200 rounded-xl px-3 flex items-center gap-2 focus-within:ring-4 focus-within:ring-brand-500/10 focus-within:border-brand-500 transition-all shadow-sm">
-                        <Filter size={14} className="text-slate-400" />
-                        <div className="flex-1 min-w-0">
-                            <select
-                                className="w-full text-[10px] font-black text-slate-900 bg-transparent border-none p-0 focus:ring-0 outline-none cursor-pointer uppercase tracking-tight truncate"
-                                value={filterAssociateId}
-                                onChange={(e) => setFilterAssociateId(e.target.value)}
-                            >
-                                <option value="ALL">🔍 TODOS OS ASSOCIADOS</option>
-                                <optgroup label="Filtrar Individual">
-                                    {associates
-                                      .sort((a, b) => a.name.localeCompare(b.name))
-                                      .map(a => (
-                                        <option key={a.id} value={a.id}>{a.name.toUpperCase()}</option>
-                                      ))}
-                                </optgroup>
-                            </select>
-                        </div>
-                        <ChevronRight size={14} className="text-slate-300 rotate-90" />
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg">
+                        <Filter size={12} className="text-slate-400" />
+                        <select
+                            className="text-[10px] font-bold text-slate-600 bg-transparent border-none p-0 focus:ring-0 outline-none cursor-pointer"
+                            value={filterAssociateId}
+                            onChange={(e) => setFilterAssociateId(e.target.value)}
+                        >
+                            <option value="ALL">Todos os Associados</option>
+                            {associates
+                              .sort((a, b) => a.name.localeCompare(b.name))
+                              .map(a => (
+                                <option key={a.id} value={a.id}>{a.name}</option>
+                              ))}
+                        </select>
                     </div>
                 </div>
             </div>
@@ -147,66 +135,57 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                     unpaidFees.map(fee => (
                                 <div
                                     key={fee.id}
-                                    className={`group p-5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 ${selectedFeeIds.includes(fee.id)
-                                        ? 'bg-brand-50/80 border-brand-200 shadow-xl scale-[1.01]'
-                                        : 'bg-white border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200'
+                                    className={`group p-4 rounded-xl border transition-all duration-300 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${selectedFeeIds.includes(fee.id)
+                                        ? 'bg-brand-50/50 border-brand-200 shadow-sm'
+                                        : 'bg-white border-slate-100 hover:border-slate-200'
                                         }`}
                                 >
-                                    <div className="flex items-start gap-5 flex-1">
+                                    <div className="flex items-center gap-4 flex-1">
                                         {isSelectionMode && (
-                                            <div className="pt-2">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-5 h-5 rounded-md border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer transition-all"
-                                                    checked={selectedFeeIds.includes(fee.id)}
-                                                    onChange={() => toggleFeeSelection(fee.id)}
-                                                />
-                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                                                checked={selectedFeeIds.includes(fee.id)}
+                                                onChange={() => toggleFeeSelection(fee.id)}
+                                            />
                                         )}
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                                <span className="text-lg font-black text-slate-900 truncate tracking-tight">{fee.associateName}</span>
-                                                <Badge variant={fee.status === 'LATE' ? 'danger' : 'warning'} className="text-[10px] font-black px-3 py-1 uppercase tracking-wider">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{fee.associateName}</span>
+                                                <Badge variant={fee.status === 'LATE' ? 'danger' : 'warning'} className="text-[8px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
                                                     {translateStatus(fee.status)}
                                                 </Badge>
                                             </div>
-                                            <div className="flex items-center gap-5 text-[10px] font-black text-slate-500 uppercase tracking-widest pt-1">
-                                                <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                                                    <Calendar size={13} className="text-brand-500" strokeWidth={2.5} /> 
-                                                    VENC. {new Date(fee.dueDate + "T12:00:00").toLocaleDateString('pt-BR')}
+                                            <div className="flex items-center gap-3 text-[9px] font-medium text-slate-400 uppercase tracking-widest">
+                                                <span className="flex items-center gap-1">
+                                                    {new Date(fee.dueDate + "T12:00:00").toLocaleDateString('pt-BR')}
                                                 </span>
-                                                <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                                                    <AlertTriangle size={13} className="text-amber-500" strokeWidth={2.5} /> 
-                                                    {fee.monthRef}
-                                                </span>
+                                                <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                                                <span>{fee.monthRef}</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-row md:flex-row items-center justify-between md:justify-end gap-6 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-50">
+                                    <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-50">
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Valor da Parcela</p>
-                                            <span className="font-black text-slate-900 text-2xl tracking-tighter">R$ {fee.amount.toFixed(2)}</span>
+                                            <span className="font-bold text-slate-800 text-lg tracking-tighter">R$ {fee.amount.toFixed(2)}</span>
                                         </div>
                                         <div className="flex gap-2">
                                             {canEdit && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
+                                                <button
                                                     onClick={() => onEdit(fee)}
-                                                    className="h-11 w-11 p-0 border-slate-200 bg-white hover:bg-slate-50 hover:text-brand-600 transition-all shadow-sm rounded-xl"
+                                                    className="p-1.5 text-slate-300 hover:text-brand-500 transition-colors"
                                                     title="Editar"
                                                 >
-                                                    <Edit3 size={18} />
-                                                </Button>
+                                                    <Edit3 size={16} />
+                                                </button>
                                             )}
-                                            <Button
-                                                size="sm"
+                                            <button
                                                 onClick={() => onPay(fee)}
-                                                className="h-11 px-6 text-xs font-black uppercase tracking-[0.1em] shadow-md shadow-brand-600/20 active:scale-95 transition-all rounded-xl"
+                                                className="px-4 py-1.5 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-black transition-colors"
                                             >
-                                                Receber
-                                            </Button>
+                                                Pagar
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
