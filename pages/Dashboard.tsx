@@ -20,6 +20,7 @@ import { associatesService } from '../services/associates';
 import { financialService } from '../services/financial';
 import { inventoryService } from '../services/inventory';
 import { Transaction, Associate as AssociateType, InventoryItem } from '../types';
+import { APP_VERSION } from '../lib/version';
 
 interface DashboardProps {
   user: User;
@@ -321,6 +322,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             )}
           </div>
         </Card>
+      </div>
+
+      {/* Discrete Version Marker */}
+      <div className="flex justify-end pt-4 opacity-30 hover:opacity-100 transition-opacity duration-300">
+        <p className="text-[11px] font-bold text-slate-500 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Sistema ABCUNA OS • Versão {APP_VERSION}
+        </p>
       </div>
     </div>
   );
