@@ -98,7 +98,7 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
                         )}
                     </div>
                     <div className="flex items-center gap-4">
-                        {oldestOverdue && (
+                        {oldestOverdue && canEdit && (
                             <Button
                                 onClick={() => onPayFee(oldestOverdue.id)}
                                 className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-900/20"
@@ -164,7 +164,7 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
                                                 </td>
                                                 <td className="px-5 py-4 text-right font-black text-slate-900">{formatCurrency(fee.amount)}</td>
                                                 <td className="px-5 py-4 text-right">
-                                                    {fee.status === 'PENDING' && (
+                                                    {fee.status === 'PENDING' && canEdit && (
                                                         <button
                                                             onClick={() => onPayFee(fee.id)}
                                                             className="text-[10px] font-black uppercase text-brand-600 hover:text-brand-700 tracking-widest bg-brand-50 px-2 py-1 rounded"

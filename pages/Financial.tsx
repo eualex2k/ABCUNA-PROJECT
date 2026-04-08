@@ -1993,7 +1993,12 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         canEdit={canEdit}
       />
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="5xl">
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        title={modalStep === 'COMPROVANTES' ? "Detalhes da Movimentação" : (editingTransactionId ? "Editar Movimentação" : "Nova Movimentação")} 
+        maxWidth="5xl"
+      >
         {renderModalContent()}
       </Modal>
 
