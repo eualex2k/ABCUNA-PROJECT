@@ -1851,18 +1851,20 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             </div>
 
             <div className="flex gap-3 pt-4 border-t border-slate-100">
+              {canEdit && (
+                <Button 
+                  variant="outline" 
+                  className="flex-1 rounded-xl h-12 font-black uppercase text-[11px] tracking-widest text-slate-700 border-slate-200 hover:bg-slate-50"
+                  onClick={() => {
+                     setModalStep(tx.type === 'INCOME' ? 'INCOME' : 'EXPENSE');
+                     handleEditTransaction(tx);
+                  }}
+                >
+                  <Edit3 size={18} className="mr-2" /> Editar Dados
+                </Button>
+              )}
               <Button 
-                variant="outline" 
-                className="flex-1 rounded-xl h-12 font-black uppercase text-[11px] tracking-widest text-slate-700 border-slate-200 hover:bg-slate-50"
-                onClick={() => {
-                   setModalStep(tx.type === 'INCOME' ? 'INCOME' : 'EXPENSE');
-                   handleEditTransaction(tx);
-                }}
-              >
-                <Edit3 size={18} className="mr-2" /> Editar Dados
-              </Button>
-              <Button 
-                className="bg-slate-900 hover:bg-black text-white px-8 rounded-xl h-12 font-black uppercase text-[11px] tracking-widest"
+                className="bg-slate-900 hover:bg-black text-white px-8 rounded-xl h-12 font-black uppercase text-[11px] tracking-widest flex-1 w-full"
                 onClick={() => {
                    setIsModalOpen(false);
                    resetForms();
