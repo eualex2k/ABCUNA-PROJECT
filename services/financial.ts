@@ -192,6 +192,8 @@ export const financialService = {
             .remove([comprovante.file_path]);
             
         if (storageError) console.error('Error removing from bucket:', storageError);
+        
+        await this.logAudit(comprovante.transaction_id, 'DELETE_COMPROVANTE', { file_path: comprovante.file_path });
     },
 
     
@@ -260,32 +262,6 @@ export const financialService = {
                 .from('comprovantes-financeiro')
                 .getPublicUrl(path);
             return publicData.publicUrl;
-        }
-    },
-
-    async deleteComprovante(filePath: string): Promise<void> {
-        try {
-            let path = (filePath || '').trim();
-            if (path.includes('http')) {
-                 const parts = path.split('/comprovantes-financeiro/');
-                 if (parts.length > 1) {
-                     path = parts[1];
-                 }
-            }
-            
-            // Clean leading slash
-            path = path.replace(/^\//, '');
-            
-            const { error } = await supabase.storage
-                .from('comprovantes-financeiro')
-                .remove([path]);
-
-            if (error) {
-                console.error('Error deleting comprovante storage object:', error);
-                throw error;
-            }
-        } catch (error) {
-           console.error('Failed to delete comprovante from storage', error);
         }
     },
 
