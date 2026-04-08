@@ -1848,6 +1848,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                               try {
                                 await financialService.deleteComprovante(comp);
                                 setComprovantesHistory(prev => prev.filter(c => c.id !== comp.id));
+                                loadTransactions(); // Atualiza os ícones da tabela principal
                                 showToast('Comprovante excluído.');
                               } catch(e) {
                                 console.error('Delete error:', e);
