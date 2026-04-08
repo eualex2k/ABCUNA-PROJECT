@@ -1988,6 +1988,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         onViewComprovantes={handleViewComprovantes}
         onExport={handleExportPDF}
         loading={isLoadingTransactions}
+        canEdit={canEdit}
       />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Movimentação" maxWidth="5xl">

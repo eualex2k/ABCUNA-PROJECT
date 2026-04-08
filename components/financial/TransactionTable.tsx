@@ -10,6 +10,7 @@ interface TransactionTableProps {
     onViewComprovantes?: (tx: Transaction) => void;
     onExport?: () => void;
     loading?: boolean;
+    canEdit?: boolean;
 }
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({
@@ -18,7 +19,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     onDelete,
     onViewComprovantes,
     onExport,
-    loading = false
+    loading = false,
+    canEdit = false
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
@@ -142,20 +144,24 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                                             >
                                                 <Eye size={16} />
                                             </button>
-                                            <button
-                                                onClick={() => onEdit(tx)}
-                                                className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all"
-                                                title="Editar"
-                                            >
-                                                <Edit3 size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => onDelete(tx)}
-                                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                title="Excluir"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            {canEdit && (
+                                              <>
+                                                <button
+                                                    onClick={() => onEdit(tx)}
+                                                    className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all"
+                                                    title="Editar"
+                                                >
+                                                    <Edit3 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => onDelete(tx)}
+                                                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                    title="Excluir"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                              </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

@@ -26,7 +26,7 @@ export const MENU_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/', allowedRoles: [UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE] },
   { label: 'Empresa', icon: Building2, path: '/company', allowedRoles: [UserRole.ADMIN] },
   { label: 'Associados', icon: Users, path: '/associates', allowedRoles: [UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL] },
-  { label: 'Financeiro', icon: DollarSign, path: '/financial', allowedRoles: [UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY] },
+  { label: 'Financeiro', icon: DollarSign, path: '/financial', allowedRoles: [UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE] },
   { label: 'Estoque', icon: Package, path: '/inventory', allowedRoles: [UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL] },
   { label: 'Eventos', icon: CalendarDays, path: '/events', allowedRoles: [UserRole.ADMIN, UserRole.SECRETARY, UserRole.ASSOCIATE, UserRole.FINANCIAL] },
 

@@ -263,7 +263,7 @@ const App: React.FC = () => {
             } />
 
             <Route path="/financial" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <FinancialPage user={user} />
               </ProtectedRoute>
             } />
