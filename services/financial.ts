@@ -173,6 +173,22 @@ export const financialService = {
         
         await this.logAudit(transaction_id, 'UPLOAD_COMPROVANTE', { file_path: filePath });
     },
+
+    async deleteComprovante(comprovante: FinancialComprovante) {
+        const { error } = await supabase
+            .from('financial_comprovantes')
+            .delete()
+            .eq('id', comprovante.id);
+            
+        if (error) throw error;
+        
+        const { error: storageError } = await supabase.storage
+            .from('comprovantes-financeiro')
+            .remove([comprovante.file_path]);
+            
+        if (storageError) console.error('Error removing from bucket:', storageError);
+    },
+
     
     async getComprovantes(transaction_id: string): Promise<FinancialComprovante[]> {
         const { data, error } = await supabase

@@ -1782,8 +1782,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                     <Users size={14} className="text-slate-400 flex-shrink-0" />
                     <span className="truncate">{
                       tx.type === 'INCOME' 
-                        ? (realAssociates.find(a => a.id === tx.payer_id)?.name || 'Externo / Outros')
-                        : (realAssociates.find(a => a.id === tx.recipient_id)?.name || 'Externo / Outros')
+                        ? (tx.payer_id ? realAssociates.find(a => a.id === tx.payer_id)?.name : tx.custom_payer) || 'Externo / Outros'
+                        : (tx.recipient_id ? realAssociates.find(a => a.id === tx.recipient_id)?.name : tx.custom_recipient) || 'Externo / Outros'
                     }</span>
                   </div>
                 </div>
@@ -1815,30 +1815,52 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
               ) : comprovantesHistory.length > 0 ? (
                 <div className="grid grid-cols-1 gap-2">
                   {comprovantesHistory.map((comp) => (
-                    <button 
-                      key={comp.id}
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          const url = await financialService.getSignedUrl(comp.file_path);
-                          window.open(url, '_blank');
-                        } catch (e) {
-                          showToast('Erro ao abrir comprovante', 'info');
-                        }
-                      }}
-                      className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-brand-500 hover:shadow-md transition-all group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors">
-                          <Download size={20} />
+                    <div key={comp.id} className="flex gap-2 w-full">
+                      <button 
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            const url = await financialService.getSignedUrl(comp.file_path);
+                            window.open(url, '_blank');
+                          } catch (e) {
+                            showToast('Erro ao abrir comprovante', 'info');
+                          }
+                        }}
+                        className="flex-1 flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-brand-500 hover:shadow-md transition-all group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                            <Download size={20} />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">Ver Documento</p>
+                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Anexado em {new Date(comp.created_at).toLocaleDateString('pt-BR')}</p>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">Ver Documento</p>
-                          <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Anexado em {new Date(comp.created_at).toLocaleDateString('pt-BR')}</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={20} className="text-slate-300 group-hover:text-brand-600 transition-all" />
-                    </button>
+                        <ChevronRight size={20} className="text-slate-300 group-hover:text-brand-600 transition-all" />
+                      </button>
+
+                      {user.role === UserRole.ADMIN && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (window.confirm('Tem certeza que deseja excluir permanentemente este comprovante?')) {
+                              try {
+                                await financialService.deleteComprovante(comp);
+                                setComprovantesHistory(prev => prev.filter(c => c.id !== comp.id));
+                                showToast('Comprovante excluído.');
+                              } catch(e) {
+                                showToast('Erro ao excluir comprovante', 'error');
+                              }
+                            }
+                          }}
+                          className="p-4 bg-white border border-slate-200 rounded-xl hover:bg-rose-50 hover:border-rose-200 text-slate-300 hover:text-rose-500 transition-colors flex items-center justify-center"
+                          title="Excluir comprovante"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               ) : (
