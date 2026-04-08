@@ -324,6 +324,8 @@ function mapToFrontend(row: any): Transaction {
         status: row.status,
         payer_id: row.payer_id,
         recipient_id: row.recipient_id,
+        custom_payer: row.custom_payer,
+        custom_recipient: row.custom_recipient,
         notes: row.notes,
         registration_id: row.registration_id,
         has_comprovantes: (row.financial_comprovantes && row.financial_comprovantes.length > 0),
@@ -341,6 +343,8 @@ function mapToDb(tx: Partial<Transaction>): any {
     if (tx.status !== undefined) dbRow.status = tx.status;
     if (tx.payer_id !== undefined) dbRow.payer_id = tx.payer_id;
     if (tx.recipient_id !== undefined) dbRow.recipient_id = tx.recipient_id;
+    if (tx.custom_payer !== undefined) dbRow.custom_payer = tx.custom_payer;
+    if (tx.custom_recipient !== undefined) dbRow.custom_recipient = tx.custom_recipient;
     if (tx.notes !== undefined) dbRow.notes = tx.notes;
     if (tx.registration_id !== undefined) dbRow.registration_id = tx.registration_id;
     return dbRow;
