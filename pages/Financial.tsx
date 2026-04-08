@@ -1850,7 +1850,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                                 setComprovantesHistory(prev => prev.filter(c => c.id !== comp.id));
                                 showToast('Comprovante excluído.');
                               } catch(e) {
-                                showToast(`Erro: ${e.message || 'Falha ao excluir'}`, 'error');
+                                console.error('Delete error:', e);
+                                showToast(`Erro: ${e.message || e.code || 'Falha na permissão'}`, 'error');
                               }
                             }
                           }}
