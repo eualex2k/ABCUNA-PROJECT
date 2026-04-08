@@ -351,7 +351,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         return {
           id: tx.id,
           associateId: tx.payer_id || '',
-          associateName: assoc ? assoc.name : (tx.description.includes('-') ? tx.description.split('-')[1].trim() : 'Externo'),
+          associateName: assoc ? assoc.name : (tx.custom_payer || (tx.description.includes('-') ? tx.description.split('-')[1].trim() : 'Externo')),
           dueDate: tx.date,
           amount: tx.amount,
           status: tx.status === 'COMPLETED' ? 'PAID' : (isOverdue ? 'LATE' : 'OPEN'),
@@ -1840,7 +1840,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                         <ChevronRight size={20} className="text-slate-300 group-hover:text-brand-600 transition-all" />
                       </button>
 
-                      {user.role === UserRole.ADMIN && (
+                      {canEdit && (
                         <button
                           type="button"
                           onClick={async () => {
@@ -1850,7 +1850,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
                                 setComprovantesHistory(prev => prev.filter(c => c.id !== comp.id));
                                 showToast('Comprovante excluído.');
                               } catch(e) {
-                                showToast('Erro ao excluir comprovante', 'error');
+                                showToast(`Erro: ${e.message || 'Falha ao excluir'}`, 'error');
                               }
                             }
                           }}
