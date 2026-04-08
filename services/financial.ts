@@ -175,12 +175,17 @@ export const financialService = {
     },
 
     async deleteComprovante(comprovante: FinancialComprovante) {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('financial_comprovantes')
             .delete()
-            .eq('id', comprovante.id);
+            .eq('id', comprovante.id)
+            .select();
             
         if (error) throw error;
+        
+        if (!data || data.length === 0) {
+            throw new Error('Registro não removido. Verifique se você tem permissão de Administrador.');
+        }
         
         const { error: storageError } = await supabase.storage
             .from('comprovantes-financeiro')
