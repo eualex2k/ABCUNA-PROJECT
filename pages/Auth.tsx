@@ -4,6 +4,7 @@ import { Button, Input, Card } from '../components/ui';
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { APP_VERSION } from '../lib/version';
 
 interface AuthPageProps {
   onLogin: (user: User) => void;
@@ -393,6 +394,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                 </button>
               )}
             </div>
+          </div>
+          
+          {/* Site Version - Professional Footer */}
+          <div className="fixed bottom-8 left-0 right-0 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+             <div className="flex items-center justify-center gap-2 mb-1">
+                <div className="w-1 h-1 rounded-full bg-slate-300" />
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">ABCUNA SGI</span>
+                <div className="w-1 h-1 rounded-full bg-slate-300" />
+             </div>
+             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-50">Build {APP_VERSION} • 2026 High Security</p>
           </div>
         </div>
       </div>

@@ -23,6 +23,7 @@ import { MENU_ITEMS } from '../constants';
 import { User, Notification as AppNotification, translateRole } from '../types';
 import { Avatar, Button } from './ui';
 import { notificationService } from '../services/notifications';
+import { APP_VERSION } from '../lib/version';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -201,6 +202,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               );
             })}
           </nav>
+
+          {/* Site Version - New Display */}
+          <div className="px-7 py-2 flex items-center gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
+             <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Build {APP_VERSION}</span>
+          </div>
 
           {/* User Profile Footer */}
           <div className="p-4 mt-auto mb-[68px] lg:mb-0 flex-shrink-0">

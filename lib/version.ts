@@ -1,1 +1,1 @@
-export const APP_VERSION = 'v1.6.0'; // Otimização de Armazenamento e Recuperação de Senha
+export const APP_VERSION = 'v2.0.0'; // Módulo de Escalas, Segurança Avançada e Gestão Financeira v2
