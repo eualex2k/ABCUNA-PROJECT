@@ -214,12 +214,14 @@ const App: React.FC = () => {
 
       // Se for um evento de recuperação ou login via recuperação
       const isRecovery = event === 'PASSWORD_RECOVERY' || 
-                        (event === 'SIGNED_IN' && window.location.hash.includes('type=recovery'));
+                        (event === 'SIGNED_IN' && (window.location.hash.includes('type=recovery') || window.location.href.includes('recovery=true')));
 
       if (isRecovery) {
         console.log('Detectado fluxo de recuperação de senha. Redirecionando...');
-        // Limpa o redirecionamento automático da App para focar na troca de senha
-        window.location.hash = '#/reset-password';
+        // Manter o hash ou forçar se necessário
+        if (!window.location.hash.includes('reset-password')) {
+           window.location.hash = '#/reset-password?recovery=true';
+        }
         setIsSessionLoading(false);
         return;
       }

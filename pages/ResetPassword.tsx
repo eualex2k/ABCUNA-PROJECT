@@ -21,8 +21,12 @@ export const ResetPasswordPage: React.FC = () => {
             
             // 2. Fallback: Se não houver sessão, tentar pescar tokens da URL (útil em celulares/HashRouter)
             if (!session) {
-                const hash = window.location.hash || window.location.search;
-                const params = new URLSearchParams(hash.substring(1).replace('#', '&'));
+                // Procurar no hash E na query string
+                const searchStr = window.location.hash.includes('access_token') 
+                    ? window.location.hash.substring(window.location.hash.indexOf('access_token') - 1)
+                    : window.location.search;
+                
+                const params = new URLSearchParams(searchStr.replace('#', '&'));
                 const accessToken = params.get('access_token');
                 const refreshToken = params.get('refresh_token');
 
@@ -38,10 +42,11 @@ export const ResetPasswordPage: React.FC = () => {
 
             if (session) {
                 setIsSessionReady(true);
-            } else if (attempt < 5) {
-                setTimeout(() => checkSession(attempt + 1), 700 * attempt);
+            } else if (attempt < 8) {
+                // Tenta até 8 vezes (mais paciência para mobile)
+                setTimeout(() => checkSession(attempt + 1), 500 * attempt);
             } else {
-                setError('Sessão de segurança não encontrada. Por favor, tente clicar no link do e-mail novamente (ou verifique se o link já expirou).');
+                setError('Sessão de segurança não encontrada. Certifique-se de clicar no link mais recente enviado ao seu e-mail.');
             }
         };
 
