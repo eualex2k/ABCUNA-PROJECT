@@ -125,43 +125,52 @@ const App: React.FC = () => {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // Verificar se houve logout manual - se sim, não restaurar sessão
-          const wasManualLogout = localStorage.getItem('manualLogout');
-          if (wasManualLogout === 'true') {
-            console.log('Logout manual detectado. Não restaurando sessão...');
-            await supabase.auth.signOut();
-            localStorage.removeItem('manualLogout');
-            setIsSessionLoading(false);
-            return;
-          }
+          // Verificar se é uma sessão de recuperação ANTES de aplicar as travas de segurança
+          const isRecoveryInUrl = window.location.hash.includes('type=recovery') || window.location.href.includes('type=recovery');
+          const isRecoveryInSession = session.user.app_metadata?.recovery === true;
 
-          // Verificar se há timestamp de login
-          const lastLoginTime = localStorage.getItem('lastLoginTime');
+          if (isRecoveryInUrl || isRecoveryInSession) {
+             console.log('Sessão de recuperação detectada - Ignorando travas de segurança.');
+             // Durante a recuperação, apenas pulamos para o carregamento do perfil ou reset
+          } else {
+            // Verificar se houve logout manual - se sim, não restaurar sessão
+            const wasManualLogout = localStorage.getItem('manualLogout');
+            if (wasManualLogout === 'true') {
+              console.log('Logout manual detectado. Não restaurando sessão...');
+              await supabase.auth.signOut();
+              localStorage.removeItem('manualLogout');
+              setIsSessionLoading(false);
+              return;
+            }
 
-          if (!lastLoginTime) {
-            // Sessão antiga sem timestamp - fazer logout
-            console.log('Sessão sem timestamp. Fazendo logout para exibir landing page...');
-            await supabase.auth.signOut();
-            setIsSessionLoading(false);
-            return;
-          }
+            // Verificar se há timestamp de login
+            const lastLoginTime = localStorage.getItem('lastLoginTime');
 
-          // Verificar inatividade usando o timestamp mais recente
-          const lastActivityTime = localStorage.getItem('lastActivityTime');
-          const referenceTime = lastActivityTime
-            ? Math.max(parseInt(lastActivityTime, 10), parseInt(lastLoginTime, 10))
-            : parseInt(lastLoginTime, 10);
+            if (!lastLoginTime) {
+              // Sessão antiga sem timestamp - fazer logout
+              console.log('Sessão sem timestamp. Fazendo logout para exibir landing page...');
+              await supabase.auth.signOut();
+              setIsSessionLoading(false);
+              return;
+            }
 
-          const timeSinceActivity = Date.now() - referenceTime;
+            // Verificar inatividade usando o timestamp mais recente
+            const lastActivityTime = localStorage.getItem('lastActivityTime');
+            const referenceTime = lastActivityTime
+              ? Math.max(parseInt(lastActivityTime, 10), parseInt(lastLoginTime, 10))
+              : parseInt(lastLoginTime, 10);
 
-          // Se passou mais de 12 horas de inatividade, fazer logout direto
-          if (timeSinceActivity > TWELVE_HOURS_MS) {
-            console.log('Sessão expirada por inatividade. Fazendo logout...');
-            await supabase.auth.signOut();
-            localStorage.removeItem('lastLoginTime');
-            localStorage.removeItem('lastActivityTime');
-            setIsSessionLoading(false);
-            return;
+            const timeSinceActivity = Date.now() - referenceTime;
+
+            // Se passou mais de 12 horas de inatividade, fazer logout direto
+            if (timeSinceActivity > TWELVE_HOURS_MS) {
+              console.log('Sessão expirada por inatividade. Fazendo logout...');
+              await supabase.auth.signOut();
+              localStorage.removeItem('lastLoginTime');
+              localStorage.removeItem('lastActivityTime');
+              setIsSessionLoading(false);
+              return;
+            }
           }
 
           // Fetch profile details
