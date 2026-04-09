@@ -155,7 +155,8 @@ interface FinancialPageProps {
 }
 
 export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
-  const canEdit = [UserRole.ADMIN, UserRole.FINANCIAL].includes(user.role);
+  const canEdit = [UserRole.ADMIN, UserRole.FINANCIAL].includes(user?.role);
+  const canExport = [UserRole.ADMIN, UserRole.FINANCIAL].includes(user?.role); // Presidente, Vice e Tesoureiro
   const location = useLocation();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [feesList, setFeesList] = useState<FeeRecord[]>(INITIAL_FEES);
@@ -1126,7 +1127,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   // --- End Fee Management Logic ---
 
   const canModifyTransaction = (tx: Transaction) => {
-    if (user.role === UserRole.ADMIN) return true;
+    if (user?.role === UserRole.ADMIN) return true;
     const dateStr = tx.createdAt || tx.date;
     const createdTime = new Date(dateStr).getTime();
     if (isNaN(createdTime)) return false; // Fail safe
@@ -2012,7 +2013,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         onEdit={handleEditTransaction}
         onDelete={handleDeleteTransaction}
         onViewComprovantes={handleViewComprovantes}
-        onExport={handleExportPDF}
+        onExport={canExport ? handleExportPDF : undefined}
         loading={isLoadingTransactions}
         canEdit={canEdit}
       />

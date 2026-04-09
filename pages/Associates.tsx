@@ -15,6 +15,7 @@ interface AssociatesPageProps {
 
 export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
   const canEdit = [UserRole.ADMIN, UserRole.SECRETARY].includes(user.role);
+  const canExport = [UserRole.ADMIN, UserRole.FINANCIAL].includes(user.role); // Presidente, Vice e Tesoureiro
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [associates, setAssociates] = useState<Associate[]>([]);
@@ -195,9 +196,11 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
           <p className="text-slate-500 text-sm">Gestão de bombeiros, estagiários e diretoria da corporação.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={handleExport}>
-            <Download size={18} className="mr-2" /> Exportar CSV
-          </Button>
+          {canExport && (
+            <Button variant="outline" onClick={handleExport}>
+              <Download size={18} className="mr-2" /> Exportar CSV
+            </Button>
+          )}
           {canEdit && (
             <Button onClick={handleOpenNew} className="flex items-center gap-2">
               <Plus size={18} /> Novo Associado
