@@ -15,14 +15,30 @@ export const ResetPasswordPage: React.FC = () => {
     const [isSessionReady, setIsSessionReady] = useState(false);
 
     useEffect(() => {
-        // Aguardar o sistema processar o token (especialmente importante em celulares/4G)
         const checkSession = async (attempt = 1) => {
-            const { data: { session } } = await supabase.auth.getSession();
+            // 1. Tentar pegar sessão atual
+            let { data: { session } } = await supabase.auth.getSession();
             
+            // 2. Fallback: Se não houver sessão, tentar pescar tokens da URL (útil em celulares/HashRouter)
+            if (!session) {
+                const hash = window.location.hash || window.location.search;
+                const params = new URLSearchParams(hash.substring(1).replace('#', '&'));
+                const accessToken = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
+
+                if (accessToken && refreshToken) {
+                    console.log('Tokens detectados manualmente. Tentando validar...');
+                    const { data, error: sessionError } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+                    if (data?.session) session = data.session;
+                }
+            }
+
             if (session) {
                 setIsSessionReady(true);
             } else if (attempt < 5) {
-                // Tenta até 5 vezes com intervalos crescentes
                 setTimeout(() => checkSession(attempt + 1), 700 * attempt);
             } else {
                 setError('Sessão de segurança não encontrada. Por favor, tente clicar no link do e-mail novamente (ou verifique se o link já expirou).');
