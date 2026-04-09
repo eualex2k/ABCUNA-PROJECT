@@ -433,70 +433,176 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         </div>
       </Modal>
 
-      {/* Details Modal */}
-      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Detalhes do Plantão" maxWidth="lg">
+      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Gestão Detalhada do Plantão" maxWidth="2xl">
         {selectedShift && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black uppercase text-slate-800">{selectedShift.team}</h3>
-              <Badge>{selectedShift.status}</Badge>
+          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+            {/* 1. Header & Quick Status Dashboard */}
+            <div className="bg-slate-900 rounded-2xl p-6 text-white overflow-hidden relative shadow-xl">
+               <div className="absolute top-0 right-0 p-4 opacity-10">
+                 <Shield size={120} />
+               </div>
+               
+               <div className="relative z-10">
+                 <div className="flex justify-between items-start mb-4">
+                   <div>
+                     <Badge variant={getStatusColor(selectedShift.status)} className="mb-2 font-black uppercase tracking-widest text-[9px] px-3 py-1">
+                       {selectedShift.status === 'CONFIRMED' ? 'Escala Fechada' : selectedShift.status === 'AWAITING_CONFIRMATION' ? 'Em Confirmação' : 'Aberto para Inscrição'}
+                     </Badge>
+                     <h3 className="text-2xl font-black uppercase tracking-tight leading-none mb-1">{selectedShift.team}</h3>
+                     <div className="flex items-center gap-2 text-slate-400 text-xs font-bold">
+                       <MapPin size={14} className="text-red-500" /> {selectedShift.location}
+                     </div>
+                   </div>
+                   <div className="text-right">
+                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Valor do Plantão</p>
+                     <p className="text-2xl font-black text-emerald-400">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedShift.amount || 0)}</p>
+                   </div>
+                 </div>
+
+                 <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
+                    <div className="text-center">
+                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Vagas</p>
+                      <p className="text-xl font-black">{selectedShift.vacancies}</p>
+                    </div>
+                    <div className="text-center border-x border-white/10 px-2">
+                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Confirmados</p>
+                       <p className="text-xl font-black text-emerald-400">{selectedShift.members.filter(m => m.status === 'CONFIRMED').length}</p>
+                    </div>
+                    <div className="text-center">
+                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Pendentes</p>
+                       <p className="text-xl font-black text-amber-400">{selectedShift.members.filter(m => ['PENDING', 'VOLUNTEER_PENDING'].includes(m.status)).length}</p>
+                    </div>
+                 </div>
+               </div>
             </div>
 
-            {/* Member List Management */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-bold text-slate-700">Equipe Escalada</h4>
-              <div className="bg-slate-50 rounded-xl border border-slate-200 divide-y divide-slate-100">
-                {selectedShift.members.map((m, i) => (
-                  <div key={i} className="p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar alt={m.name} fallback={m.name.substring(0, 2)} />
-                      <div>
-                        <p className="font-bold text-slate-800 text-sm">{m.name}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] uppercase font-bold text-slate-400">{m.type === 'ROTATION' ? 'Rodízio' : 'Voluntário'}</span>
-                          {m.status === 'VOLUNTEER_PENDING' && <Badge variant="warning" className="text-[10px] py-0 px-1">Pendente Aprovação</Badge>}
-                          {m.status === 'CONFIRMED' && <Badge variant="success" className="text-[10px] py-0 px-1">Confirmado</Badge>}
-                          {m.status === 'DECLINED' && <Badge variant="danger" className="text-[10px] py-0 px-1">Recusou</Badge>}
-                        </div>
-                      </div>
-                    </div>
+            {/* 2. Main Logic: Self Action for User */}
+            {selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING' && (
+              <div className="p-5 bg-amber-50 border-2 border-dashed border-amber-200 rounded-2xl text-center shadow-sm">
+                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                   <AlertCircle className="text-amber-600" size={24} />
+                 </div>
+                 <h4 className="font-black text-amber-900 uppercase text-sm mb-1 text-center">Convocação Pendente!</h4>
+                 <p className="text-xs text-amber-700 font-medium mb-4 text-center">Você foi selecionado pelo sistema de rodízio para este plantão.</p>
+                 <div className="flex gap-3 justify-center">
+                    <Button variant="ghost" className="bg-white border-amber-200 text-amber-700 hover:bg-amber-100" onClick={() => handleRespondSummon(selectedShift.id, false)}>Recusar</Button>
+                    <Button className="bg-amber-600 hover:bg-amber-700 shadow-lg shadow-amber-200 min-w-[120px]" onClick={() => handleRespondSummon(selectedShift.id, true)}>Aceitar Agora</Button>
+                 </div>
+              </div>
+            )}
 
-                    {/* Actions for Admin */}
-                    {canEdit && m.status === 'VOLUNTEER_PENDING' && (
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" className="text-red-600" onClick={() => handleRejectVolunteer(selectedShift, m.userId)}><XCircle size={16} /></Button>
-                        <Button size="sm" variant="ghost" className="text-green-600" onClick={() => handleApproveVolunteer(selectedShift, m.userId)}><CheckCircle size={16} /></Button>
+            {/* 3. Members Management Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               {/* Left: Confirmed Members */}
+               <div className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-500" /> Confirmados
+                    </h4>
+                    <span className="text-[10px] font-bold text-slate-400">{selectedShift.members.filter(m => m.status === 'CONFIRMED').length} membros</span>
+                  </div>
+                  
+                  <div className="bg-slate-50 rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden min-h-[100px]">
+                    {selectedShift.members.filter(m => m.status === 'CONFIRMED').map((m, i) => (
+                      <div key={i} className="p-3 flex items-center justify-between group hover:bg-white transition-colors">
+                        <div className="flex items-center gap-3">
+                           <Avatar alt={m.name} fallback={m.name.substring(0, 2)} size="sm" />
+                           <div>
+                             <p className="text-sm font-bold text-slate-800">{m.name}</p>
+                             <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">
+                               {m.type === 'ROTATION' ? 'Convocado' : 'Voluntário'}
+                             </p>
+                           </div>
+                        </div>
+                        <Badge variant="success" className="text-[8px] h-5">Ativo</Badge>
+                      </div>
+                    ))}
+                    {selectedShift.members.filter(m => m.status === 'CONFIRMED').length === 0 && (
+                      <div className="p-8 text-center text-slate-400 flex flex-col items-center">
+                        <Users size={24} className="opacity-20 mb-2" />
+                        <p className="text-[10px] font-black uppercase">Nenhum confirmado</p>
                       </div>
                     )}
                   </div>
-                ))}
-                {selectedShift.members.length === 0 && <p className="p-4 text-center text-slate-400 text-sm">Lista vazia.</p>}
-              </div>
+               </div>
+
+               {/* Right: Pending/Volunteers */}
+               <div className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                       <Clock size={16} className="text-amber-500" /> Aguardando
+                    </h4>
+                    <span className="text-[10px] font-bold text-slate-400">{selectedShift.members.filter(m => ['PENDING', 'VOLUNTEER_PENDING'].includes(m.status)).length} pendentes</span>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden min-h-[100px]">
+                     {selectedShift.members.filter(m => ['PENDING', 'VOLUNTEER_PENDING', 'DECLINED'].includes(m.status)).map((m, i) => (
+                       <div key={i} className={`p-3 flex items-center justify-between group ${m.status === 'DECLINED' ? 'bg-rose-50/30' : 'hover:bg-white'} transition-colors`}>
+                          <div className="flex items-center gap-3">
+                             <div className="relative">
+                               <Avatar alt={m.name} fallback={m.name.substring(0, 2)} size="sm" className={m.status === 'DECLINED' ? 'opacity-50 grayscale' : ''} />
+                               <div className="absolute -bottom-1 -right-1">
+                                 {getMemberStatusIcon(m.status)}
+                               </div>
+                             </div>
+                             <div>
+                               <p className={`text-sm font-bold ${m.status === 'DECLINED' ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{m.name}</p>
+                               <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">
+                                 {m.status === 'VOLUNTEER_PENDING' ? 'Solicitou Vaga' : m.status === 'DECLINED' ? 'Recusou' : 'Aguardando'}
+                               </p>
+                             </div>
+                          </div>
+
+                          {/* Approval Actions for Admin */}
+                          {canEdit && m.status === 'VOLUNTEER_PENDING' && (
+                             <div className="flex gap-1.5 animate-in slide-in-from-right-2">
+                                <button 
+                                  onClick={() => handleRejectVolunteer(selectedShift, m.userId)}
+                                  className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                                  title="Rejeitar"
+                                >
+                                   <Trash2 size={14} />
+                                </button>
+                                <button 
+                                  onClick={() => handleApproveVolunteer(selectedShift, m.userId)}
+                                  className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                  title="Aprovar"
+                                >
+                                   <CheckCircle size={14} />
+                                </button>
+                             </div>
+                          )}
+                       </div>
+                     ))}
+                     {selectedShift.members.filter(m => ['PENDING', 'VOLUNTEER_PENDING', 'DECLINED'].includes(m.status)).length === 0 && (
+                        <div className="p-8 text-center text-slate-400 flex flex-col items-center">
+                          <CheckCircle size={24} className="opacity-20 mb-2" />
+                          <p className="text-[10px] font-black uppercase">Tudo resolvido</p>
+                        </div>
+                     )}
+                  </div>
+               </div>
             </div>
 
-            {/* Self Action inside Modal */}
-            {selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING' && (
-              <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl text-center">
-                <p className="text-amber-800 font-bold mb-2">Você foi convocado para este plantão!</p>
-                <div className="flex gap-2 justify-center">
-                  <Button variant="danger" onClick={() => handleRespondSummon(selectedShift.id, false)}>Recusar</Button>
-                  <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleRespondSummon(selectedShift.id, true)}>Confirmar Presença</Button>
-                </div>
-              </div>
-            )}
-
-            {/* Finalize Button for Admin */}
-            {canEdit && selectedShift.status === 'CONFIRMED' && (
-              <div className="pt-4 border-t border-slate-100 flex justify-end">
-                <Button
-                  onClick={() => handleFinalizeShift(selectedShift)}
-                  className="bg-slate-900 text-white hover:bg-slate-800 shadow-xl"
-                >
-                  <Shield size={18} className="mr-2" /> Finalizar Plantão (Presidente)
-                </Button>
-              </div>
-            )}
-
+            {/* 4. Footer Activity & Admin Controls */}
+            <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+               <div className="flex items-center gap-2 text-slate-400">
+                  <Clock size={14} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Horário: {selectedShift.startTime} às {selectedShift.endTime}</span>
+               </div>
+               
+               <div className="flex gap-3 w-full sm:w-auto">
+                 {canEdit && selectedShift.status === 'CONFIRMED' && (
+                    <Button
+                      onClick={() => handleFinalizeShift(selectedShift)}
+                      className="flex-1 sm:flex-none h-11 bg-slate-900 hover:bg-black text-white px-6 shadow-xl shadow-slate-200"
+                    >
+                      <Shield size={18} className="mr-2" /> Finalizar Plantão
+                    </Button>
+                 )}
+                 <Button variant="outline" className="flex-1 sm:flex-none h-11 px-8 rounded-xl" onClick={() => setIsDetailsOpen(false)}>Fechar Janela</Button>
+               </div>
+            </div>
           </div>
         )}
       </Modal>
