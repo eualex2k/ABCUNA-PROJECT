@@ -12,14 +12,25 @@ export const ResetPasswordPage: React.FC = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
+    const [isSessionReady, setIsSessionReady] = useState(false);
+
     useEffect(() => {
-        // A sessão é estabelecida automaticamente pelo detector no App.tsx
-        // mas podemos forçar uma verificação rápida para garantir
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                console.warn('Iniciando página de reset sem sessão detectada. O Supabase pode levar alguns milissegundos para validar o token.');
+        // Aguardar um pequeno momento para o Supabase processar o token e estabelecer a sessão
+        const timer = setTimeout(async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                setIsSessionReady(true);
+            } else {
+                // Tenta uma última vez após outro intervalo ou avisa erro
+                setTimeout(async () => {
+                    const { data: { session: retrySession } } = await supabase.auth.getSession();
+                    if (retrySession) setIsSessionReady(true);
+                    else setError('Sessão de segurança não encontrada. Por favor, tente clicar no link do e-mail novamente.');
+                }, 1000);
             }
-        });
+        }, 500);
+
+        return () => clearTimeout(timer);
     }, []);
 
     const handleReset = async (e: React.FormEvent) => {
@@ -68,6 +79,17 @@ export const ResetPasswordPage: React.FC = () => {
         );
     }
 
+    if (!isSessionReady && !error) {
+        return (
+            <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
+                <div className="text-center space-y-4">
+                    <Loader2 className="animate-spin text-white mx-auto" size={48} />
+                    <p className="text-slate-400 font-medium animate-pulse">Validando acesso seguro...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
             <div className="max-w-md w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -103,14 +125,14 @@ export const ResetPasswordPage: React.FC = () => {
                         {error && (
                             <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl flex items-center gap-3">
                                 <ShieldCheck size={18} />
-                                {error}
+                                <span className="flex-1">{error}</span>
                             </div>
                         )}
 
                         <Button
                             type="submit"
                             className="w-full h-12 bg-slate-900 hover:bg-black text-white rounded-xl font-bold shadow-lg transition-all"
-                            disabled={isLoading}
+                            disabled={isLoading || !isSessionReady}
                         >
                             {isLoading ? (
                                 <Loader2 className="animate-spin mx-auto" size={24} />

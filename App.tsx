@@ -203,9 +203,10 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event change:', event);
       
-      if (event === 'PASSWORD_RECOVERY') {
-        // Redireciona para a página de reset de senha
-        window.location.hash = '#/reset-password';
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && window.location.hash.includes('type=recovery'))) {
+        // Redireciona para a página de reset de senha de forma limpa
+        window.location.replace('#/reset-password');
+        setIsSessionLoading(false);
         return;
       }
 
