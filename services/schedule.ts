@@ -209,36 +209,13 @@ export const scheduleService = {
 
         if (!shift) throw new Error('Plantão não encontrado');
 
-        let members: ShiftMember[] = [];
-        if (Array.isArray(shift.confirmed_members)) {
-            members = shift.confirmed_members.map((m: any) =>
-                typeof m === 'string'
-                    ? { userId: '', name: m, status: 'CONFIRMED', type: 'ROTATION', joinedAt: new Date().toISOString() }
-                    : m
-            );
-        }
-
-        // Verifica se já está na lista
-        if (members.some(m => m.userId === userId)) {
-            throw new Error('Você já está listado nesta escala.');
-        }
-
-        // Adiciona como voluntário pendente
-        const newMember: ShiftMember = {
-            userId,
-            name: userName,
-            avatar,
-            status: 'VOLUNTEER_PENDING',
-            type: 'VOLUNTEER',
-            joinedAt: new Date().toISOString()
-        };
-
-        const updatedMembers = [...members, newMember];
-
-        const { error } = await supabase
-            .from('schedules')
-            .update({ confirmed_members: updatedMembers })
-            .eq('id', shiftId);
+        // Utiliza o RPC para contornar restrições de RLS para associados comuns
+        const { error } = await supabase.rpc('volunteer_for_shift', {
+            p_shift_id: shiftId,
+            p_user_id: userId,
+            p_user_name: userName,
+            p_user_avatar: avatar
+        });
 
         if (error) throw error;
 
@@ -269,7 +246,7 @@ export const scheduleService = {
      * Membro responde à convocação (ACEITAR / RECUSAR)
      */
     async respondToSummon(shiftId: string, userId: string, accept: boolean): Promise<void> {
-        // 1. Obter plantão
+        // Obter detalhes para a notificação antes de atualizar
         const { data: shift } = await supabase
             .from('schedules')
             .select('*')
@@ -278,32 +255,22 @@ export const scheduleService = {
 
         if (!shift) throw new Error('Plantão não encontrado');
 
-        let members: ShiftMember[] = shift.confirmed_members || [];
+        const members: any[] = shift.confirmed_members || [];
+        const member = members.find(m => m.userId === userId);
+        const memberName = member ? member.name : 'Membro';
 
-        // 2. Atualizar status do membro
-        const memberIndex = members.findIndex(m => m.userId === userId);
-        if (memberIndex === -1) throw new Error('Você não está nesta convocação.');
-
-        if (accept) {
-            members[memberIndex].status = 'CONFIRMED';
-            members[memberIndex].confirmedAt = new Date().toISOString();
-            // REMOVED IN FINAL ADJUSTMENT: Stats increment now happens only on finalizeShift
-        } else {
-            members[memberIndex].status = 'DECLINED';
-        }
-
-        // 3. Salvar
-        const { error } = await supabase
-            .from('schedules')
-            .update({ confirmed_members: members })
-            .eq('id', shiftId);
+        // Utiliza o RPC para contornar restrições de RLS para associados comuns
+        const { error } = await supabase.rpc('respond_to_summon_rpc', {
+            p_shift_id: shiftId,
+            p_user_id: userId,
+            p_accept: accept
+        });
 
         if (error) throw error;
 
         // Se recusou, notificar admin
         if (!accept) {
             const adminIds = await associatesService.getNotificationTargets(['ADMIN', 'SECRETARY']);
-            const memberName = members[memberIndex].name;
             await notificationService.add({
                 title: 'Recusa de Escala',
                 message: `${memberName} recusou a convocação para "${shift.title}". Necessário substituto.`,
