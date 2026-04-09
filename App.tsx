@@ -214,15 +214,18 @@ const App: React.FC = () => {
 
       // Se for um evento de recuperação ou login via recuperação
       const isRecovery = event === 'PASSWORD_RECOVERY' || 
-                        (event === 'SIGNED_IN' && (window.location.hash.includes('type=recovery') || window.location.href.includes('recovery=true')));
+                        (event === 'SIGNED_IN' && window.location.hash.includes('type=recovery'));
 
       if (isRecovery) {
-        console.log('Detectado fluxo de recuperação de senha. Redirecionando...');
-        // Manter o hash ou forçar se necessário
-        if (!window.location.hash.includes('reset-password')) {
-           window.location.hash = '#/reset-password?recovery=true';
-        }
-        setIsSessionLoading(false);
+        console.log('Detectado fluxo de recuperação de senha. Redirecionando com segurança...');
+        // Não usamos window.location.hash direto para não matar os tokens antes da hora
+        setTimeout(() => {
+          setIsSessionLoading(false);
+          // Só muda a rota se ainda não estivermos lá
+          if (!window.location.hash.includes('reset-password')) {
+            window.location.hash = '#/reset-password';
+          }
+        }, 500);
         return;
       }
 
@@ -234,9 +237,11 @@ const App: React.FC = () => {
       }
     });
 
-    // Verificação imediata para URLs de recuperação que o Router ignorou
-    if (window.location.hash.includes('type=recovery') || window.location.href.includes('type=recovery')) {
-       window.location.hash = '#/reset-password';
+    // Verificação imediata: se tivermos um token de recuperação no hash bruto, 
+    // PRECISAMOS deixar o Supabase ler primeiro antes de navegar.
+    if (window.location.hash.includes('type=recovery') && !window.location.hash.includes('reset-password')) {
+       console.log('Aguardando Supabase processar token de recuperação...');
+       // Não faz nada, deixa o onAuthStateChange acima cuidar do redirecionamento
     }
 
     return () => {
