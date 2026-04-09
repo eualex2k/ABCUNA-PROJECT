@@ -273,6 +273,11 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                 <Badge variant={getStatusColor(shift.status)}>
                   {shift.status === 'CONFIRMED' ? 'Confirmado' : shift.status === 'AWAITING_CONFIRMATION' ? 'Em Confirmação' : 'Aberto'}
                 </Badge>
+                {shift.members.some(m => m.status === 'VOLUNTEER_PENDING') && (
+                  <Badge variant="info" className="animate-pulse bg-blue-500 text-white border-none font-black text-[10px]">
+                    SOLICITAÇÃO
+                  </Badge>
+                )}
                 {canEdit && (
                   <div className="flex gap-1">
                     <button onClick={() => { setEditingShift({ ...shift, date: shift.fullDate }); setIsEditModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg">
@@ -310,7 +315,16 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               <div className="space-y-2">
                 <div className="flex justify-between items-end">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Equipe</span>
-                  <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded">{shift.members.filter(m => ['CONFIRMED', 'PENDING'].includes(m.status)).length} / {shift.vacancies}</span>
+                  <div className="flex items-center gap-1.5">
+                    {shift.members.some(m => m.status === 'VOLUNTEER_PENDING') && (
+                      <span className="text-[9px] font-black text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 flex items-center gap-1">
+                        <UserCheck size={10} /> {shift.members.filter(m => m.status === 'VOLUNTEER_PENDING').length} PENDENTE
+                      </span>
+                    )}
+                    <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                      {shift.members.filter(m => ['CONFIRMED', 'PENDING'].includes(m.status)).length} / {shift.vacancies}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex -space-x-2 overflow-hidden py-1">
                   {shift.members.slice(0, 5).map((m, i) => (
@@ -327,8 +341,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
 
               {/* Actions */}
               <div className="pt-2 flex gap-2">
-                <Button variant="ghost" size="sm" className="flex-1 text-xs" onClick={() => { setSelectedShift(shift); setIsDetailsOpen(true); }}>
-                  Ver Detalhes
+                <Button 
+                  variant={shift.members.some(m => m.status === 'VOLUNTEER_PENDING') ? "primary" : "ghost"} 
+                  size="sm" 
+                  className={`flex-1 text-xs ${shift.members.some(m => m.status === 'VOLUNTEER_PENDING') ? 'shadow-md shadow-blue-200 bg-blue-600 hover:bg-blue-700' : ''}`} 
+                  onClick={() => { setSelectedShift(shift); setIsDetailsOpen(true); }}
+                >
+                  {shift.members.some(m => m.status === 'VOLUNTEER_PENDING') ? 'Resolver Solicitação' : 'Ver Detalhes'}
                 </Button>
 
                 {/* Member Self-Actions */}
