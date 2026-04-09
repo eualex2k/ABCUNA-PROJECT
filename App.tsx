@@ -20,6 +20,7 @@ import { SelectionPage } from './pages/Selection';
 import { ProfilePage } from './pages/Profile';
 import { CompanyPage } from './pages/Company';
 import { ResetPasswordPage } from './pages/ResetPassword';
+import { AccessDenied } from './pages/AccessDenied';
 import { User, UserRole } from './types';
 import { notificationService } from './services/notifications';
 import { pushNotificationService } from './services/pushNotifications';
@@ -39,30 +40,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ user, allowedRoles, children }) => {
-  const navigate = useNavigate();
   if (!user) return <Navigate to="/auth" replace />;
   if (!allowedRoles.includes(user.role)) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center p-6 animate-in fade-in duration-500">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 text-center space-y-6">
-          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto ring-8 ring-red-50/50">
-            <Lock size={40} />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black text-slate-900">Acesso Restrito</h2>
-            <p className="text-slate-500 text-sm leading-relaxed font-medium">
-              Você não possui permissões suficientes para acessar esta área do sistema. Entre em contato com a administração se acredita que isso é um erro.
-            </p>
-          </div>
-          <Button
-            onClick={() => navigate('/')}
-            className="w-full flex items-center justify-center gap-2"
-          >
-            <ChevronLeft size={18} /> Voltar ao Início
-          </Button>
-        </div>
-      </div>
-    );
+    return <AccessDenied />;
   }
   return <>{children}</>;
 };

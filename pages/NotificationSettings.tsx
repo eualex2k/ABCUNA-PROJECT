@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Smartphone, Laptop, Trash2, Send, CheckCircle2, ShieldAlert, AlertCircle, RefreshCw, Edit2, Check, ShieldCheck } from 'lucide-react';
 import { Button, Card } from '../components/ui';
-import { User } from '../types';
+import { User, UserRole } from '../types';
 import { supabase } from '../lib/supabase';
 import { pushNotificationService } from '../services/pushNotifications';
 import { notificationService } from '../services/notifications';

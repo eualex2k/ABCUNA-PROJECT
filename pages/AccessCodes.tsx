@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { accessCodeService } from '../services/accessCodes';
-import { AccessCode, UserRole, translateRole } from '../types';
+import { AccessCode, User, UserRole, translateRole } from '../types';
 import { Card, Button, Input, Badge } from '../components/ui';
 import { Copy, Plus, Trash2, Power, Shield, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
 
