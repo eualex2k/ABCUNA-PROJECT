@@ -298,7 +298,7 @@ const App: React.FC = () => {
             <Route path="/" element={<Dashboard user={user} />} />
 
             <Route path="/associates" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <AssociatesPage user={user} />
               </ProtectedRoute>
             } />
@@ -310,49 +310,49 @@ const App: React.FC = () => {
             } />
 
             <Route path="/settings" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <SettingsPage user={user} />
               </ProtectedRoute>
             } />
 
             <Route path="/settings/codes" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <SettingsPage user={user} />
               </ProtectedRoute>
             } />
 
             <Route path="/settings/landing-page" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <SettingsPage user={user} />
               </ProtectedRoute>
             } />
 
             <Route path="/settings/notifications" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <SettingsPage user={user} />
               </ProtectedRoute>
             } />
 
             <Route path="/company" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <CompanyPage user={user} />
               </ProtectedRoute>
             } />
 
             <Route path="/inventory" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <InventoryPage user={user} />
               </ProtectedRoute>
             } />
 
             <Route path="/events" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL, UserRole.ASSOCIATE, UserRole.INSTRUCTOR]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <EventsManagerPage user={user} />
               </ProtectedRoute>
             } />
 
             <Route path="/events/schedule" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL, UserRole.ASSOCIATE, UserRole.INSTRUCTOR]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <EventsManagerPage user={user} />
               </ProtectedRoute>
             } />
@@ -367,13 +367,13 @@ const App: React.FC = () => {
             } />
 
             <Route path="/classroom" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.SECRETARY, UserRole.FINANCIAL]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <ClassroomPage user={user} />
               </ProtectedRoute>
             } />
 
             <Route path="/selection" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.CANDIDATE, UserRole.SECRETARY, UserRole.FINANCIAL, UserRole.INSTRUCTOR]}>
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <SelectionPage user={user} />
               </ProtectedRoute>
             } />
