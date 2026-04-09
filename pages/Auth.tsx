@@ -11,9 +11,10 @@ interface AuthPageProps {
 
 export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
   const navigate = useNavigate();
-  const [isRegister, setIsRegister] = useState(false);
+  const [authMode, setAuthMode] = useState<'LOGIN' | 'REGISTER' | 'RESET'>('LOGIN');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showContent, setShowContent] = useState(false);
 
   // Efeito de entrada suave ao montar
@@ -28,25 +29,70 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
     name: '',
     phone: '',
     accessCode: '',
+    cpfDigits: '', // Novos campos para reset
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
+    setSuccess('');
   };
 
   const handleBackToHome = () => {
     navigate('/');
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      // 1. Verificar se o e-mail existe e se os 4 primeiros dígitos do CPF conferem
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('cpf')
+        .eq('email', formData.email)
+        .single();
+
+      if (profileError || !profile) {
+        throw new Error('E-mail não encontrado no sistema.');
+      }
+
+      const cleanCpf = profile.cpf?.replace(/\D/g, '') || '';
+      const inputDigits = formData.cpfDigits.replace(/\D/g, '');
+
+      if (cleanCpf.substring(0, 4) !== inputDigits) {
+        throw new Error('Os dígitos do CPF não conferem com o e-mail informado.');
+      }
+
+      // 2. Solicitar reset via Supabase
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (resetError) throw resetError;
+
+      setSuccess('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
+      // Limpar campos
+      setFormData({ ...formData, cpfDigits: '' });
+    } catch (err: any) {
+      setError(err.message || 'Erro ao processar solicitação.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (authMode === 'RESET') return handleResetPassword(e);
+
     setIsLoading(true);
     setError('');
 
     try {
-      if (isRegister) {
-        // CADASTRO REAL COM SUPABASE
+      if (authMode === 'REGISTER') {
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -63,17 +109,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
 
         if (data.user) {
           alert('Cadastro realizado com sucesso. Faça login para continuar.');
-          setIsRegister(false);
+          setAuthMode('LOGIN');
           setFormData({
             email: '',
             password: '',
             name: '',
             phone: '',
             accessCode: '',
+            cpfDigits: ''
           });
         }
       } else {
-        // LOGIN REAL
         const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
@@ -121,11 +167,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
 
         {/* Lado Esquerdo - Branding (40%) */}
         <div className="lg:w-[40%] bg-gradient-to-br from-red-800 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
-          {/* Background Decorativo */}
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjFmIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-10"></div>
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-red-600 rounded-full blur-[120px] opacity-20 -ml-20 -mb-20"></div>
 
-          {/* Header Branding */}
           <div className="relative z-10">
             <button
               onClick={handleBackToHome}
@@ -143,16 +187,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
             </div>
 
             <h2 className="text-3xl font-bold leading-tight mb-4 text-white">
-              {isRegister ? 'Solicitar Acesso' : 'Bem-vindo de volta'}
+              {authMode === 'REGISTER' ? 'Solicitar Acesso' : authMode === 'RESET' ? 'Recuperar Senha' : 'Bem-vindo de volta'}
             </h2>
             <p className="text-slate-300 font-light leading-relaxed">
-              {isRegister
+              {authMode === 'REGISTER'
                 ? 'Insira seu código de acesso exclusivo para se juntar à equipe.'
+                : authMode === 'RESET'
+                ? 'Siga os passos para verificar sua identidade e redefinir sua senha.'
                 : 'Acesse o painel de gestão integrada para gerenciar operações e escalas.'}
             </p>
           </div>
 
-          {/* Footer Branding */}
           <div className="relative z-10 mt-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/20 backdrop-blur-md rounded-full border border-green-500/30 text-green-300 text-[10px] font-bold uppercase tracking-wider mb-2">
               <ShieldCheck size={12} />
@@ -170,15 +215,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
 
             <div className="text-center lg:text-left mb-6">
               <h3 className="text-2xl font-bold text-slate-800 mb-1">
-                {isRegister ? 'Criar Nova Conta' : 'Login no Sistema'}
+                {authMode === 'REGISTER' ? 'Criar Nova Conta' : authMode === 'RESET' ? 'Redefinir Senha' : 'Login no Sistema'}
               </h3>
               <p className="text-xs text-slate-500">
-                {isRegister ? 'Preencha seus dados para solicitar cadastro.' : 'Digite suas credenciais para continuar.'}
+                {authMode === 'REGISTER' ? 'Preencha seus dados para solicitar cadastro.' : authMode === 'RESET' ? 'Valide seu e-mail e CPF para prosseguir.' : 'Digite suas credenciais para continuar.'}
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
-              {isRegister && (
+              {authMode === 'REGISTER' && (
                 <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
                   <Input
                     label="Nome Completo"
@@ -214,7 +259,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                 className="h-9 text-sm"
               />
 
-              {isRegister ? (
+              {authMode === 'REGISTER' ? (
                 <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-500 delay-75">
                   <div>
                     <label className="block text-[10px] font-black text-slate-700 uppercase tracking-widest mb-1">
@@ -248,18 +293,43 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                     className="h-9 text-sm"
                   />
                 </div>
+              ) : authMode === 'RESET' ? (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+                  <Input
+                    label="4 Primeiros Dígitos do CPF"
+                    name="cpfDigits"
+                    value={formData.cpfDigits}
+                    onChange={handleInputChange}
+                    required
+                    maxLength={4}
+                    placeholder="0000"
+                    icon={<ShieldCheck size={16} />}
+                    className="h-9 text-sm"
+                  />
+                </div>
               ) : (
-                <Input
-                  label="Senha"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="••••••••"
-                  icon={<Lock size={16} />}
-                  className="h-9 text-sm"
-                />
+                <div className="space-y-1">
+                  <Input
+                    label="Senha"
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="••••••••"
+                    icon={<Lock size={16} />}
+                    className="h-9 text-sm"
+                  />
+                  <div className="flex justify-end">
+                    <button 
+                      type="button"
+                      onClick={() => { setAuthMode('RESET'); setError(''); setSuccess(''); }}
+                      className="text-[10px] font-bold text-slate-400 hover:text-red-600 transition-colors uppercase tracking-widest"
+                    >
+                      Esqueceu a senha?
+                    </button>
+                  </div>
+                </div>
               )}
 
               {error && (
@@ -269,41 +339,59 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                 </div>
               )}
 
+              {success && (
+                <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs rounded-lg flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
+                  <div className="mt-0.5"><ShieldCheck size={14} /></div>
+                  {success}
+                </div>
+              )}
+
               <Button
                 type="submit"
-                className="w-full h-10 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold shadow-lg shadow-red-200 transition-all mt-2 text-sm"
+                className={`w-full h-10 ${authMode === 'RESET' ? 'bg-slate-800 hover:bg-black' : 'bg-red-600 hover:bg-red-700'} text-white rounded-xl font-semibold shadow-lg shadow-slate-200 transition-all mt-2 text-sm`}
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin" size={18} />
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    {isRegister ? 'Finalizar Cadastro' : 'Entrar na Plataforma'}
+                    {authMode === 'REGISTER' ? 'Finalizar Cadastro' : authMode === 'RESET' ? 'Solicitar Recuperação' : 'Entrar na Plataforma'}
                     <ArrowRight size={16} />
                   </span>
                 )}
               </Button>
             </form>
 
-            <div className="pt-4 border-t border-slate-100 text-center mt-4">
+            <div className="pt-4 border-t border-slate-100 text-center mt-4 space-y-3">
               <button
                 onClick={() => {
-                  setIsRegister(!isRegister);
+                  setAuthMode(authMode === 'LOGIN' ? 'REGISTER' : 'LOGIN');
                   setError('');
+                  setSuccess('');
                   setFormData({
                     email: '',
                     password: '',
                     name: '',
                     phone: '',
                     accessCode: '',
+                    cpfDigits: ''
                   });
                 }}
-                className="text-xs text-slate-500 hover:text-red-700 font-medium transition-colors"
+                className="text-xs text-slate-500 hover:text-red-700 font-medium transition-colors block w-full"
               >
-                {isRegister
+                {authMode === 'REGISTER'
                   ? 'Já possui uma conta? Fazer Login'
                   : 'Não tem acesso? Utilizar Código de Convite'}
               </button>
+
+              {authMode === 'RESET' && (
+                <button
+                  onClick={() => { setAuthMode('LOGIN'); setError(''); setSuccess(''); }}
+                  className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  Voltar para o Login
+                </button>
+              )}
             </div>
           </div>
         </div>
