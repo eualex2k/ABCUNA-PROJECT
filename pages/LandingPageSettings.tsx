@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { Card, Button, Input, Textarea } from '../components/ui';
 import { landingPageService } from '../services/landingPage';
-import { LandingPageConfig, User } from '../types';
+import { LandingPageConfig, User, UserRole } from '../types';
 import { notificationService } from '../services/notifications';
 
 // --- Componentes Auxiliares (DEFINIDOS FORA DO COMPONENTE PRINCIPAL PARA EVITAR TREMOR) ---
