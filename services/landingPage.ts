@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { LandingPageConfig } from '../types';
+import { compressImage } from '../utils/imageCompression';
 
 export const landingPageService = {
     async get(): Promise<LandingPageConfig | null> {
@@ -39,13 +40,16 @@ export const landingPageService = {
     },
 
     async uploadImage(file: File): Promise<string> {
+        // Comprimir imagem para o site (máx 1920px)
+        const compressedFile = await compressImage(file, 1920, 0.85);
+
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `landing-page/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-            .from('public-assets') // Assuming a public bucket exists
-            .upload(filePath, file);
+            .from('public-assets')
+            .upload(filePath, compressedFile);
 
         if (uploadError) throw uploadError;
 

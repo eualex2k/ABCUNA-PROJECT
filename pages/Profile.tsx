@@ -14,6 +14,7 @@ interface ProfilePageProps {
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
   const [formData, setFormData] = useState<User>(user);
+  const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -21,14 +22,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, avatar: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+      // Mostrar preview imediato
+      const previewUrl = URL.createObjectURL(file);
+      setFormData({ ...formData, avatar: previewUrl });
+      // Guardar arquivo para upload no submit
+      setNewAvatarFile(file);
     }
   };
 
@@ -37,8 +38,30 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
     setIsLoading(true);
 
     try {
-      await profileService.update(user.id, formData);
-      onUpdate(formData);
+      let avatarUrl = formData.avatar;
+
+      // Se houver uma nova foto, fazer upload
+      if (newAvatarFile) {
+        const { compressImage } = await import('../utils/imageCompression');
+        const compressed = await compressImage(newAvatarFile, 400, 0.7); // Fotos de perfil não precisam ser grandes
+        
+        const fileName = `avatar_${user.id}_${Date.now()}.jpg`;
+        const { error: uploadError } = await supabase.storage
+          .from('public-assets')
+          .upload(`avatars/${fileName}`, compressed);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from('public-assets')
+          .getPublicUrl(`avatars/${fileName}`);
+        
+        avatarUrl = data.publicUrl;
+      }
+
+      const updatedData = { ...formData, avatar: avatarUrl };
+      await profileService.update(user.id, updatedData);
+      onUpdate(updatedData);
 
       notificationService.add({
         title: 'Perfil Atualizado',

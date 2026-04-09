@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Transaction, FinancialComprovante, FinancialAuditLog } from '../types';
+import { compressImage } from '../utils/imageCompression';
 
 export const financialService = {
     async logAudit(transaction_id: string, action: string, detalhes: any = {}) {
@@ -138,13 +139,16 @@ export const financialService = {
     },
 
     async uploadComprovante(file: File): Promise<string> {
+        // Comprimir imagem antes do upload para economizar espaço
+        const compressedFile = await compressImage(file, 1600, 0.75);
+        
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { error: uploadError } = await supabase.storage
             .from('comprovantes-financeiro')
-            .upload(filePath, file);
+            .upload(filePath, compressedFile);
 
         if (uploadError) {
             console.error('Error uploading comprovante:', uploadError);
