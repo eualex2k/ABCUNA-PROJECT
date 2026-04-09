@@ -47,14 +47,15 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
   const initialFormState: Partial<Shift> = {
     team: '',
     leader: '',
-    status: 'PENDING',
+    status: 'OPEN',
     location: '',
     startTime: '08:00',
     endTime: '20:00',
     amount: 0,
-    organizer: 'Administração',
+    organizer: 'ABCUNA',
     vacancies: 5,
-    date: new Date().toISOString().split('T')[0]
+    fullDate: new Date().toISOString().split('T')[0],
+    description: ''
   };
 
   const [newShift, setNewShift] = useState<Partial<Shift>>(initialFormState);
@@ -63,47 +64,26 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
 
   const handleCreateShift = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newShift.team && newShift.date) {
-      try {
-        const shiftData: Omit<Shift, 'id'> = {
-          day: new Date(newShift.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long' }),
-          date: new Date(newShift.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-          fullDate: newShift.date,
-          team: newShift.team!,
-          leader: newShift.leader || 'A definir',
-          status: 'PENDING',
-          location: newShift.location || 'Sede',
-          startTime: newShift.startTime || '08:00',
-          endTime: newShift.endTime || '20:00',
-          amount: newShift.amount || 0,
-          organizer: newShift.organizer || 'Administração',
-          vacancies: newShift.vacancies || 5,
-          members: [] // Starts empty
-        };
-
-        await scheduleService.create(shiftData);
-        loadShifts();
-        setIsModalOpen(false);
-        setNewShift(initialFormState);
-      } catch (error) {
-        alert('Erro ao criar plantão.');
-      }
+    try {
+      await scheduleService.create(newShift as any);
+      setIsModalOpen(false);
+      setNewShift(initialFormState);
+      loadShifts();
+      alert('Plantão lançado com sucesso!');
+    } catch (error) {
+      alert('Erro ao criar plantão.');
     }
   };
 
   const handleUpdateShift = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingShift.id && editingShift.team && editingShift.date) {
+    if (editingShift && editingShift.id) {
       try {
-        const updatedData: Partial<Shift> = {
-          ...editingShift,
-          day: new Date(editingShift.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long' }),
-          date: new Date(editingShift.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-          fullDate: editingShift.date
-        };
-        await scheduleService.update(editingShift.id, updatedData);
-        await loadShifts();
+        await scheduleService.update(editingShift.id, editingShift);
         setIsEditModalOpen(false);
+        setEditingShift({}); // Clear state
+        loadShifts();
+        alert('Plantão atualizado com sucesso!');
       } catch (error) {
         alert('Erro ao atualizar plantão.');
       }
@@ -608,35 +588,96 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       </Modal>
 
       {/* Create Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Lançar Novo Plantão">
-        <form onSubmit={handleCreateShift} className="space-y-4">
-          <Input label="Título da Equipe" value={newShift.team} onChange={e => setNewShift({ ...newShift, team: e.target.value })} required />
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Data" type="date" value={newShift.date} onChange={e => setNewShift({ ...newShift, date: e.target.value })} required />
-            <Input label="Local" value={newShift.location} onChange={e => setNewShift({ ...newShift, location: e.target.value })} required />
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão" maxWidth="2xl">
+        <form onSubmit={handleCreateShift} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="md:col-span-2">
+              <Input label="Título da Equipe / Evento" value={newShift.team} onChange={e => setNewShift({ ...newShift, team: e.target.value })} required placeholder="Ex: Equipe de Apoio - Arena Verão" />
+            </div>
+
+            <Input label="Data do Plantão" type="date" value={newShift.fullDate} onChange={e => setNewShift({ ...newShift, fullDate: e.target.value })} required />
+            <Input label="Local / Sede" value={newShift.location} onChange={e => setNewShift({ ...newShift, location: e.target.value })} required placeholder="Ex: Sede ABCUNA" />
+
+            <Input label="Horário Início" type="time" value={newShift.startTime} onChange={e => setNewShift({ ...newShift, startTime: e.target.value })} required />
+            <Input label="Horário Fim" type="time" value={newShift.endTime} onChange={e => setNewShift({ ...newShift, endTime: e.target.value })} required />
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Vagas Disponíveis</label>
+              <Input type="number" value={newShift.vacancies} onChange={e => setNewShift({ ...newShift, vacancies: parseInt(e.target.value) })} required />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Valor Ajuda de Custo (R$)</label>
+              <Input type="number" step="0.01" value={newShift.amount} onChange={e => setNewShift({ ...newShift, amount: parseFloat(e.target.value) })} required />
+            </div>
+
+            <Input label="Líder do Plantão" value={newShift.leader} onChange={e => setNewShift({ ...newShift, leader: e.target.value })} placeholder="Nome do responsável" />
+            <Input label="Organizador" value={newShift.organizer} onChange={e => setNewShift({ ...newShift, organizer: e.target.value })} placeholder="Ex: ABCUNA, Particular" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Início" type="time" value={newShift.startTime} onChange={e => setNewShift({ ...newShift, startTime: e.target.value })} required />
-            <Input label="Fim" type="time" value={newShift.endTime} onChange={e => setNewShift({ ...newShift, endTime: e.target.value })} required />
+
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-700">Descrição e Orientações</label>
+            <textarea
+              value={newShift.description}
+              onChange={e => setNewShift({ ...newShift, description: e.target.value })}
+              rows={3}
+              placeholder="Descreva detalhes importantes..."
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all resize-none"
+            />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Vagas" type="number" value={newShift.vacancies} onChange={e => setNewShift({ ...newShift, vacancies: parseInt(e.target.value) })} required />
-            <Input label="Valor (R$)" type="number" value={newShift.amount} onChange={e => setNewShift({ ...newShift, amount: parseFloat(e.target.value) })} />
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-            <Button type="submit">Criar</Button>
+
+          <div className="flex gap-3 pt-4 border-t border-slate-100">
+            <Button variant="ghost" type="button" className="flex-1 h-11" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+            <Button type="submit" className="flex-1 h-11 bg-slate-900 hover:bg-black text-white shadow-xl shadow-slate-200 font-black">
+              <Check className="mr-2" size={18} /> Criar Plantão
+            </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Edit Modal (Simplified logic similar to create) */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Editar Plantão">
-        <form onSubmit={handleUpdateShift} className="space-y-4">
-          <Input label="Título" value={editingShift.team} onChange={e => setEditingShift({ ...editingShift, team: e.target.value })} />
-          {/* ... simplified for brevity, similar fields ... */}
-          <div className="flex justify-end gap-2">
-            <Button type="submit">Salvar</Button>
+      {/* Edit Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="⚙️ Editar Configurações do Plantão" maxWidth="2xl">
+        <form onSubmit={handleUpdateShift} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="md:col-span-2">
+              <Input label="Título da Equipe" value={editingShift.team} onChange={e => setEditingShift({ ...editingShift, team: e.target.value })} required />
+            </div>
+
+            <Input label="Data" type="date" value={editingShift.fullDate} onChange={e => setEditingShift({ ...editingShift, fullDate: e.target.value })} required />
+            <Input label="Local" value={editingShift.location} onChange={e => setEditingShift({ ...editingShift, location: e.target.value })} required />
+
+            <Input label="Início" type="time" value={editingShift.startTime} onChange={e => setEditingShift({ ...editingShift, startTime: e.target.value })} required />
+            <Input label="Fim" type="time" value={editingShift.endTime} onChange={e => setEditingShift({ ...editingShift, endTime: e.target.value })} required />
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Vagas</label>
+              <Input type="number" value={editingShift.vacancies} onChange={e => setEditingShift({ ...editingShift, vacancies: parseInt(e.target.value) })} required />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Valor (R$)</label>
+              <Input type="number" step="0.01" value={editingShift.amount} onChange={e => setEditingShift({ ...editingShift, amount: parseFloat(e.target.value) })} required />
+            </div>
+
+            <Input label="Líder" value={editingShift.leader} onChange={e => setEditingShift({ ...editingShift, leader: e.target.value })} />
+            <Input label="Organizador" value={editingShift.organizer} onChange={e => setEditingShift({ ...editingShift, organizer: e.target.value })} />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-700">Descrição</label>
+            <textarea
+              value={editingShift.description}
+              onChange={e => setEditingShift({ ...editingShift, description: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all resize-none"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-slate-100">
+            <Button variant="ghost" type="button" className="flex-1 h-11" onClick={() => setIsEditModalOpen(false)}>Descartar</Button>
+            <Button type="submit" className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-black">
+              <Check className="mr-2" size={18} /> Salvar Alterações
+            </Button>
           </div>
         </form>
       </Modal>
