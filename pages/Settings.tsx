@@ -86,7 +86,7 @@ export const SettingsPage: React.FC<SettingsProps> = ({ user }) => {
                 {/* Content Area */}
                 <div className="fade-in-up">
                     {activeTab === 'codes' ? (
-                        <AccessCodesPage />
+                        <AccessCodesPage user={user} />
                     ) : activeTab === 'landing' ? (
                         <LandingPageSettings user={user} />
                     ) : (

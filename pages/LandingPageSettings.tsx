@@ -131,6 +131,8 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
         }
     });
 
+    const isAdmin = user.role === UserRole.ADMIN;
+
     useEffect(() => {
         loadConfig();
     }, []);
@@ -297,25 +299,27 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                     <h2 className="text-2xl font-bold text-slate-900">Editor da Página Inicial</h2>
                     <p className="text-slate-500 text-sm">Personalize o conteúdo da sua Landing Page</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Button
-                        onClick={handleSave}
-                        className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 shadow-md shadow-red-900/10"
-                        disabled={saving}
-                    >
-                        {saving ? (
-                            <>
-                                <Loader2 size={18} className="animate-spin" />
-                                Salvando...
-                            </>
-                        ) : (
-                            <>
-                                <Save size={18} />
-                                Salvar Alterações
-                            </>
-                        )}
-                    </Button>
-                </div>
+                {isAdmin && (
+                    <div className="flex items-center gap-3">
+                        <Button
+                            onClick={handleSave}
+                            className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 shadow-md shadow-red-900/10"
+                            disabled={saving}
+                        >
+                            {saving ? (
+                                <>
+                                    <Loader2 size={18} className="animate-spin" />
+                                    Salvando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save size={18} />
+                                    Salvar Alterações
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* Info Banner */}
@@ -384,38 +388,39 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                     />
                 </div>
 
-                {/* Hero Image Section - Mantida mas simplificada */}
-                <div className="pt-4 border-t border-slate-100">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Imagem de Fundo (Opcional)
-                    </label>
-                    <div className="flex items-center gap-4">
-                        {config.hero_image_url && (
-                            <div className="w-20 h-20 rounded-lg overflow-hidden border border-slate-200">
-                                <img
-                                    src={config.hero_image_url}
-                                    alt="Hero"
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        )}
-                        <div className="flex-1">
-                            <label className="cursor-pointer">
-                                <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 w-fit">
-                                    <Upload size={16} />
-                                    Escolher Imagem
+                {isAdmin && (
+                    <div className="pt-4 border-t border-slate-100">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Imagem de Fundo (Opcional)
+                        </label>
+                        <div className="flex items-center gap-4">
+                            {config.hero_image_url && (
+                                <div className="w-20 h-20 rounded-lg overflow-hidden border border-slate-200">
+                                    <img
+                                        src={config.hero_image_url}
+                                        alt="Hero"
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageUpload}
-                                    className="hidden"
-                                    disabled={uploading}
-                                />
-                            </label>
+                            )}
+                            <div className="flex-1">
+                                <label className="cursor-pointer">
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 w-fit">
+                                        <Upload size={16} />
+                                        Escolher Imagem
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        className="hidden"
+                                        disabled={uploading}
+                                    />
+                                </label>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </SectionCard>
 
             {/* About Section */}
@@ -480,9 +485,11 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
             >
                 <div className="flex items-center justify-between mb-4">
                     <p className="text-sm text-slate-600">Recomendado: 4 serviços principais</p>
-                    <Button onClick={addService} size="sm" className="flex items-center gap-2">
-                        <Plus size={16} /> Adicionar
-                    </Button>
+                    {isAdmin && (
+                        <Button onClick={addService} size="sm" className="flex items-center gap-2">
+                            <Plus size={16} /> Adicionar
+                        </Button>
+                    )}
                 </div>
 
                 {config.services && config.services.length > 0 ? (
@@ -502,13 +509,15 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                                         onChange={(e) => updateService(index, 'description', e.target.value)}
                                     />
                                 </div>
-                                <button
-                                    onClick={() => removeService(index)}
-                                    className="text-red-500 hover:text-red-700 p-2 md:mt-2"
-                                    title="Remover Serviço"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => removeService(index)}
+                                        className="text-red-500 hover:text-red-700 p-2 md:mt-2"
+                                        title="Remover Serviço"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -614,20 +623,22 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                             </div>
                         ))}
 
-                        <label className="cursor-pointer border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center p-4 hover:border-red-400 hover:bg-red-50 transition-colors aspect-video">
-                            <Upload size={24} className="text-slate-400 mb-2" />
-                            <span className="text-xs font-medium text-slate-600 text-center">
-                                {uploading ? 'Enviando...' : 'Adicionar Fotos'}
-                            </span>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={handleGalleryUpload}
-                                className="hidden"
-                                disabled={uploading}
-                            />
-                        </label>
+                        {isAdmin && (
+                            <label className="cursor-pointer border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center p-4 hover:border-red-400 hover:bg-red-50 transition-colors aspect-video">
+                                <Upload size={24} className="text-slate-400 mb-2" />
+                                <span className="text-xs font-medium text-slate-600 text-center">
+                                    {uploading ? 'Enviando...' : 'Adicionar Fotos'}
+                                </span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleGalleryUpload}
+                                    className="hidden"
+                                    disabled={uploading}
+                                />
+                            </label>
+                        )}
                     </div>
                     <p className="text-xs text-slate-500">
                         <Info size={12} className="inline mr-1" />

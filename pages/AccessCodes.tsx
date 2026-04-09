@@ -4,7 +4,12 @@ import { AccessCode, UserRole, translateRole } from '../types';
 import { Card, Button, Input, Badge } from '../components/ui';
 import { Copy, Plus, Trash2, Power, Shield, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-export const AccessCodesPage: React.FC = () => {
+interface AccessCodesPageProps {
+  user: User;
+}
+
+export const AccessCodesPage: React.FC<AccessCodesPageProps> = ({ user }) => {
+  const isAdmin = user.role === UserRole.ADMIN;
   const [codes, setCodes] = useState<AccessCode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -69,9 +74,11 @@ export const AccessCodesPage: React.FC = () => {
           <h2 className="text-2xl font-bold text-slate-900">Códigos de Acesso</h2>
           <p className="text-slate-500 text-sm">Gerencie os tokens de registro e permissões do sistema.</p>
         </div>
-        <Button onClick={() => setIsCreating(!isCreating)} className="flex items-center gap-2">
-          {isCreating ? 'Cancelar' : <><Plus size={18} /> Novo Código</>}
-        </Button>
+        {isAdmin && (
+          <Button onClick={() => setIsCreating(!isCreating)} className="flex items-center gap-2">
+            {isCreating ? 'Cancelar' : <><Plus size={18} /> Novo Código</>}
+          </Button>
+        )}
       </div>
 
       {isCreating && (
@@ -171,27 +178,29 @@ export const AccessCodesPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-slate-50 border-t md:border-t-0 md:border-l border-slate-100 p-4 md:h-full flex md:flex-col gap-2 justify-center w-full md:w-auto min-w-[140px]">
-                  <Button
-                    variant={code.active ? 'outline' : 'secondary'}
-                    size="sm"
-                    className={`w-full ${code.active ? 'text-green-600 border-green-200 hover:bg-green-50' : ''}`}
-                    onClick={() => handleToggle(code.id, code.active)}
-                  >
-                    {code.active ? <><Power size={14} className="mr-2" /> Ativo</> : <><AlertCircle size={14} className="mr-2" /> Inativo</>}
-                  </Button>
-
-                  {!code.isSystem && (
+                {isAdmin && (
+                  <div className="bg-slate-50 border-t md:border-t-0 md:border-l border-slate-100 p-4 md:h-full flex md:flex-col gap-2 justify-center w-full md:w-auto min-w-[140px]">
                     <Button
-                      variant="ghost"
+                      variant={code.active ? 'outline' : 'secondary'}
                       size="sm"
-                      className="w-full text-red-500 hover:bg-red-50 hover:text-red-700"
-                      onClick={() => handleDelete(code.id)}
+                      className={`w-full ${code.active ? 'text-green-600 border-green-200 hover:bg-green-50' : ''}`}
+                      onClick={() => handleToggle(code.id, code.active)}
                     >
-                      <Trash2 size={14} className="mr-2" /> Excluir
+                      {code.active ? <><Power size={14} className="mr-2" /> Ativo</> : <><AlertCircle size={14} className="mr-2" /> Inativo</>}
                     </Button>
-                  )}
-                </div>
+
+                    {!code.isSystem && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-red-500 hover:bg-red-50 hover:text-red-700"
+                        onClick={() => handleDelete(code.id)}
+                      >
+                        <Trash2 size={14} className="mr-2" /> Excluir
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </Card>
           );
