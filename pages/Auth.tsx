@@ -49,33 +49,33 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
     setSuccess('');
 
     try {
-      // 1. Verificar se o e-mail existe e se os 4 primeiros dígitos do CPF conferem
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('cpf')
-        .eq('email', formData.email)
-        .single();
-
-      if (profileError || !profile) {
-        throw new Error('E-mail não encontrado no sistema.');
-      }
-
-      const cleanCpf = profile.cpf?.replace(/\D/g, '') || '';
+      const inputEmail = formData.email.trim().toLowerCase();
       const inputDigits = formData.cpfDigits.replace(/\D/g, '');
 
-      if (cleanCpf.substring(0, 4) !== inputDigits) {
-        throw new Error('Os dígitos do CPF não conferem com o e-mail informado.');
+      if (inputDigits.length !== 4) {
+        throw new Error('Informe exatamente os 4 primeiros dígitos do seu CPF.');
+      }
+
+      // 1. Verificar os dados via função segura (RPC) para contornar o RLS de usuários deslogados
+      const { data: isValid, error: rpcError } = await supabase.rpc('verify_reset_data', {
+        p_email: inputEmail,
+        p_cpf_prefix: inputDigits
+      });
+
+      if (rpcError) throw rpcError;
+
+      if (!isValid) {
+        throw new Error('E-mail não cadastrado ou dados de verificação incorretos. Verifique se o seu CPF está preenchido no perfil.');
       }
 
       // 2. Solicitar reset via Supabase
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(formData.email, {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(inputEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (resetError) throw resetError;
 
       setSuccess('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
-      // Limpar campos
       setFormData({ ...formData, cpfDigits: '' });
     } catch (err: any) {
       setError(err.message || 'Erro ao processar solicitação.');
