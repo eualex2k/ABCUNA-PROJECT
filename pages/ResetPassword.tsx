@@ -15,22 +15,21 @@ export const ResetPasswordPage: React.FC = () => {
     const [isSessionReady, setIsSessionReady] = useState(false);
 
     useEffect(() => {
-        // Aguardar um pequeno momento para o Supabase processar o token e estabelecer a sessão
-        const timer = setTimeout(async () => {
+        // Aguardar o sistema processar o token (especialmente importante em celulares/4G)
+        const checkSession = async (attempt = 1) => {
             const { data: { session } } = await supabase.auth.getSession();
+            
             if (session) {
                 setIsSessionReady(true);
+            } else if (attempt < 5) {
+                // Tenta até 5 vezes com intervalos crescentes
+                setTimeout(() => checkSession(attempt + 1), 700 * attempt);
             } else {
-                // Tenta uma última vez após outro intervalo ou avisa erro
-                setTimeout(async () => {
-                    const { data: { session: retrySession } } = await supabase.auth.getSession();
-                    if (retrySession) setIsSessionReady(true);
-                    else setError('Sessão de segurança não encontrada. Por favor, tente clicar no link do e-mail novamente.');
-                }, 1000);
+                setError('Sessão de segurança não encontrada. Por favor, tente clicar no link do e-mail novamente (ou verifique se o link já expirou).');
             }
-        }, 500);
+        };
 
-        return () => clearTimeout(timer);
+        checkSession();
     }, []);
 
     const handleReset = async (e: React.FormEvent) => {
