@@ -188,10 +188,16 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
 
   const getDisplayValue = () => {
     if (isDate && props.value) {
-      const date = new Date(props.value as string + 'T12:00:00');
-      return date.toLocaleDateString('pt-BR');
+      try {
+        const date = new Date(props.value as string + 'T12:00:00');
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('pt-BR');
+        }
+      } catch (e) {
+        console.error("Date formatting error", e);
+      }
     }
-    return props.value;
+    return props.value || '';
   };
 
   return (
@@ -233,9 +239,11 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
           onClose={() => setIsCalendarOpen(false)}
           value={props.value as string}
           onChange={(val) => {
+            // Se for nulo ou vazio, passa vazio
+            const finalVal = val || '';
             const event = {
-                target: { value: val },
-                currentTarget: { value: val }
+                target: { value: finalVal, name: props.name },
+                currentTarget: { value: finalVal, name: props.name }
             } as any;
             if (props.onChange) props.onChange(event);
             setIsCalendarOpen(false);
@@ -256,11 +264,27 @@ interface DatePickerModalProps {
 
 const DatePickerModal: React.FC<DatePickerModalProps> = ({ isOpen, onClose, value, onChange }) => {
     const today = new Date();
-    const currentVal = value ? new Date(value + 'T12:00:00') : today;
     
-    const [viewDate, setViewDate] = React.useState(new Date(currentVal.getFullYear(), currentVal.getMonth(), 1));
+    // Garantir que temos uma data válida para visualização inicial
+    const getInitialDate = () => {
+        if (!value) return today;
+        const d = new Date(value + 'T12:00:00');
+        return isNaN(d.getTime()) ? today : d;
+    };
+
+    const [viewDate, setViewDate] = React.useState(new Date(getInitialDate().getFullYear(), getInitialDate().getMonth(), 1));
     const [view, setView] = React.useState<'DAYS' | 'MONTHS' | 'YEARS'>('DAYS');
     const [yearSearch, setYearSearch] = React.useState('');
+
+    // Sincronizar quando o modal abre ou o valor muda externamente
+    React.useEffect(() => {
+        if (isOpen) {
+            const current = getInitialDate();
+            setViewDate(new Date(current.getFullYear(), current.getMonth(), 1));
+            setView('DAYS');
+            setYearSearch('');
+        }
+    }, [isOpen, value]);
 
     const monthName = viewDate.toLocaleString('pt-BR', { month: 'long' });
     const year = viewDate.getFullYear();
