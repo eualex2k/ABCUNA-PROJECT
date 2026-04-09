@@ -189,7 +189,12 @@ const App: React.FC = () => {
               avatar: profile.avatar_url,
               phone: profile.phone,
               cpf: profile.cpf,
-              bio: profile.bio
+              bio: profile.bio,
+              birthDate: profile.birth_date,
+              susNumber: profile.sus_number,
+              registrationNumber: profile.registration_number,
+              bloodType: profile.blood_type,
+              address: profile.address
             };
             setUser(appUser);
             notificationService.setCurrentUser(profile.id);
