@@ -21,6 +21,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
     const [editingDevice, setEditingDevice] = useState<string | null>(null);
     const [editName, setEditName] = useState('');
 
+    const isAdmin = user.role === UserRole.ADMIN;
+
     const [broadcastTitle, setBroadcastTitle] = useState('');
     const [broadcastMessage, setBroadcastMessage] = useState('');
     const [broadcastTarget, setBroadcastTarget] = useState<'me' | 'all'>('me');
@@ -362,76 +364,77 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
 
                 {/* Lado Direito - Preferências & Testes */}
                 <div className="space-y-6">
-                    {/* Central de Transmissão (Broadcast) */}
-                    <Card className="p-0 overflow-hidden border-brand-200">
-                        <div className="bg-brand-600 p-6 flex items-center gap-3">
-                            <Send size={24} className="text-white opacity-90" />
-                            <div>
-                                <h3 className="font-bold text-lg text-white">Central de Transmissão</h3>
-                                <p className="text-brand-100 text-sm">Crie avisos instantâneos via Push</p>
-                            </div>
-                        </div>
-                        <div className="p-6 space-y-5 bg-white">
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">Público Alvo</label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 cursor-pointer group">
-                                        <input 
-                                            type="radio" 
-                                            name="target" 
-                                            className="w-4 h-4 text-brand-500 focus:ring-brand-500 border-slate-300"
-                                            checked={broadcastTarget === 'me'}
-                                            onChange={() => setBroadcastTarget('me')}
-                                        />
-                                        <span className="text-sm font-medium text-slate-700 group-hover:text-brand-600">Apenas Mim (Teste)</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer group">
-                                        <input 
-                                            type="radio" 
-                                            name="target" 
-                                            className="w-4 h-4 text-red-500 focus:ring-red-500 border-slate-300"
-                                            checked={broadcastTarget === 'all'}
-                                            onChange={() => setBroadcastTarget('all')}
-                                        />
-                                        <span className="text-sm font-medium text-slate-700 group-hover:text-red-600">Todos os Usuários Ativos</span>
-                                    </label>
+                    {isAdmin && (
+                        <Card className="p-0 overflow-hidden border-brand-200">
+                            <div className="bg-brand-600 p-6 flex items-center gap-3">
+                                <Send size={24} className="text-white opacity-90" />
+                                <div>
+                                    <h3 className="font-bold text-lg text-white">Central de Transmissão</h3>
+                                    <p className="text-brand-100 text-sm">Crie avisos instantâneos via Push</p>
                                 </div>
                             </div>
+                            <div className="p-6 space-y-5 bg-white">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">Público Alvo</label>
+                                    <div className="flex gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <input 
+                                                type="radio" 
+                                                name="target" 
+                                                className="w-4 h-4 text-brand-500 focus:ring-brand-500 border-slate-300"
+                                                checked={broadcastTarget === 'me'}
+                                                onChange={() => setBroadcastTarget('me')}
+                                            />
+                                            <span className="text-sm font-medium text-slate-700 group-hover:text-brand-600">Apenas Mim (Teste)</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <input 
+                                                type="radio" 
+                                                name="target" 
+                                                className="w-4 h-4 text-red-500 focus:ring-red-500 border-slate-300"
+                                                checked={broadcastTarget === 'all'}
+                                                onChange={() => setBroadcastTarget('all')}
+                                            />
+                                            <span className="text-sm font-medium text-slate-700 group-hover:text-red-600">Todos os Usuários Ativos</span>
+                                        </label>
+                                    </div>
+                                </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">Título do Alerta</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Ex: Reunião Urgente hoje às 20h"
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
-                                    value={broadcastTitle}
-                                    onChange={e => setBroadcastTitle(e.target.value)}
-                                />
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">Título do Alerta</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Ex: Reunião Urgente hoje às 20h"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                        value={broadcastTitle}
+                                        onChange={e => setBroadcastTitle(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">Mensagem</label>
+                                    <textarea 
+                                        placeholder="Escreva a mensagem que aparecerá na tela..."
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 min-h-[100px] resize-none"
+                                        value={broadcastMessage}
+                                        onChange={e => setBroadcastMessage(e.target.value)}
+                                    />
+                                </div>
+
+                                <Button 
+                                    onClick={handleBroadcastPush} 
+                                    disabled={testing || permissionStatus !== 'granted'} 
+                                    className={`w-full py-3 shadow-lg ${broadcastTarget === 'all' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-brand-500 hover:bg-brand-600 shadow-brand-500/20'}`}
+                                >
+                                    {testing ? 'Transmitindo...' : (
+                                        <span className="flex items-center gap-2">
+                                            <Send size={18} /> {broadcastTarget === 'all' ? 'Disparar para a Base Inteira' : 'Enviar Teste Local'}
+                                        </span>
+                                    )}
+                                </Button>
                             </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">Mensagem</label>
-                                <textarea 
-                                    placeholder="Escreva a mensagem que aparecerá na tela..."
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 min-h-[100px] resize-none"
-                                    value={broadcastMessage}
-                                    onChange={e => setBroadcastMessage(e.target.value)}
-                                />
-                            </div>
-
-                            <Button 
-                                onClick={handleBroadcastPush} 
-                                disabled={testing || permissionStatus !== 'granted'} 
-                                className={`w-full py-3 shadow-lg ${broadcastTarget === 'all' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-brand-500 hover:bg-brand-600 shadow-brand-500/20'}`}
-                            >
-                                {testing ? 'Transmitindo...' : (
-                                    <span className="flex items-center gap-2">
-                                        <Send size={18} /> {broadcastTarget === 'all' ? 'Disparar para a Base Inteira' : 'Enviar Teste Local'}
-                                    </span>
-                                )}
-                            </Button>
-                        </div>
-                    </Card>
+                        </Card>
+                    )}
 
                     <Card className="p-6">
                         <div className="flex items-center gap-3 mb-6">
