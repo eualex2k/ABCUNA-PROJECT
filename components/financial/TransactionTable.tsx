@@ -44,14 +44,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                         Histórico Financeiro
                         <Badge variant="neutral" className="ml-2">{filteredTransactions.length}</Badge>
                     </h3>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-9 font-bold text-xs uppercase tracking-wider"
-                        onClick={onExport}
-                    >
-                        <Download size={14} className="mr-2" /> Exportar PDF
-                    </Button>
+                    {onExport && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-9 font-bold text-xs uppercase tracking-wider"
+                            onClick={onExport}
+                        >
+                            <Download size={14} className="mr-2" /> Exportar PDF
+                        </Button>
+                    )}
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4">
