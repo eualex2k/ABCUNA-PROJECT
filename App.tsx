@@ -200,12 +200,23 @@ const App: React.FC = () => {
     checkSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth event change:', event);
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        // Redireciona para a página de reset de senha
+        window.location.hash = '#/reset-password';
+        return;
+      }
+
       if (!session) {
         setUser(null);
         localStorage.removeItem('lastLoginTime');
         localStorage.removeItem('lastActivityTime');
         setIsSessionLoading(false);
+      } else if (event === 'SIGNED_IN') {
+        // No caso de login normal (não recovery), o checkSession ou o handleLogin já cuidam disso
+        // Mas se o SIGNED_IN vier sem o usuário estar setado, podemos buscar o perfil aqui
       }
     });
 

@@ -68,9 +68,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
         throw new Error('E-mail não cadastrado ou dados de verificação incorretos. Verifique se o seu CPF está preenchido no perfil.');
       }
 
-      // 2. Solicitar reset via Supabase - Usamos /#/ pois o sistema usa HashRouter
+      // 2. Solicitar reset via Supabase - Mandamos para a raiz para o Supabase capturar o token corretamente
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(inputEmail, {
-        redirectTo: `${window.location.origin}/#/reset-password`,
+        redirectTo: window.location.origin,
       });
 
       if (resetError) throw resetError;

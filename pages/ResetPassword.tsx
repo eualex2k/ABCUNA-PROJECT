@@ -13,15 +13,13 @@ export const ResetPasswordPage: React.FC = () => {
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        // Verificar se temos uma sessão ativa (o Supabase cria uma sessão automática ao clicar no link de reset)
-        const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
+        // A sessão é estabelecida automaticamente pelo detector no App.tsx
+        // mas podemos forçar uma verificação rápida para garantir
+        supabase.auth.getSession().then(({ data: { session } }) => {
             if (!session) {
-                // Se não houver sessão, redireciona para o login ou avisa
-                console.log('Nenhuma sessão ativa encontrada para reset de senha.');
+                console.warn('Iniciando página de reset sem sessão detectada. O Supabase pode levar alguns milissegundos para validar o token.');
             }
-        };
-        checkSession();
+        });
     }, []);
 
     const handleReset = async (e: React.FormEvent) => {
