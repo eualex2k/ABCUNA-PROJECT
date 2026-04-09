@@ -349,6 +349,7 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } />
 
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/profile" element={<ProfilePage user={user} onUpdate={handleUpdateUser} />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
