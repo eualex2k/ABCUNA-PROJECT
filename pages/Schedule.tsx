@@ -184,7 +184,18 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         return m;
       });
       await scheduleService.updateMembers(shift.id, updatedMembers);
+      
+      // Notificar o voluntário sobre a aprovação
+      await notificationService.add({
+        title: 'Inscrição Aprovada!',
+        message: `Sua solicitação para entrar no plantão "${shift.team}" foi aprovada.`,
+        type: 'SCHEDULE',
+        link: '/events/schedule',
+        targetUserIds: [memberId]
+      });
+
       await loadShifts();
+      alert('Voluntário aprovado com sucesso!');
     } catch (error) {
       alert('Erro ao aprovar voluntário.');
     }
@@ -195,7 +206,17 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       try {
         const updatedMembers = shift.members.filter(m => m.userId !== memberId);
         await scheduleService.updateMembers(shift.id, updatedMembers);
+        
+        // Notificar o voluntário sobre a rejeição
+        await notificationService.add({
+          title: 'Pedido de Inscrição',
+          message: `Infelizmente sua solicitação para o plantão "${shift.team}" não foi aceita desta vez.`,
+          type: 'SCHEDULE',
+          targetUserIds: [memberId]
+        });
+
         await loadShifts();
+        alert('Solicitação rejeitada.');
       } catch (error) {
         alert('Erro ao rejeitar voluntário.');
       }
@@ -203,9 +224,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
   };
 
   const handleRespondSummon = async (shiftId: string, accept: boolean) => {
+    const action = accept ? 'CONFIRMAR presença' : 'RECUSAR esta convocação';
+    if (!confirm(`Deseja realmente ${action}?`)) return;
+
     try {
       await scheduleService.respondToSummon(shiftId, user.id, accept);
       await loadShifts();
+      alert(accept ? 'Escala confirmada com sucesso!' : 'Convocação recusada. O administrador será notificado.');
       if (isDetailsOpen) setIsDetailsOpen(false); // Close modal to refresh or show success
     } catch (error: any) {
       alert('Erro: ' + error.message);
