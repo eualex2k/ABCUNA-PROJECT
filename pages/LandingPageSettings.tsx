@@ -162,6 +162,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
     };
 
     const handleSave = async () => {
+        if (!isAdmin) return;
         try {
             setSaving(true);
             await landingPageService.update(config);
@@ -354,6 +355,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                     value={config.hero_title}
                     onChange={(e) => setConfig({ ...config, hero_title: e.target.value })}
                     placeholder="Ex: ABCUNA"
+                    readOnly={!isAdmin}
                 />
 
                 <Textarea
@@ -366,6 +368,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                     onChange={(e) => setConfig({ ...config, hero_subtitle: e.target.value })}
                     placeholder="Ex: Excelência em salvar vidas..."
                     rows={2}
+                    readOnly={!isAdmin}
                 />
 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -378,6 +381,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                         value={config.hero_badge_text || ''}
                         onChange={(e) => setConfig({ ...config, hero_badge_text: e.target.value })}
                         placeholder="Ex: Desde 2020"
+                        readOnly={!isAdmin}
                     />
 
                     <Input
@@ -385,6 +389,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                         value={config.cta_button_text || ''}
                         onChange={(e) => setConfig({ ...config, cta_button_text: e.target.value })}
                         placeholder="Ex: Área do Associado"
+                        readOnly={!isAdmin}
                     />
                 </div>
 
@@ -437,6 +442,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                     value={config.about_title || ''}
                     onChange={(e) => setConfig({ ...config, about_title: e.target.value })}
                     placeholder="Ex: Nossa Essência"
+                    readOnly={!isAdmin}
                 />
 
                 <Textarea
@@ -445,6 +451,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                     onChange={(e) => setConfig({ ...config, about_text: e.target.value })}
                     placeholder="Resumo principal sobre a organização..."
                     rows={4}
+                    readOnly={!isAdmin}
                 />
 
                 <div className="grid md:grid-cols-3 gap-4">
@@ -454,6 +461,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                         onChange={(e) => setConfig({ ...config, mission_text: e.target.value })}
                         rows={3}
                         placeholder="Nossa missão..."
+                        readOnly={!isAdmin}
                     />
 
                     <Textarea
@@ -462,6 +470,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                         onChange={(e) => setConfig({ ...config, vision_text: e.target.value })}
                         rows={3}
                         placeholder="Nossa visão..."
+                        readOnly={!isAdmin}
                     />
 
                     <Textarea
@@ -470,6 +479,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                         onChange={(e) => setConfig({ ...config, values_text: e.target.value })}
                         rows={3}
                         placeholder="Nossos valores..."
+                        readOnly={!isAdmin}
                     />
                 </div>
             </SectionCard>
@@ -502,11 +512,13 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                                         value={service.title}
                                         onChange={(e) => updateService(index, 'title', e.target.value)}
                                         className="font-bold"
+                                        readOnly={!isAdmin}
                                     />
                                     <Input
                                         placeholder="Descrição breve..."
                                         value={service.description}
                                         onChange={(e) => updateService(index, 'description', e.target.value)}
+                                        readOnly={!isAdmin}
                                     />
                                 </div>
                                 {isAdmin && (
@@ -546,6 +558,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                             contact: { ...config.contact, phone: e.target.value }
                         })}
                         placeholder="(00) 00000-0000"
+                        readOnly={!isAdmin}
                     />
                     <Input
                         label="E-mail"
@@ -555,6 +568,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                             contact: { ...config.contact, email: e.target.value }
                         })}
                         placeholder="contato@exemplo.com"
+                        readOnly={!isAdmin}
                     />
                     <Input
                         label="Endereço / Localização"
@@ -564,6 +578,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                             contact: { ...config.contact, address: e.target.value }
                         })}
                         placeholder="Cidade - UF"
+                        readOnly={!isAdmin}
                     />
                 </div>
 
@@ -580,6 +595,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                                 social: { ...config.social, facebook: e.target.value }
                             })}
                             placeholder="https://facebook.com/..."
+                            readOnly={!isAdmin}
                         />
                         <Input
                             label="Instagram"
@@ -589,6 +605,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                                 social: { ...config.social, instagram: e.target.value }
                             })}
                             placeholder="https://instagram.com/..."
+                            readOnly={!isAdmin}
                         />
                     </div>
                 </div>
@@ -611,15 +628,17 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({ user }
                         {config.gallery_images?.map((img, idx) => (
                             <div key={idx} className="relative group aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
                                 <img src={img} alt={`Galeria ${idx}`} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <button
-                                        onClick={() => removeGalleryImage(idx)}
-                                        className="p-2 bg-white text-red-600 rounded-full hover:bg-red-50 transition-colors"
-                                        title="Remover Imagem"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
+                                {isAdmin && (
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button
+                                            onClick={() => removeGalleryImage(idx)}
+                                            className="p-2 bg-white text-red-600 rounded-full hover:bg-red-50 transition-colors"
+                                            title="Remover Imagem"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))}
 
