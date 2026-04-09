@@ -201,18 +201,32 @@ const App: React.FC = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event change:', event);
-      
+      console.log('App Auth Event:', event);
+
+      // Se for um evento de recuperação ou login via recuperação
+      const isRecovery = event === 'PASSWORD_RECOVERY' || 
+                        (event === 'SIGNED_IN' && window.location.hash.includes('type=recovery'));
+
+      if (isRecovery) {
+        console.log('Detectado fluxo de recuperação de senha. Redirecionando...');
+        // Limpa o redirecionamento automático da App para focar na troca de senha
+        window.location.hash = '#/reset-password';
+        setIsSessionLoading(false);
+        return;
+      }
+
       if (!session) {
         setUser(null);
         localStorage.removeItem('lastLoginTime');
         localStorage.removeItem('lastActivityTime');
         setIsSessionLoading(false);
-      } else if (event === 'SIGNED_IN') {
-        // No caso de login normal (não recovery), o checkSession ou o handleLogin já cuidam disso
-        // Mas se o SIGNED_IN vier sem o usuário estar setado, podemos buscar o perfil aqui
       }
     });
+
+    // Verificação imediata para URLs de recuperação que o Router ignorou
+    if (window.location.hash.includes('type=recovery') || window.location.href.includes('type=recovery')) {
+       window.location.hash = '#/reset-password';
+    }
 
     return () => {
       subscription.unsubscribe();
