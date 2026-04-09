@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RefreshCcw, Calendar, User, Plus, MapPin, Clock, DollarSign, Users, FileText, CheckCircle2, Shield, HardHat, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Loader2, UserCheck } from 'lucide-react';
+import { RefreshCcw, Calendar, User, Plus, MapPin, Clock, DollarSign, Users, FileText, CheckCircle2, Shield, HardHat, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Loader2, UserCheck, Check } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input, Avatar } from '../components/ui';
 import { notificationService } from '../services/notifications';
 import { scheduleService } from '../services/schedule';
