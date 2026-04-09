@@ -19,6 +19,7 @@ import { ClassroomPage } from './pages/Classroom';
 import { SelectionPage } from './pages/Selection';
 import { ProfilePage } from './pages/Profile';
 import { CompanyPage } from './pages/Company';
+import { ResetPasswordPage } from './pages/ResetPassword';
 import { User, UserRole } from './types';
 import { notificationService } from './services/notifications';
 import { pushNotificationService } from './services/pushNotifications';
@@ -354,6 +355,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage onLogin={handleLogin} />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       )}
