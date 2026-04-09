@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Calendar, Loader2, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { X, Calendar, Loader2, ChevronLeft, ChevronRight, Check, ChevronDown, Search } from 'lucide-react';
 
 // --- Skeleton Component ---
 export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
@@ -259,6 +259,8 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({ isOpen, onClose, valu
     const currentVal = value ? new Date(value + 'T12:00:00') : today;
     
     const [viewDate, setViewDate] = React.useState(new Date(currentVal.getFullYear(), currentVal.getMonth(), 1));
+    const [view, setView] = React.useState<'DAYS' | 'MONTHS' | 'YEARS'>('DAYS');
+    const [yearSearch, setYearSearch] = React.useState('');
 
     const monthName = viewDate.toLocaleString('pt-BR', { month: 'long' });
     const year = viewDate.getFullYear();
@@ -269,57 +271,142 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({ isOpen, onClose, valu
     const prevMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
     const nextMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
 
-    const days = [];
-    // Spacers for first day
-    for (let i = 0; i < firstDayOfMonth; i++) {
-        days.push(<div key={`empty-${i}`} className="h-10 w-10" />);
+    const months = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    const years = [];
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear + 10; y >= 1900; y--) {
+        if (yearSearch === '' || y.toString().includes(yearSearch)) {
+            years.push(y);
+        }
     }
 
-    for (let d = 1; d <= daysInMonth; d++) {
-        const dateStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const isSelected = value === dateStr;
-        const isToday = today.toISOString().split('T')[0] === dateStr;
+    const renderDays = () => {
+        const days = [];
+        for (let i = 0; i < firstDayOfMonth; i++) {
+            days.push(<div key={`empty-${i}`} className="h-11 w-11" />);
+        }
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const isSelected = value === dateStr;
+            const isToday = today.toISOString().split('T')[0] === dateStr;
 
-        days.push(
-            <button
-                key={d}
-                type="button"
-                onClick={() => onChange(dateStr)}
-                className={`h-11 w-11 rounded-xl flex items-center justify-center text-sm font-bold transition-all
-                    ${isSelected ? 'bg-slate-900 text-white shadow-lg' : isToday ? 'text-brand-600 bg-brand-50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-            >
-                {d}
-            </button>
-        );
-    }
+            days.push(
+                <button
+                    key={d}
+                    type="button"
+                    onClick={() => onChange(dateStr)}
+                    className={`h-11 w-11 rounded-xl flex items-center justify-center text-sm font-bold transition-all
+                        ${isSelected ? 'bg-slate-900 text-white shadow-lg' : isToday ? 'text-brand-600 bg-brand-50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                >
+                    {d}
+                </button>
+            );
+        }
+        return days;
+    };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Selecionar Data" maxWidth="sm">
-            <div className="p-1">
+            <div className="p-1 min-h-[400px] flex flex-col">
                 <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight">{monthName}</h4>
-                        <p className="text-[10px] font-black text-slate-400 tracking-[0.2em]">{year}</p>
+                    <div className="flex flex-col">
+                        <button 
+                            type="button" 
+                            onClick={() => setView(view === 'MONTHS' ? 'DAYS' : 'MONTHS')}
+                            className={`text-lg font-black uppercase tracking-tight flex items-center gap-1 transition-colors ${view === 'MONTHS' ? 'text-brand-600' : 'text-slate-900 hover:text-brand-600'}`}
+                        >
+                            {monthName}
+                            <ChevronDown size={14} className={`transition-transform duration-300 ${view === 'MONTHS' ? 'rotate-180' : ''}`} />
+                        </button>
+                        <button 
+                            type="button" 
+                            onClick={() => setView(view === 'YEARS' ? 'DAYS' : 'YEARS')}
+                            className={`text-[10px] font-black tracking-[0.2em] flex items-center gap-1 transition-colors ${view === 'YEARS' ? 'text-brand-600' : 'text-slate-400 hover:text-brand-600'}`}
+                        >
+                            {year}
+                            <ChevronDown size={10} className={`transition-transform duration-300 ${view === 'YEARS' ? 'rotate-180' : ''}`} />
+                        </button>
                     </div>
-                    <div className="flex gap-1">
-                        <button type="button" onClick={prevMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900"><ChevronLeft size={20} /></button>
-                        <button type="button" onClick={nextMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900"><ChevronRight size={20} /></button>
-                    </div>
+                    {view === 'DAYS' && (
+                        <div className="flex gap-1">
+                            <button type="button" onClick={prevMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900"><ChevronLeft size={20} /></button>
+                            <button type="button" onClick={nextMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900"><ChevronRight size={20} /></button>
+                        </div>
+                    )}
                 </div>
 
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                    {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, idx) => (
-                        <div key={idx} className="h-10 w-11 flex items-center justify-center text-[10px] font-black text-slate-300 uppercase tracking-widest">{day}</div>
-                    ))}
+                <div className="relative flex-1">
+                    {view === 'DAYS' && (
+                        <div className="animate-in fade-in duration-300">
+                             <div className="grid grid-cols-7 gap-1 mb-2">
+                                {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, idx) => (
+                                    <div key={idx} className="h-10 w-11 flex items-center justify-center text-[10px] font-black text-slate-300 uppercase tracking-widest">{day}</div>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-7 gap-1">
+                                {renderDays()}
+                            </div>
+                        </div>
+                    )}
+
+                    {view === 'MONTHS' && (
+                        <div className="grid grid-cols-3 gap-2 animate-in fade-in zoom-in-95 duration-200">
+                            {months.map((m, i) => (
+                                <button
+                                    key={m}
+                                    type="button"
+                                    onClick={() => {
+                                        setViewDate(new Date(viewDate.getFullYear(), i, 1));
+                                        setView('DAYS');
+                                    }}
+                                    className={`py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewDate.getMonth() === i ? 'bg-brand-600 text-white shadow-lg' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                                >
+                                    {m.substring(0, 3)}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {view === 'YEARS' && (
+                        <div className="flex flex-col h-full animate-in fade-in zoom-in-95 duration-200">
+                            <div className="mb-4 relative">
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input 
+                                    autoFocus
+                                    type="text" 
+                                    placeholder="Buscar ano..." 
+                                    className="w-full h-10 pl-9 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold focus:outline-none focus:border-brand-500"
+                                    value={yearSearch}
+                                    onChange={e => setYearSearch(e.target.value)}
+                                />
+                            </div>
+                            <div className="grid grid-cols-4 gap-2 overflow-y-auto max-h-[220px] pr-2 custom-scrollbar">
+                                {years.map(y => (
+                                    <button
+                                        key={y}
+                                        type="button"
+                                        onClick={() => {
+                                            setViewDate(new Date(y, viewDate.getMonth(), 1));
+                                            setView('DAYS');
+                                            setYearSearch('');
+                                        }}
+                                        className={`py-2 rounded-lg text-[11px] font-black transition-all ${viewDate.getFullYear() === y ? 'bg-brand-600 text-white shadow-lg' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                                    >
+                                        {y}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                <div className="grid grid-cols-7 gap-1">
-                    {days}
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-slate-50 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <div className="mt-auto pt-4 border-t border-slate-50 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     <span>Hoje: {today.toLocaleDateString('pt-BR')}</span>
-                    <button type="button" onClick={() => onChange(today.toISOString().split('T')[0])} className="text-brand-600 hover:underline">Ir para hoje</button>
+                    <button type="button" onClick={() => { onChange(today.toISOString().split('T')[0]); setView('DAYS'); }} className="text-brand-600 hover:underline">Ir para hoje</button>
                 </div>
             </div>
         </Modal>
