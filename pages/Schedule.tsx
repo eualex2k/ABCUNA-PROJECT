@@ -127,26 +127,40 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
     e.preventDefault();
     try {
       // Se houver um líder designado, o status inicial é aguardando confirmação do líder.
-      // Caso contrário, fica Pendente para o Administrador geral gerar o rodízio.
       const initialStatus = newShift.leader ? 'AWAITING_CONFIRMATION' : 'PENDING';
-      await scheduleService.create({ ...newShift, status: initialStatus } as any);
+      
+      // IMPORTANTE: Incluir o líder como membro para que ele possa responder à convocação
+      const initialMembers: any[] = [];
+      const leaderProfile = directors.find(d => d.name === newShift.leader);
+      
+      if (leaderProfile) {
+        initialMembers.push({
+          userId: leaderProfile.id,
+          name: leaderProfile.name,
+          status: 'PENDING',
+          type: 'ROTATION',
+          joinedAt: new Date().toISOString()
+        });
+      }
+
+      await scheduleService.create({ 
+        ...newShift, 
+        status: initialStatus,
+        members: initialMembers
+      } as any);
       
       setIsModalOpen(false);
       setNewShift(initialFormState);
       loadShifts();
       
-      if (newShift.leader) {
-        // Enviar notificação para o líder (presumindo que encontramos o ID dele pelo nome)
-        const leaderProfile = directors.find(d => d.name === newShift.leader);
-        if (leaderProfile) {
-          notificationService.add({
-            title: 'Designação de Líder',
-            message: `Você foi designado como líder do plantão "${newShift.team}" em ${newShift.fullDate}. Por favor, confirme sua presença.`,
-            type: 'SCHEDULE',
-            link: '/events/schedule',
-            targetUserIds: [leaderProfile.id]
-          });
-        }
+      if (leaderProfile) {
+        notificationService.add({
+          title: 'Designação de Líder',
+          message: `Você foi designado como líder do plantão "${newShift.team}" em ${newShift.fullDate}. Por favor, confirme sua presença.`,
+          type: 'SCHEDULE',
+          link: '/events/schedule',
+          targetUserIds: [leaderProfile.id]
+        });
       }
       
       alert(newShift.leader ? 'Plantão enviado para o líder confirmar!' : 'Plantão lançado com sucesso!');
@@ -159,9 +173,26 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
     e.preventDefault();
     if (editingShift && editingShift.id) {
       try {
-        await scheduleService.update(editingShift.id, editingShift);
+        // Garantir que o líder esteja nos membros se ele mudou
+        const updatedShift = { ...editingShift };
+        const leaderProfile = directors.find(d => d.name === updatedShift.leader);
+        
+        if (leaderProfile && !updatedShift.members?.some(m => m.userId === leaderProfile.id)) {
+           const members = [...(updatedShift.members || [])];
+           members.push({
+             userId: leaderProfile.id,
+             name: leaderProfile.name,
+             status: 'PENDING',
+             type: 'ROTATION',
+             joinedAt: new Date().toISOString()
+           });
+           updatedShift.members = members;
+           updatedShift.status = 'AWAITING_CONFIRMATION';
+        }
+
+        await scheduleService.update(editingShift.id, updatedShift);
         setIsEditModalOpen(false);
-        setEditingShift({}); // Clear state
+        setEditingShift({}); 
         loadShifts();
         alert('Plantão atualizado com sucesso!');
       } catch (error) {
