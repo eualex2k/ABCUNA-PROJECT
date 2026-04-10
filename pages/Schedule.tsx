@@ -4,6 +4,8 @@ import { Card, Button, Badge, Modal, Input, Avatar } from '../components/ui';
 import { notificationService } from '../services/notifications';
 import { scheduleService } from '../services/schedule';
 import { Shift, User as ProfileUser, UserRole, ShiftMember, ShiftStatus } from '../types';
+import { supabase } from '../lib/supabase';
+import { Search, Info } from 'lucide-react';
 
 interface SchedulePageProps {
   user: ProfileUser;
@@ -16,9 +18,49 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
   const [shifts, setShifts] = useState<Shift[]>(INITIAL_SHIFTS);
   const [loading, setLoading] = useState(false);
 
+  const [directors, setDirectors] = React.useState<{id: string, name: string}[]>([]);
+
   React.useEffect(() => {
     loadShifts();
+    loadDirectors();
+
+    // Configurar Realtime
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escutar todos os eventos (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'schedules'
+        },
+        (payload) => {
+          console.log('Mudança detectada no banco de dados:', payload);
+          loadShifts(); // Recarregar dados automaticamente
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  const loadDirectors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('role', [UserRole.ADMIN, UserRole.SECRETARY, UserRole.FINANCIAL, UserRole.INSTRUCTOR])
+        .eq('status', 'ACTIVE');
+      
+      if (data) {
+        setDirectors(data.map(d => ({ id: d.id, name: d.full_name })));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar diretoria:', error);
+    }
+  };
 
   const loadShifts = async () => {
     try {
@@ -421,7 +463,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         </div>
       </Modal>
 
-      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Gestão Detalhada do Plantão" maxWidth="2xl">
+      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Gestão Detalhada do Plantão" maxWidth="3xl">
         {selectedShift && (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
             {/* 1. Header & Quick Status Dashboard */}
@@ -596,7 +638,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       </Modal>
 
       {/* Create Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão" maxWidth="2xl">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão" maxWidth="3xl">
         <form onSubmit={handleCreateShift} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
@@ -619,7 +661,20 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               <Input type="number" step="0.01" value={newShift.amount} onChange={e => setNewShift({ ...newShift, amount: parseFloat(e.target.value) })} required />
             </div>
 
-            <Input label="Líder do Plantão" value={newShift.leader} onChange={e => setNewShift({ ...newShift, leader: e.target.value })} placeholder="Nome do responsável" />
+            <div className="space-y-2 relative">
+              <Input 
+                label="Líder do Plantão" 
+                list="directors-list"
+                value={newShift.leader} 
+                onChange={e => setNewShift({ ...newShift, leader: e.target.value })} 
+                placeholder="Busque ou digite o nome do responsável" 
+              />
+              <datalist id="directors-list">
+                {directors.map(d => (
+                  <option key={d.id} value={d.name} />
+                ))}
+              </datalist>
+            </div>
             <Input label="Organizador" value={newShift.organizer} onChange={e => setNewShift({ ...newShift, organizer: e.target.value })} placeholder="Ex: ABCUNA, Particular" />
           </div>
 
@@ -644,7 +699,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="⚙️ Editar Configurações do Plantão" maxWidth="2xl">
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="⚙️ Editar Configurações do Plantão" maxWidth="3xl">
         <form onSubmit={handleUpdateShift} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
@@ -667,7 +722,19 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               <Input type="number" step="0.01" value={editingShift.amount} onChange={e => setEditingShift({ ...editingShift, amount: parseFloat(e.target.value) })} required />
             </div>
 
-            <Input label="Líder" value={editingShift.leader} onChange={e => setEditingShift({ ...editingShift, leader: e.target.value })} />
+            <div className="space-y-2">
+              <Input 
+                label="Líder" 
+                list="directors-list-edit"
+                value={editingShift.leader} 
+                onChange={e => setEditingShift({ ...editingShift, leader: e.target.value })} 
+              />
+              <datalist id="directors-list-edit">
+                {directors.map(d => (
+                  <option key={d.id} value={d.name} />
+                ))}
+              </datalist>
+            </div>
             <Input label="Organizador" value={editingShift.organizer} onChange={e => setEditingShift({ ...editingShift, organizer: e.target.value })} />
           </div>
 

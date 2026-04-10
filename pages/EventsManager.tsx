@@ -47,6 +47,16 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
                 {/* Tabs Navigation */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white p-2 rounded-xl border border-slate-200 shadow-sm w-fit">
                     <button
+                        onClick={() => handleTabChange('schedule')}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'schedule'
+                                ? 'bg-red-600 text-white shadow-md'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-red-600'
+                            }`}
+                    >
+                        <RefreshCcw size={18} />
+                        Plantão
+                    </button>
+                    <button
                         onClick={() => handleTabChange('events')}
                         className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'events'
                                 ? 'bg-red-600 text-white shadow-md'
@@ -56,24 +66,14 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
                         <CalendarDays size={18} />
                         Eventos Gerais
                     </button>
-                    <button
-                        onClick={() => handleTabChange('schedule')}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'schedule'
-                                ? 'bg-red-600 text-white shadow-md'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-red-600'
-                            }`}
-                    >
-                        <RefreshCcw size={18} />
-                        Escala de Serviço
-                    </button>
                 </div>
 
                 {/* Content Area */}
                 <div className="fade-in-up">
-                    {activeTab === 'events' ? (
-                        <EventsPage user={user} />
-                    ) : (
+                    {activeTab === 'schedule' ? (
                         <SchedulePage user={user} />
+                    ) : (
+                        <EventsPage user={user} />
                     )}
                 </div>
             </div>
