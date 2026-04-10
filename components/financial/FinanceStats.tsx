@@ -6,6 +6,8 @@ interface FinanceStatsProps {
     totalBalance: number;
     monthlyIncome: number;
     monthlyExpense: number;
+    incomeTrend?: number;
+    expenseTrend?: number;
     overdueCount: number;
     loading?: boolean;
 }
@@ -14,11 +16,18 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
     totalBalance,
     monthlyIncome,
     monthlyExpense,
+    incomeTrend = 0,
+    expenseTrend = 0,
     overdueCount,
     loading = false
 }) => {
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    };
+
+    const formatTrend = (val: number) => {
+        const prefix = val >= 0 ? '+' : '';
+        return `${prefix}${val.toFixed(0)}%`;
     };
 
     return (
@@ -33,14 +42,16 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
                 title="Entradas (Mês)"
                 value={formatCurrency(monthlyIncome)}
                 icon={<ArrowUpCircle size={24} className="text-emerald-500" />}
-                trend="+12%" // Exemplo, pode ser calculado depois
-                trendUp={true}
+                trend={formatTrend(incomeTrend)}
+                trendUp={incomeTrend >= 0}
                 loading={loading}
             />
             <StatCard
                 title="Saídas (Mês)"
                 value={formatCurrency(monthlyExpense)}
                 icon={<ArrowDownCircle size={24} className="text-red-500" />}
+                trend={formatTrend(expenseTrend)}
+                trendUp={expenseTrend <= 0} // Saída menor é trend up
                 loading={loading}
             />
             <StatCard

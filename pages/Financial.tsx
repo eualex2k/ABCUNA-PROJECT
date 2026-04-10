@@ -173,8 +173,39 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       return (b.createdAt || '').localeCompare(a.createdAt || '');
     });
   const totalBalance = completedTransactions.reduce((acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0);
-  const totalIncome = completedTransactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
-  const totalExpense = completedTransactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
+  
+  // Dynamic monthly stats & trends
+  const { currentMonthIncome, lastMonthIncome, currentMonthExpense, lastMonthExpense } = React.useMemo(() => {
+    const now = new Date();
+    const curM = now.getMonth();
+    const curY = now.getFullYear();
+    const lastM = curM === 0 ? 11 : curM - 1;
+    const lastY = curM === 0 ? curY - 1 : curY;
+
+    const stats = { currentMonthIncome: 0, lastMonthIncome: 0, currentMonthExpense: 0, lastMonthExpense: 0 };
+
+    completedTransactions.forEach(t => {
+      const d = new Date(t.date + 'T12:00:00');
+      const m = d.getMonth();
+      const y = d.getFullYear();
+
+      if (m === curM && y === curY) {
+        if (t.type === 'INCOME') stats.currentMonthIncome += t.amount;
+        else stats.currentMonthExpense += t.amount;
+      } else if (m === lastM && y === lastY) {
+        if (t.type === 'INCOME') stats.lastMonthIncome += t.amount;
+        else stats.lastMonthExpense += t.amount;
+      }
+    });
+
+    return stats;
+  }, [completedTransactions]);
+
+  const incomeTrend = lastMonthIncome === 0 ? (currentMonthIncome > 0 ? 100 : 0) : ((currentMonthIncome - lastMonthIncome) / lastMonthIncome) * 100;
+  const expenseTrend = lastMonthExpense === 0 ? (currentMonthExpense > 0 ? 100 : 0) : ((currentMonthExpense - lastMonthExpense) / lastMonthExpense) * 100;
+
+  const totalIncome = currentMonthIncome;
+  const totalExpense = currentMonthExpense;
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -1974,6 +2005,8 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         totalBalance={totalBalance}
         monthlyIncome={totalIncome}
         monthlyExpense={totalExpense}
+        incomeTrend={incomeTrend}
+        expenseTrend={expenseTrend}
         overdueCount={overdueCount}
         loading={isLoadingTransactions}
       />
