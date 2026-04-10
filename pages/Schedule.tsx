@@ -57,10 +57,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         .eq('status', 'ACTIVE');
       
       if (data) {
-        setDirectors(data.map(d => ({ id: d.id, name: d.full_name })));
+        const sorted = data
+          .map(d => ({ id: d.id, name: d.full_name }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setDirectors(sorted);
       }
     } catch (error) {
-      console.error('Erro ao carregar diretoria:', error);
+      console.error('Error loading directors:', error);
     }
   };
 
@@ -104,9 +107,9 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
     location: '',
     startTime: '08:00',
     endTime: '20:00',
-    amount: 0,
-    organizer: 'ABCUNA',
-    vacancies: 5,
+    amount: undefined,
+    organizer: '',
+    vacancies: undefined,
     fullDate: new Date().toISOString().split('T')[0],
     description: ''
   };

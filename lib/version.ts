@@ -1,1 +1,1 @@
-export const APP_VERSION = 'v2.4.2'; // Modal & Summons Refinements
+export const APP_VERSION = 'v3.1.0'; // Alphabetized Leaders & Form Placeholders
