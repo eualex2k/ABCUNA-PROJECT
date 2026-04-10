@@ -316,7 +316,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       <div className="flex justify-end gap-3 mb-4">
         {canEdit && (
           <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 shadow-lg shadow-brand-200">
-            <Plus size={18} /> Criar Plantão
+            <Plus size={18} /> Lançar Plantão Operacional
           </Button>
         )}
       </div>
@@ -425,7 +425,19 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               </div>
 
               {/* Actions */}
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col gap-3">
+                {canEdit && (shift.status === 'PENDING' || shift.status === 'AWAITING_CONFIRMATION') && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 text-xs font-black uppercase tracking-widest border-brand-200 text-brand-700 hover:bg-brand-50 rounded-2xl"
+                    onClick={() => handleGeneratePreview(shift.id)}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? <Loader2 size={18} className="animate-spin mr-2" /> : <RefreshCcw size={18} className="mr-2" />}
+                    Gerar Rodízio Operacional
+                  </Button>
+                )}
+                
                 <Button 
                   variant={shift.members.some(m => m.status === 'VOLUNTEER_PENDING') ? "primary" : "secondary"} 
                   className={`w-full h-14 text-sm font-black uppercase tracking-[0.1em] transition-all rounded-2xl ${
@@ -439,10 +451,10 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                     shift.members.some(m => m.status === 'VOLUNTEER_PENDING') ? (
                       <><UserCheck size={20} className="mr-3" /> Resolver Solicitação</>
                     ) : (
-                      <><Search size={18} className="mr-3" /> Gerenciar Plantão</>
+                      <><Search size={18} className="mr-3" /> Gerenciar Plantão Operacional</>
                     )
                   ) : (
-                    <><Eye size={20} className="mr-3" /> Ver Detalhes do Plantão</>
+                    <><Eye size={20} className="mr-3" /> Detalhes do Plantão Operacional</>
                   )}
                 </Button>
               </div>
@@ -489,7 +501,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         </div>
       </Modal>
 
-      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Gestão Detalhada do Plantão" maxWidth="5xl">
+      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Gestão Detalhada do Plantão Operacional" maxWidth="5xl">
         {selectedShift && (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
             {/* 1. Header & Quick Status Dashboard */}
@@ -720,25 +732,37 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                   </span>
                </div>
                
-               <div className="flex gap-4 w-full sm:w-auto">
-                 {/* Member Self-Action - SOLICITAR INSCRIÇÃO DENTRO DO MODAL */}
-                 {!canEdit && !selectedShift.members.some(m => m.userId === user.id) && selectedShift.status !== 'CONFIRMED' && (
+                <div className="flex gap-4 w-full sm:w-auto">
+                  {canEdit && (selectedShift.status === 'PENDING' || selectedShift.status === 'AWAITING_CONFIRMATION') && (
                     <Button 
-                      className="flex-1 sm:flex-none h-14 px-10 rounded-2xl bg-brand-600 hover:bg-brand-700 shadow-2xl shadow-brand-200 border-none font-black uppercase text-sm tracking-[0.1em]" 
-                      onClick={() => handleVolunteer(selectedShift)}
+                      variant="outline" 
+                      className="flex-1 sm:flex-none h-14 px-8 border-brand-200 text-brand-700 hover:bg-brand-50 rounded-2xl font-black uppercase text-xs tracking-widest"
+                      onClick={() => handleGeneratePreview(selectedShift.id)}
+                      disabled={isGenerating}
                     >
-                      <UserPlus size={20} className="mr-3" /> Solicitar Inscrição
+                       {isGenerating ? <Loader2 size={18} className="animate-spin mr-2" /> : <RefreshCcw size={18} className="mr-2" />}
+                       Gerar Rodízio
                     </Button>
                   )}
 
-                 {canEdit && selectedShift.status === 'CONFIRMED' && (
-                    <Button
-                      onClick={() => handleFinalizeShift(selectedShift)}
-                      className="flex-1 sm:flex-none h-14 bg-slate-900 hover:bg-black text-white px-10 rounded-2xl shadow-xl shadow-slate-200 font-black uppercase text-sm tracking-widest"
-                    >
-                      <Shield size={20} className="mr-3 text-brand-400" /> Finalizar Plantão
-                    </Button>
-                  )}
+                  {/* Member Self-Action - SOLICITAR INSCRIÇÃO DENTRO DO MODAL */}
+                  {!canEdit && !selectedShift.members.some(m => m.userId === user.id) && selectedShift.status !== 'CONFIRMED' && (
+                     <Button 
+                       className="flex-1 sm:flex-none h-14 px-10 rounded-2xl bg-brand-600 hover:bg-brand-700 shadow-2xl shadow-brand-200 border-none font-black uppercase text-sm tracking-[0.1em]" 
+                       onClick={() => handleVolunteer(selectedShift)}
+                     >
+                       <UserPlus size={20} className="mr-3" /> Solicitar Inscrição
+                     </Button>
+                   )}
+
+                  {canEdit && selectedShift.status === 'CONFIRMED' && (
+                     <Button
+                       onClick={() => handleFinalizeShift(selectedShift)}
+                       className="flex-1 sm:flex-none h-14 bg-slate-900 hover:bg-black text-white px-10 rounded-2xl shadow-xl shadow-slate-200 font-black uppercase text-sm tracking-widest"
+                     >
+                       <Shield size={20} className="mr-3 text-brand-400" /> Finalizar Plantão
+                     </Button>
+                   )}
                   <Button variant="outline" className="flex-1 sm:flex-none h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest text-slate-400 hover:bg-slate-50 hover:text-slate-600 border-slate-200" onClick={() => setIsDetailsOpen(false)}>Fechar Detalhes</Button>
                </div>
             </div>
@@ -747,7 +771,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       </Modal>
 
       {/* Create Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão" maxWidth="4xl">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão Operacional" maxWidth="4xl">
         <form onSubmit={handleCreateShift} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
@@ -801,7 +825,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
           <div className="flex gap-3 pt-4 border-t border-slate-100">
             <Button variant="ghost" type="button" className="flex-1 h-11" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
             <Button type="submit" className="flex-1 h-11 bg-slate-900 hover:bg-black text-white shadow-xl shadow-slate-200 font-black">
-              <Check className="mr-2" size={18} /> Criar Plantão
+              <Check className="mr-2" size={18} /> Lançar Plantão
             </Button>
           </div>
         </form>

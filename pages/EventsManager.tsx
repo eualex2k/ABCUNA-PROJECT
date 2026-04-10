@@ -42,7 +42,7 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
                     </div>
                     <div>
                         <h1 className="text-2xl font-black text-slate-800">Gestão Operacional</h1>
-                        <p className="text-slate-500">Calendário de eventos e escalas de serviço</p>
+                        <p className="text-slate-500">Calendário de eventos e plantões operacionais</p>
                     </div>
                 </div>
 
@@ -56,7 +56,7 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
                             }`}
                     >
                         <RefreshCcw size={18} />
-                        Plantão
+                        Plantão Operacional
                     </button>
                     <button
                         onClick={() => handleTabChange('events')}
