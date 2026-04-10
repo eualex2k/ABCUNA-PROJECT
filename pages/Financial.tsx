@@ -248,22 +248,62 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         doc.text(`Saldo Total: ${formatCurrency(totalBalance)}`, 14, 40);
         doc.text(`Entradas: ${formatCurrency(totalIncome)} | Saídas: ${formatCurrency(totalExpense)}`, 14, 46);
 
-        const tableData = completedTransactions.map(tx => [
-          (() => { const [y, m, d] = tx.date.split('-'); return `${d}/${m}/${y}`; })(),
-          tx.description,
-          tx.category,
-          tx.type === 'INCOME' ? 'Entrada' : 'Saída',
-          formatCurrency(tx.amount)
-        ]);
+        const tableData = completedTransactions.map(tx => {
+          const person = tx.type === 'INCOME' 
+            ? (tx.payer_id ? realAssociates.find(a => a.id === tx.payer_id)?.name : tx.custom_payer) || 'DIVERSOS'
+            : (tx.recipient_id ? realAssociates.find(a => a.id === tx.recipient_id)?.name : tx.custom_recipient) || 'DIVERSOS';
+            
+          return [
+            (() => { const [y, m, d] = tx.date.split('-'); return `${d}/${m}/${y}`; })(),
+            tx.description,
+            person.toUpperCase(),
+            tx.category,
+            tx.type === 'INCOME' ? 'Entrada' : 'Saída',
+            formatCurrency(tx.amount)
+          ];
+        });
 
         (doc as any).autoTable({
           startY: 55,
-          head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
+          head: [['Data', 'Descrição', 'Pagador/Beneficiário', 'Categoria', 'Tipo', 'Valor']],
           body: tableData,
-          headStyles: { fillColor: [15, 23, 42] },
+          headStyles: { fillColor: [15, 23, 42], fontSize: 8 },
+          bodyStyles: { fontSize: 8 },
           alternateRowStyles: { fillColor: [248, 250, 252] },
           margin: { top: 55 }
         });
+
+        const finalY = (doc as any).lastAutoTable.finalY + 30;
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+
+        // Se o espaço for insuficiente, adiciona nova página para assinaturas
+        let sigY = finalY;
+        if (sigY > pageHeight - 40) {
+          doc.addPage();
+          sigY = 40;
+        }
+
+        doc.setFontSize(8);
+        doc.setTextColor(100);
+        
+        const lineW = 50;
+        const spacing = (pageWidth - (lineW * 3) - 28) / 2; // Divide o espaço entre as 3 linhas
+        
+        // Linha 1: Presidente
+        const x1 = 14;
+        doc.line(x1, sigY, x1 + lineW, sigY);
+        doc.text('Presidente', x1 + (lineW / 2), sigY + 5, { align: 'center' });
+
+        // Linha 2: Tesoureiro
+        const x2 = x1 + lineW + spacing;
+        doc.line(x2, sigY, x2 + lineW, sigY);
+        doc.text('Tesoureiro(a)', x2 + (lineW / 2), sigY + 5, { align: 'center' });
+
+        // Linha 3: Conselho Fiscal
+        const x3 = x2 + lineW + spacing;
+        doc.line(x3, sigY, x3 + lineW, sigY);
+        doc.text('Conselho Fiscal', x3 + (lineW / 2), sigY + 5, { align: 'center' });
 
         doc.save(`financeiro-abcuna-${new Date().toISOString().split('T')[0]}.pdf`);
         showToast('PDF gerado com sucesso!');
