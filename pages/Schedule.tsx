@@ -464,7 +464,9 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
 
                 <div className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 flex items-center gap-3 group hover:border-slate-200 transition-colors">
                   <Shield size={16} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
-                  <span className="text-[11px] font-black text-slate-600 uppercase tracking-tight truncate">LDR: {shift.leader ? shift.leader.split(' ')[0] : '---'}</span>
+                  <span className="text-[11px] font-black text-slate-600 uppercase tracking-tight truncate">
+                    LDR: {shift.leader ? `${shift.leader.split(' ')[0]} ${shift.leader.split(' ')[1] || ''}`.trim() : '---'}
+                  </span>
                 </div>
 
                 <div className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 flex items-center gap-3 group hover:border-slate-200 transition-colors">
@@ -480,7 +482,7 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
                      <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Escalados</span>
                      <div className="flex -space-x-3">
                         {shift.leader && <Avatar size="sm" alt={shift.leader} fallback={shift.leader.substring(0,2)} className="ring-2 ring-white border border-amber-400 shadow-md" />}
-                        {shift.members.filter(m => m.status === 'CONFIRMED').slice(0, 5).map((m, i) => (
+                        {shift.members.filter(m => m.status === 'CONFIRMED' && m.name.trim().toLowerCase() !== (shift.leader || '').trim().toLowerCase()).slice(0, 5).map((m, i) => (
                           <Avatar key={i} size="sm" alt={m.name} fallback={m.name.substring(0,2)} className="ring-2 ring-white shadow-md" />
                         ))}
                      </div>
@@ -488,7 +490,7 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
                   <div className="text-right">
                     <span className="text-[10px] font-black text-slate-400 block mb-0.5 uppercase tracking-widest">Capacidade</span>
                     <span className="text-lg font-black text-slate-900 leading-none">
-                      {shift.members.filter(m => m.status === 'CONFIRMED').length + (shift.leader ? 1 : 0)}
+                      {shift.members.filter(m => m.status === 'CONFIRMED' && m.name.trim().toLowerCase() !== (shift.leader || '').trim().toLowerCase()).length + (shift.leader ? 1 : 0)}
                       <span className="text-slate-300 mx-1">/</span>
                       {shift.vacancies}
                     </span>
@@ -497,7 +499,7 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
                 <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner flex">
                    <div 
                      className="bg-slate-900 h-full transition-all duration-1000 shadow-[0_0_10px_rgba(0,0,0,0.1)]"
-                     style={{ width: `${Math.min(100, (((shift.members.filter(m => m.status === 'CONFIRMED').length + (shift.leader ? 1 : 0)) / shift.vacancies) * 100))}%` }}
+                     style={{ width: `${Math.min(100, (((shift.members.filter(m => m.status === 'CONFIRMED' && m.name.trim().toLowerCase() !== (shift.leader || '').trim().toLowerCase()).length + (shift.leader ? 1 : 0)) / shift.vacancies) * 100))}%` }}
                    />
                 </div>
               </div>
