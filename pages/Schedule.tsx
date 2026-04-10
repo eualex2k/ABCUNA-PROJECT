@@ -36,10 +36,12 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         },
         (payload) => {
           console.log('Mudança detectada no banco de dados:', payload);
-          loadShifts(); // Recarregar dados automaticamente
+          loadShifts(true); // Recarregar dados em background sem mostrar o "Carregando"
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Status do Canal Realtime:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -62,15 +64,24 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
     }
   };
 
-  const loadShifts = async () => {
+  const loadShifts = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await scheduleService.getAll();
       setShifts(data);
+      
+      // Se houver um plantão selecionado no modal, atualiza ele também com os dados novos
+      setSelectedShift(prev => {
+        if (!prev) return null;
+        const fresh = data.find(s => s.id === prev.id);
+        return fresh || prev;
+      });
+
+      return data;
     } catch (error) {
       console.error('Failed to load shifts', error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -463,7 +474,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         </div>
       </Modal>
 
-      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Gestão Detalhada do Plantão" maxWidth="3xl">
+      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Gestão Detalhada do Plantão" maxWidth="5xl">
         {selectedShift && (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
             {/* 1. Header & Quick Status Dashboard */}
@@ -638,7 +649,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       </Modal>
 
       {/* Create Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão" maxWidth="3xl">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão" maxWidth="4xl">
         <form onSubmit={handleCreateShift} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
@@ -699,7 +710,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="⚙️ Editar Configurações do Plantão" maxWidth="3xl">
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="⚙️ Editar Configurações do Plantão" maxWidth="4xl">
         <form onSubmit={handleUpdateShift} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
