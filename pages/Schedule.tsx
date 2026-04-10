@@ -336,7 +336,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 scrollbar-hide">
         {shifts.map((shift) => (
           <Card key={shift.id} className="p-0 overflow-hidden hover:shadow-2xl transition-all duration-300 border-slate-200 group flex flex-col h-full bg-white rounded-3xl">
             {/* Header Card */}
@@ -431,7 +431,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                       </div>
                     </div>
                   )}
-                  {shift.members.filter(m => ['CONFIRMED', 'PENDING'].includes(m.status) && m.name !== shift.leader).slice(0, 8).map((m, i) => (
+                  {shift.members.filter(m => ['CONFIRMED', 'PENDING'].includes(m.status) && m.name.trim().toLowerCase() !== (shift.leader || '').trim().toLowerCase()).slice(0, 8).map((m, i) => (
                     <div key={i} className="relative group/avatar hover:translate-y-[-6px] transition-transform duration-300" style={{ zIndex: 9 - i }}>
                       <Avatar alt={m.name} fallback={m.name.substring(0, 2)} size="lg" className="ring-4 ring-white shadow-md" />
                       <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm ring-2 ring-white">
@@ -602,8 +602,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
             </div>
 
             {/* 3. Self Action for Summons (Leader or Member) */}
-            {(selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING' || (user.name === selectedShift.leader && selectedShift.status === 'AWAITING_CONFIRMATION')) && (
-              <div className="p-8 bg-brand-50 border-2 border-brand-200 rounded-3xl text-center shadow-xl shadow-brand-100 border-dashed">
+            {(selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING' || (user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase() && selectedShift.status === 'AWAITING_CONFIRMATION')) && (
+              <div className="p-8 bg-brand-50 border-2 border-brand-200 rounded-3xl text-center shadow-xl shadow-brand-100 border-dashed scrollbar-hide">
                  <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
                    <AlertCircle className="text-brand-600" size={32} />
                  </div>
@@ -642,7 +642,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                         <Shield size={18} className="text-amber-500" />
                       </div>
                     )}
-                    {selectedShift.members.filter(m => m.status === 'CONFIRMED' && m.name !== selectedShift.leader).map((m, i) => (
+                    {selectedShift.members.filter(m => m.status === 'CONFIRMED' && m.name.trim().toLowerCase() !== (selectedShift.leader || '').trim().toLowerCase()).map((m, i) => (
                       <div key={i} className="p-4 flex items-center justify-between group hover:bg-slate-50 transition-colors">
                         <div className="flex items-center gap-3">
                            <Avatar alt={m.name} fallback={m.name.substring(0, 2)} size="md" />
@@ -771,127 +771,186 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                      </Button>
                    )}
                   <Button variant="outline" className="flex-1 sm:flex-none h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest text-slate-400 hover:bg-slate-50 hover:text-slate-600 border-slate-200" onClick={() => setIsDetailsOpen(false)}>Fechar Detalhes</Button>
-               </div>
-            </div>
-          </div>
-        )}
+                </div>
+             </div>
+           </div>
+         )}
       </Modal>
 
       {/* Create Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão Operacional" maxWidth="4xl">
-        <form onSubmit={handleCreateShift} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="md:col-span-2">
-              <Input label="Título da Equipe / Evento" value={newShift.team} onChange={e => setNewShift({ ...newShift, team: e.target.value })} required placeholder="Ex: Equipe de Apoio - Arena Verão" />
-            </div>
-
-            <Input label="Data do Plantão" type="date" value={newShift.fullDate} onChange={e => setNewShift({ ...newShift, fullDate: e.target.value })} required />
-            <Input label="Local / Sede" value={newShift.location} onChange={e => setNewShift({ ...newShift, location: e.target.value })} required placeholder="Ex: Sede ABCUNA" />
-
-            <Input label="Horário Início" type="time" value={newShift.startTime} onChange={e => setNewShift({ ...newShift, startTime: e.target.value })} required />
-            <Input label="Horário Fim" type="time" value={newShift.endTime} onChange={e => setNewShift({ ...newShift, endTime: e.target.value })} required />
-
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Vagas Disponíveis</label>
-              <Input type="number" value={newShift.vacancies} onChange={e => setNewShift({ ...newShift, vacancies: parseInt(e.target.value) })} required />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Valor Ajuda de Custo (R$)</label>
-              <Input type="number" step="0.01" value={newShift.amount} onChange={e => setNewShift({ ...newShift, amount: parseFloat(e.target.value) })} required />
-            </div>
-
-            <div className="space-y-2 relative">
-              <Input 
-                label="Líder do Plantão" 
-                list="directors-list"
-                value={newShift.leader} 
-                onChange={e => setNewShift({ ...newShift, leader: e.target.value })} 
-                placeholder="Busque ou digite o nome do responsável" 
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão Operacional" maxWidth="3xl">
+        <form onSubmit={handleCreateShift} className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 scrollbar-hide p-1">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-4">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Equipe / Serviço</label>
+              <Input
+                required
+                value={newShift.team}
+                onChange={(e) => setNewShift({ ...newShift, team: e.target.value })}
+                placeholder="Ex: EVENTO ABCUNA"
+                className="h-10 rounded-xl"
               />
-              <datalist id="directors-list">
-                {directors.map(d => (
-                  <option key={d.id} value={d.name} />
-                ))}
-              </datalist>
             </div>
-            <Input label="Organizador" value={newShift.organizer} onChange={e => setNewShift({ ...newShift, organizer: e.target.value })} placeholder="Ex: ABCUNA, Particular" />
+
+            <div className="md:col-span-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Data</label>
+              <Input
+                type="date"
+                required
+                value={newShift.fullDate}
+                onChange={(e) => setNewShift({ ...newShift, fullDate: e.target.value })}
+                className="h-10 rounded-xl"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Localização</label>
+               <Input
+                 value={newShift.location}
+                 onChange={(e) => setNewShift({ ...newShift, location: e.target.value })}
+                 placeholder="Cidade ou Setor"
+                 className="h-10 rounded-xl"
+               />
+            </div>
+
+            <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Ajuda Custo</label>
+                <Input
+                  type="number"
+                  value={newShift.amount}
+                  onChange={(e) => setNewShift({ ...newShift, amount: parseFloat(e.target.value) })}
+                  placeholder="R$"
+                  className="h-10 rounded-xl"
+                />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
+                <Input
+                  type="time"
+                  required
+                  value={newShift.startTime}
+                  onChange={(e) => setNewShift({ ...newShift, startTime: e.target.value })}
+                  className="h-10 rounded-xl px-2"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
+                <Input
+                  type="time"
+                  required
+                  value={newShift.endTime}
+                  onChange={(e) => setNewShift({ ...newShift, endTime: e.target.value })}
+                  className="h-10 rounded-xl px-2"
+                />
+              </div>
+            </div>
+
+            <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Vagas</label>
+                <Input
+                  type="number"
+                  required
+                  value={newShift.vacancies}
+                  onChange={(e) => setNewShift({ ...newShift, vacancies: parseInt(e.target.value) })}
+                  className="h-10 rounded-xl"
+                />
+            </div>
+
+            <div className="md:col-span-1">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Líder</label>
+              <select
+                className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                value={newShift.leader}
+                onChange={(e) => setNewShift({ ...newShift, leader: e.target.value })}
+              >
+                <option value="">Selecione...</option>
+                {directors.map(d => (
+                  <option key={d.id} value={d.name}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="md:col-span-4">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Observações do Plantão</label>
+              <Input
+                value={newShift.description}
+                onChange={(e) => setNewShift({ ...newShift, description: e.target.value })}
+                placeholder="Observações importantes aqui..."
+                className="h-10 rounded-xl"
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">Descrição e Orientações</label>
-            <textarea
-              value={newShift.description}
-              onChange={e => setNewShift({ ...newShift, description: e.target.value })}
-              rows={3}
-              placeholder="Descreva detalhes importantes..."
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all resize-none"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t border-slate-100">
-            <Button variant="ghost" type="button" className="flex-1 h-11" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="flex-1 h-11 bg-slate-900 hover:bg-black text-white shadow-xl shadow-slate-200 font-black">
-              <Check className="mr-2" size={18} /> Lançar Plantão
+          <div className="flex gap-3 pt-3 border-t border-slate-100">
+            <Button variant="outline" type="button" className="flex-1 h-10 text-[10px] font-black uppercase tracking-widest border-slate-200" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+            <Button type="submit" className="flex-1 h-10 bg-slate-900 hover:bg-black text-white shadow-xl shadow-slate-200 font-black text-[10px] uppercase tracking-widest">
+              <Check className="mr-2" size={14} /> Finalizar Lançamento
             </Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit Modal */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="⚙️ Editar Configurações do Plantão" maxWidth="4xl">
-        <form onSubmit={handleUpdateShift} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="⚙️ Editar Registro" maxWidth="3xl">
+        <form onSubmit={handleUpdateShift} className="space-y-4 animate-in fade-in scrollbar-hide p-1">
+           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-4">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Título da Equipe</label>
+              <Input value={editingShift.team} onChange={e => setEditingShift({ ...editingShift, team: e.target.value })} required className="h-10 rounded-xl" />
+            </div>
+
             <div className="md:col-span-2">
-              <Input label="Título da Equipe" value={editingShift.team} onChange={e => setEditingShift({ ...editingShift, team: e.target.value })} required />
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Data</label>
+              <Input type="date" value={editingShift.fullDate} onChange={e => setEditingShift({ ...editingShift, fullDate: e.target.value })} required className="h-10 rounded-xl" />
             </div>
 
-            <Input label="Data" type="date" value={editingShift.fullDate} onChange={e => setEditingShift({ ...editingShift, fullDate: e.target.value })} required />
-            <Input label="Local" value={editingShift.location} onChange={e => setEditingShift({ ...editingShift, location: e.target.value })} required />
-
-            <Input label="Início" type="time" value={editingShift.startTime} onChange={e => setEditingShift({ ...editingShift, startTime: e.target.value })} required />
-            <Input label="Fim" type="time" value={editingShift.endTime} onChange={e => setEditingShift({ ...editingShift, endTime: e.target.value })} required />
-
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Vagas</label>
-              <Input type="number" value={editingShift.vacancies} onChange={e => setEditingShift({ ...editingShift, vacancies: parseInt(e.target.value) })} required />
+            <div className="md:col-span-2">
+               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Local</label>
+               <Input value={editingShift.location} onChange={e => setEditingShift({ ...editingShift, location: e.target.value })} required className="h-10 rounded-xl" />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Valor (R$)</label>
-              <Input type="number" step="0.01" value={editingShift.amount} onChange={e => setEditingShift({ ...editingShift, amount: parseFloat(e.target.value) })} required />
+            <div className="flex gap-2 md:col-span-2">
+              <div className="flex-1">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
+                <Input type="time" value={editingShift.startTime} onChange={e => setEditingShift({ ...editingShift, startTime: e.target.value })} required className="h-10 rounded-xl" />
+              </div>
+              <div className="flex-1">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
+                <Input type="time" value={editingShift.endTime} onChange={e => setEditingShift({ ...editingShift, endTime: e.target.value })} required className="h-10 rounded-xl" />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Input 
-                label="Líder" 
-                list="directors-list-edit"
-                value={editingShift.leader} 
-                onChange={e => setEditingShift({ ...editingShift, leader: e.target.value })} 
-              />
-              <datalist id="directors-list-edit">
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Vagas</label>
+              <Input type="number" value={editingShift.vacancies} onChange={e => setEditingShift({ ...editingShift, vacancies: parseInt(e.target.value) })} required className="h-10 rounded-xl" />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Valor (R$)</label>
+              <Input type="number" step="0.01" value={editingShift.amount} onChange={e => setEditingShift({ ...editingShift, amount: parseFloat(e.target.value) })} required className="h-10 rounded-xl" />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Líder</label>
+               <select
+                className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                value={editingShift.leader}
+                onChange={(e) => setEditingShift({ ...editingShift, leader: e.target.value })}
+              >
+                <option value="">Selecione...</option>
                 {directors.map(d => (
-                  <option key={d.id} value={d.name} />
+                  <option key={d.id} value={d.name}>{d.name}</option>
                 ))}
-              </datalist>
+              </select>
             </div>
-            <Input label="Organizador" value={editingShift.organizer} onChange={e => setEditingShift({ ...editingShift, organizer: e.target.value })} />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">Descrição</label>
-            <textarea
-              value={editingShift.description}
-              onChange={e => setEditingShift({ ...editingShift, description: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all resize-none"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t border-slate-100">
-            <Button variant="ghost" type="button" className="flex-1 h-11" onClick={() => setIsEditModalOpen(false)}>Descartar</Button>
-            <Button type="submit" className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-black">
-              <Check className="mr-2" size={18} /> Salvar Alterações
+          <div className="flex gap-3 pt-3 border-t border-slate-100">
+            <Button variant="outline" type="button" className="flex-1 h-10 text-[10px] font-black uppercase tracking-widest" onClick={() => setIsEditModalOpen(false)}>Descartar</Button>
+            <Button type="submit" className="flex-1 h-10 bg-brand-600 hover:bg-brand-700 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-brand-100">
+              <Check className="mr-2" size={14} /> Salvar Alterações
             </Button>
           </div>
         </form>
