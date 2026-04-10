@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CalendarDays, MapPin, Clock, Plus, Users, Search, Trash2, Edit3, X, CheckSquare, CheckCircle, Shield, Globe, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { Card, Button, Input, Modal, Badge } from '../components/ui';
 import { notificationService } from '../services/notifications';
@@ -21,6 +22,7 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(({ us
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   React.useImperativeHandle(ref, () => ({
     openCreateModal: () => handleOpenCreate()
@@ -231,7 +233,7 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(({ us
                                {dayEvents.map((e, idx) => (
                                   <div 
                                     key={idx} 
-                                    onClick={(e) => { e.stopPropagation(); setActiveTab('list'); }}
+                                    onClick={(e) => { e.stopPropagation(); navigate('/events/list'); }}
                                     className={`cursor-pointer hover:scale-105 transition-all text-[8px] font-black uppercase px-2 py-0.5 rounded-full truncate border ${e.visibility === 'BOARD' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}
                                   >
                                      {e.title}
@@ -294,10 +296,10 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(({ us
                       events.filter(e => {
                           const d = new Date(e.date + 'T12:00:00');
                           return d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear();
-                      }).map((e, idx) => (
+                       }).map((e, idx) => (
                         <div 
                           key={idx} 
-                          onClick={() => setActiveTab('list')}
+                          onClick={() => navigate('/events/list')}
                           className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-100 hover:shadow-md transition-all cursor-pointer group"
                         >
                            <div className={`w-10 h-10 text-white rounded-xl flex flex-col items-center justify-center transition-transform group-hover:scale-110 ${e.visibility === 'BOARD' ? 'bg-blue-600 shadow-lg shadow-blue-100' : 'bg-emerald-600 shadow-lg shadow-emerald-100'}`}>
