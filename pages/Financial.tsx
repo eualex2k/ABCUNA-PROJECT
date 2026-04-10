@@ -381,7 +381,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const [modalStep, setModalStep] = useState<ModalStep>('MENU');
 
   // Toast Notification State
-  const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'info' }>({
+  const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'info' | 'error' }>({
     visible: false, message: '', type: 'info'
   });
 
@@ -562,7 +562,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     }
   }, [toast.visible]);
 
-  const showToast = (message: string, type: 'success' | 'info' = 'success') => {
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToast({ visible: true, message, type });
   };
 
@@ -2021,7 +2021,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={modalStep === 'COMPROVANTES' ? "Detalhes da Movimentação" : (editingTransactionId ? "Editar Movimentação" : "Nova Movimentação")} 
+        title={modalStep === 'DETAILS' ? "Detalhes da Movimentação" : (editingTransactionId ? "Editar Movimentação" : "Nova Movimentação")} 
         maxWidth="5xl"
       >
         {renderModalContent()}

@@ -374,7 +374,7 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
                 </div>
                 <div>
                   <h3 className="font-black text-slate-900 text-2xl uppercase leading-none tracking-tighter mb-1">{shift.team}</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{shift.dayOfWeek}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{shift.day}</p>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
