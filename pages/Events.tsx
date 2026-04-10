@@ -404,6 +404,7 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user, initialView = 'lis
           </div>
         )}
       </div>
+      )}
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Editar Evento" : "Agendar Novo Evento"}>
         <form onSubmit={handleSaveEvent} className="space-y-4">
