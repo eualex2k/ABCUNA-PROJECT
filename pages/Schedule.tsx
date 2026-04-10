@@ -126,11 +126,30 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
   const handleCreateShift = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await scheduleService.create(newShift as any);
+      // Se houver um líder designado, o status inicial é aguardando confirmação do líder.
+      // Caso contrário, fica Pendente para o Administrador geral gerar o rodízio.
+      const initialStatus = newShift.leader ? 'AWAITING_CONFIRMATION' : 'PENDING';
+      await scheduleService.create({ ...newShift, status: initialStatus } as any);
+      
       setIsModalOpen(false);
       setNewShift(initialFormState);
       loadShifts();
-      alert('Plantão lançado com sucesso!');
+      
+      if (newShift.leader) {
+        // Enviar notificação para o líder (presumindo que encontramos o ID dele pelo nome)
+        const leaderProfile = directors.find(d => d.name === newShift.leader);
+        if (leaderProfile) {
+          notificationService.add({
+            title: 'Designação de Líder',
+            message: `Você foi designado como líder do plantão "${newShift.team}" em ${newShift.fullDate}. Por favor, confirme sua presença.`,
+            type: 'SCHEDULE',
+            link: '/events/schedule',
+            targetUserIds: [leaderProfile.id]
+          });
+        }
+      }
+      
+      alert(newShift.leader ? 'Plantão enviado para o líder confirmar!' : 'Plantão lançado com sucesso!');
     } catch (error) {
       alert('Erro ao criar plantão.');
     }
@@ -303,10 +322,18 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
           alert('Você recusou a liderança. Sem outros diretores, o cargo ficou vago.');
         }
       } else if (accept && isLeader) {
-         // Quando o líder aceita, o plantão sai do estado de aguardando confirmação
-         const nextStatus = selectedShift.members.filter(m => m.status === 'CONFIRMED').length >= selectedShift.vacancies ? 'CONFIRMED' : 'OPEN';
-         await scheduleService.update(shiftId, { status: nextStatus });
-         alert('Liderança confirmada! O plantão agora está aberto para preenchimento.');
+          // Quando o líder aceita ANTES do rodízio, o plantão fica PENDING (pronto para o rodízio do admin)
+          // Se já houver rodízio (membros), o status vai conforme a ocupação
+          const hasMembers = selectedShift.members.filter(m => m.status === 'CONFIRMED').length > 0;
+          const isFull = selectedShift.members.filter(m => m.status === 'CONFIRMED').length >= selectedShift.vacancies;
+          
+          let nextStatus: ShiftStatus = 'PENDING';
+          if (hasMembers) {
+            nextStatus = isFull ? 'CONFIRMED' : 'OPEN';
+          }
+
+          await scheduleService.update(shiftId, { status: nextStatus });
+          alert('Liderança confirmada! O plantão está pronto para a escala da equipe.');
       } else {
         alert(accept ? 'Escala confirmada com sucesso!' : 'Convocação recusada.');
       }
@@ -336,7 +363,7 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
     switch (status) {
       case 'CONFIRMED': return 'success';
       case 'AWAITING_CONFIRMATION': return 'warning';
-      case 'PENDING': return 'neutral';
+      case 'OPEN': return 'info';
       default: return 'neutral';
     }
   };
