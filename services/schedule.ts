@@ -148,10 +148,14 @@ export const scheduleService = {
             const leaderName = (shift.leader || '').trim().toLowerCase();
 
             // Filtra quem já está neste plantão OU é o líder para evitar duplicidade
-            const candidates = associates.filter(a => 
-                !currentIds.includes(a.id) && 
-                a.full_name?.trim().toLowerCase() !== leaderName
-            );
+            // Usamos includes para pegar nomes parciais (ex: "Alex" vs "Alex Ribeiro")
+            const candidates = associates.filter(a => {
+                const isAlreadyMember = currentIds.includes(a.id);
+                const fullNameLower = (a.full_name || '').trim().toLowerCase();
+                const isLeaderByName = leaderName && (fullNameLower.includes(leaderName) || leaderName.includes(fullNameLower));
+                
+                return !isAlreadyMember && !isLeaderByName;
+            });
 
             // Grupo A: Quem NÃO trabalhou no último (Alta Prioridade)
             const groupA = candidates.filter(a => !lastShiftUserIds.includes(a.id));
