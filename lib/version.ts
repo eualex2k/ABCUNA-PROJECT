@@ -1,1 +1,1 @@
-export const APP_VERSION = 'v2.4.0'; // Sleek-Edge Premium Dashboard
+export const APP_VERSION = 'v2.4.1'; // Logic & Notification Refinements

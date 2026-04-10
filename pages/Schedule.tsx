@@ -272,22 +272,37 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       await scheduleService.respondToSummon(shiftId, user.id, accept);
       
       // LOGICA DE LIDER: Se o líder recusar, troca automaticamente por outro diretor
-      if (!accept && selectedShift && user.name === selectedShift.leader) {
-        const otherDirectors = directors.filter(d => d.name !== user.name);
+      const isLeader = selectedShift && user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase();
+      
+      if (!accept && isLeader) {
+        const otherDirectors = directors.filter(d => d.name.trim().toLowerCase() !== user.name.trim().toLowerCase());
         if (otherDirectors.length > 0) {
-          const nextLeader = otherDirectors[0].name; // Simplesmente pega o próximo da lista
-          await scheduleService.update(shiftId, { leader: nextLeader });
-          alert(`Você recusou a liderança. O próximo diretor disponível (${nextLeader}) foi atribuído.`);
+          const nextLeader = otherDirectors[Math.floor(Math.random() * otherDirectors.length)]; // Seleção aleatória entre outros diretores
+          await scheduleService.update(shiftId, { leader: nextLeader.name });
+          
+          // Notificar o novo líder
+          await notificationService.add({
+            title: 'Convocado como Líder (Substituição)',
+            message: `O líder anterior recusou. Você foi designado como o novo líder para "${selectedShift.team}" em ${selectedShift.date}.`,
+            type: 'SCHEDULE',
+            link: '/events/schedule',
+            targetUserIds: [nextLeader.id]
+          });
+
+          alert(`Você recusou a liderança. O diretor ${nextLeader.name} foi notificado para assumir.`);
         } else {
           await scheduleService.update(shiftId, { leader: '' });
-          alert('Você recusou a liderança. Como não há outros diretores disponíveis, o cargo ficou vago.');
+          alert('Você recusou a liderança. Sem outros diretores, o cargo ficou vago.');
         }
+      } else if (accept && isLeader) {
+         alert('Liderança confirmada! O plantão agora está pronto para visualização.');
       } else {
-        alert(accept ? 'Escala confirmada com sucesso!' : 'Convocação recusada. O administrador será notificado.');
+        alert(accept ? 'Escala confirmada com sucesso!' : 'Convocação recusada.');
       }
 
       await loadShifts();
-      if (isDetailsOpen) setIsDetailsOpen(false); // Close modal to refresh or show success
+      setIsDetailsOpen(false); // Fecha o modal para forçar o sumiço do botão e refresh
+      setSelectedShift(null);
     } catch (error: any) {
       alert('Erro: ' + error.message);
     }
@@ -513,13 +528,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                     <div className="text-center border-x border-white/10 px-4 group">
                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-slate-300 transition-colors">Confirmados (c/ Líder)</p>
                        <p className="text-2xl font-black text-emerald-400">
-                         {selectedShift.members.filter(m => m.status === 'CONFIRMED').length + (selectedShift.leader ? 1 : 0)}
+                         {selectedShift.members.filter(m => m.status === 'CONFIRMED' && m.name.trim().toLowerCase() !== (selectedShift.leader || '').trim().toLowerCase()).length + (selectedShift.leader ? 1 : 0)}
                        </p>
                     </div>
                     <div className="text-center group">
                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-slate-300 transition-colors">Em Aberto</p>
                        <p className="text-2xl font-black text-amber-400">
-                         {Math.max(0, selectedShift.vacancies - (selectedShift.members.filter(m => m.status === 'CONFIRMED').length + (selectedShift.leader ? 1 : 0)))}
+                         {Math.max(0, selectedShift.vacancies - (selectedShift.members.filter(m => m.status === 'CONFIRMED' && m.name.trim().toLowerCase() !== (selectedShift.leader || '').trim().toLowerCase()).length + (selectedShift.leader ? 1 : 0)))}
                        </p>
                     </div>
                  </div>
@@ -596,7 +611,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                       <CheckCircle2 size={18} className="text-emerald-500" /> Equipe Confirmada
                     </h4>
                     <Badge variant="success" className="px-3 py-1 font-black shadow-sm">
-                      {selectedShift.members.filter(m => m.status === 'CONFIRMED').length + (selectedShift.leader ? 1 : 0)} ATIVOS
+                      {selectedShift.members.filter(m => m.status === 'CONFIRMED' && m.name.trim().toLowerCase() !== (selectedShift.leader || '').trim().toLowerCase()).length + (selectedShift.leader ? 1 : 0)} ATIVOS
                     </Badge>
                   </div>
                   

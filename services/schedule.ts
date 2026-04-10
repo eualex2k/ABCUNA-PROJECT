@@ -33,6 +33,20 @@ export const scheduleService = {
 
         const newShift = mapToFrontend(data);
 
+        // Notificar o LÍDER se houver um
+        if (newShift.leader && newShift.leader !== 'A definir') {
+            const { data: targetDirector } = await supabase.from('profiles').select('id').eq('full_name', newShift.leader).maybeSingle();
+            if (targetDirector) {
+                await notificationService.add({
+                    title: 'Convocado como Líder',
+                    message: `Você foi designado como líder para o plantão "${newShift.team}" no dia ${newShift.date}.`,
+                    type: 'SCHEDULE',
+                    link: '/events/schedule',
+                    targetUserIds: [targetDirector.id]
+                });
+            }
+        }
+
         // Notificar todos os associados sobre a nova escala
         if (newShift.status === 'PENDING') {
             await notificationService.add({
@@ -131,9 +145,13 @@ export const scheduleService = {
 
             // 4. Separar em Grupos de Prioridade
             const currentIds = currentMembers.map(m => m.userId);
+            const leaderName = (shift.leader || '').trim().toLowerCase();
 
-            // Filtra quem já está neste plantão
-            const candidates = associates.filter(a => !currentIds.includes(a.id));
+            // Filtra quem já está neste plantão OU é o líder para evitar duplicidade
+            const candidates = associates.filter(a => 
+                !currentIds.includes(a.id) && 
+                a.full_name?.trim().toLowerCase() !== leaderName
+            );
 
             // Grupo A: Quem NÃO trabalhou no último (Alta Prioridade)
             const groupA = candidates.filter(a => !lastShiftUserIds.includes(a.id));
