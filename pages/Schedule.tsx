@@ -801,26 +801,30 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               />
             </div>
 
-            <div className="col-span-12 md:col-span-3">
+                        <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
-              <Input
-                type="time"
-                required
-                value={newShift.startTime}
-                onChange={(e) => setNewShift({ ...newShift, startTime: e.target.value })}
-                className="h-10 rounded-xl px-4"
-              />
+              <div className="flex items-center gap-1">
+                <select className="flex-1 h-10 rounded-xl border border-slate-200 bg-white px-1 text-[11px] font-black outline-none transition-all appearance-none text-center focus:ring-2 focus:ring-brand-500" value={newShift.startTime?.split(':')[0] || '08'} onChange={(e) => setNewShift({ ...newShift, startTime: `${e.target.value}:${newShift.startTime?.split(':')[1] || '00'}` })}>
+                  {Array.from({ length: 24 }).map((_, i) => <option key={i} value={i.toString().padStart(2, '0')}>{i.toString().padStart(2, '0')}h</option>)}
+                </select>
+                <span className="font-black text-slate-300">:</span>
+                <select className="flex-1 h-10 rounded-xl border border-slate-200 bg-white px-1 text-[11px] font-black outline-none transition-all appearance-none text-center focus:ring-2 focus:ring-brand-500" value={newShift.startTime?.split(':')[1] || '00'} onChange={(e) => setNewShift({ ...newShift, startTime: `${newShift.startTime?.split(':')[0] || '08'}:${e.target.value}` })}>
+                  {['00', '15', '30', '45'].map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
             </div>
 
-            <div className="col-span-12 md:col-span-3">
+                        <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
-              <Input
-                type="time"
-                required
-                value={newShift.endTime}
-                onChange={(e) => setNewShift({ ...newShift, endTime: e.target.value })}
-                className="h-10 rounded-xl px-4"
-              />
+              <div className="flex items-center gap-1">
+                <select className="flex-1 h-10 rounded-xl border border-slate-200 bg-white px-1 text-[11px] font-black outline-none transition-all appearance-none text-center focus:ring-2 focus:ring-brand-500" value={newShift.endTime?.split(':')[0] || '20'} onChange={(e) => setNewShift({ ...newShift, endTime: `${e.target.value}:${newShift.endTime?.split(':')[1] || '00'}` })}>
+                  {Array.from({ length: 24 }).map((_, i) => <option key={i} value={i.toString().padStart(2, '0')}>{i.toString().padStart(2, '0')}h</option>)}
+                </select>
+                <span className="font-black text-slate-300">:</span>
+                <select className="flex-1 h-10 rounded-xl border border-slate-200 bg-white px-1 text-[11px] font-black outline-none transition-all appearance-none text-center focus:ring-2 focus:ring-brand-500" value={newShift.endTime?.split(':')[1] || '00'} onChange={(e) => setNewShift({ ...newShift, endTime: `${newShift.endTime?.split(':')[0] || '20'}:${e.target.value}` })}>
+                  {['00', '15', '30', '45'].map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
             </div>
 
             <div className="col-span-12 md:col-span-3">
@@ -913,14 +917,30 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               <Input type="date" value={editingShift.fullDate} onChange={e => setEditingShift({ ...editingShift, fullDate: e.target.value })} required className="h-10 rounded-xl px-2" />
             </div>
 
-            <div className="col-span-12 md:col-span-3">
+                        <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
-              <Input type="time" value={editingShift.startTime} onChange={e => setEditingShift({ ...editingShift, startTime: e.target.value })} required className="h-10 rounded-xl px-4" />
+              <div className="flex items-center gap-1">
+                <select className="flex-1 h-10 rounded-xl border border-slate-200 bg-white px-1 text-[11px] font-black outline-none transition-all appearance-none text-center focus:ring-2 focus:ring-brand-500" value={editingShift.startTime?.split(':')[0] || '08'} onChange={(e) => setEditingShift({ ...editingShift, startTime: `${e.target.value}:${editingShift.startTime?.split(':')[1] || '00'}` })}>
+                  {Array.from({ length: 24 }).map((_, i) => <option key={i} value={i.toString().padStart(2, '0')}>{i.toString().padStart(2, '0')}h</option>)}
+                </select>
+                <span className="font-black text-slate-300">:</span>
+                <select className="flex-1 h-10 rounded-xl border border-slate-200 bg-white px-1 text-[11px] font-black outline-none transition-all appearance-none text-center focus:ring-2 focus:ring-brand-500" value={editingShift.startTime?.split(':')[1] || '00'} onChange={(e) => setEditingShift({ ...editingShift, startTime: `${editingShift.startTime?.split(':')[0] || '08'}:${e.target.value}` })}>
+                  {['00', '15', '30', '45'].map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
             </div>
 
-            <div className="col-span-12 md:col-span-3">
+                        <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
-              <Input type="time" value={editingShift.endTime} onChange={e => setEditingShift({ ...editingShift, endTime: e.target.value })} required className="h-10 rounded-xl px-4" />
+              <div className="flex items-center gap-1">
+                <select className="flex-1 h-10 rounded-xl border border-slate-200 bg-white px-1 text-[11px] font-black outline-none transition-all appearance-none text-center focus:ring-2 focus:ring-brand-500" value={editingShift.endTime?.split(':')[0] || '20'} onChange={(e) => setEditingShift({ ...editingShift, endTime: `${e.target.value}:${editingShift.endTime?.split(':')[1] || '00'}` })}>
+                  {Array.from({ length: 24 }).map((_, i) => <option key={i} value={i.toString().padStart(2, '0')}>{i.toString().padStart(2, '0')}h</option>)}
+                </select>
+                <span className="font-black text-slate-300">:</span>
+                <select className="flex-1 h-10 rounded-xl border border-slate-200 bg-white px-1 text-[11px] font-black outline-none transition-all appearance-none text-center focus:ring-2 focus:ring-brand-500" value={editingShift.endTime?.split(':')[1] || '00'} onChange={(e) => setEditingShift({ ...editingShift, endTime: `${editingShift.endTime?.split(':')[0] || '20'}:${e.target.value}` })}>
+                  {['00', '15', '30', '45'].map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
             </div>
 
             <div className="col-span-12 md:col-span-3">

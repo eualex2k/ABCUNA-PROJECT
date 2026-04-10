@@ -1,1 +1,1 @@
-export const APP_VERSION = 'v3.1.0'; // Alphabetized Leaders & Form Placeholders
+export const APP_VERSION = 'v3.2.0'; // Custom Multi-Select Time Picker Overhaul
