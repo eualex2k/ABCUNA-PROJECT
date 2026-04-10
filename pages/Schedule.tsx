@@ -270,8 +270,23 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
 
     try {
       await scheduleService.respondToSummon(shiftId, user.id, accept);
+      
+      // LOGICA DE LIDER: Se o líder recusar, troca automaticamente por outro diretor
+      if (!accept && selectedShift && user.name === selectedShift.leader) {
+        const otherDirectors = directors.filter(d => d.name !== user.name);
+        if (otherDirectors.length > 0) {
+          const nextLeader = otherDirectors[0].name; // Simplesmente pega o próximo da lista
+          await scheduleService.update(shiftId, { leader: nextLeader });
+          alert(`Você recusou a liderança. O próximo diretor disponível (${nextLeader}) foi atribuído.`);
+        } else {
+          await scheduleService.update(shiftId, { leader: '' });
+          alert('Você recusou a liderança. Como não há outros diretores disponíveis, o cargo ficou vago.');
+        }
+      } else {
+        alert(accept ? 'Escala confirmada com sucesso!' : 'Convocação recusada. O administrador será notificado.');
+      }
+
       await loadShifts();
-      alert(accept ? 'Escala confirmada com sucesso!' : 'Convocação recusada. O administrador será notificado.');
       if (isDetailsOpen) setIsDetailsOpen(false); // Close modal to refresh or show success
     } catch (error: any) {
       alert('Erro: ' + error.message);
@@ -416,7 +431,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                       </div>
                     </div>
                   )}
-                  {shift.members.filter(m => ['CONFIRMED', 'PENDING'].includes(m.status)).slice(0, 8).map((m, i) => (
+                  {shift.members.filter(m => ['CONFIRMED', 'PENDING'].includes(m.status) && m.name !== shift.leader).slice(0, 8).map((m, i) => (
                     <div key={i} className="relative group/avatar hover:translate-y-[-6px] transition-transform duration-300" style={{ zIndex: 9 - i }}>
                       <Avatar alt={m.name} fallback={m.name.substring(0, 2)} size="lg" className="ring-4 ring-white shadow-md" />
                       <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm ring-2 ring-white">
@@ -586,8 +601,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                )}
             </div>
 
-            {/* 3. Self Action for Summons */}
-            {selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING' && (
+            {/* 3. Self Action for Summons (Leader or Member) */}
+            {(selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING' || (user.name === selectedShift.leader && selectedShift.status === 'AWAITING_CONFIRMATION')) && (
               <div className="p-8 bg-brand-50 border-2 border-brand-200 rounded-3xl text-center shadow-xl shadow-brand-100 border-dashed">
                  <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
                    <AlertCircle className="text-brand-600" size={32} />
@@ -607,7 +622,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
                     <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <CheckCircle2 size={18} className="text-emerald-500" /> Equipe Armada
+                      <CheckCircle2 size={18} className="text-emerald-500" /> Equipe Confirmada
                     </h4>
                     <Badge variant="success" className="px-3 py-1 font-black shadow-sm">
                       {selectedShift.members.filter(m => m.status === 'CONFIRMED').length + (selectedShift.leader ? 1 : 0)} ATIVOS
@@ -627,7 +642,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                         <Shield size={18} className="text-amber-500" />
                       </div>
                     )}
-                    {selectedShift.members.filter(m => m.status === 'CONFIRMED').map((m, i) => (
+                    {selectedShift.members.filter(m => m.status === 'CONFIRMED' && m.name !== selectedShift.leader).map((m, i) => (
                       <div key={i} className="p-4 flex items-center justify-between group hover:bg-slate-50 transition-colors">
                         <div className="flex items-center gap-3">
                            <Avatar alt={m.name} fallback={m.name.substring(0, 2)} size="md" />
