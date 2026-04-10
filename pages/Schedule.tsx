@@ -339,129 +339,106 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 scrollbar-hide">
         {shifts.map((shift) => (
           <Card key={shift.id} className="p-0 overflow-hidden hover:shadow-2xl transition-all duration-300 border-slate-200 group flex flex-col h-full bg-white rounded-3xl">
-            {/* Header Card */}
-            <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-start">
-              <div className="flex items-center gap-5">
-                <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100 group-hover:scale-110 transition-transform duration-300 group-hover:rotate-3">
-                  <Calendar size={28} className="text-brand-600" />
+            {/* Header */}
+            <div className="p-5 flex items-start justify-between bg-white border-b border-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-slate-50 flex items-center justify-center rounded-xl border border-slate-100">
+                  <Calendar size={18} className="text-brand-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">{shift.day}</p>
-                  <p className="text-2xl font-black text-slate-800 tracking-tight">{shift.date}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{shift.dayOfWeek}</p>
+                  <p className="text-xl font-black text-slate-800 tracking-tight">{shift.date}</p>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-3">
-                <Badge variant={getStatusColor(shift.status)} className="px-4 py-1.5 font-black text-[10px] uppercase tracking-widest shadow-sm border-none">
+              <div className="flex flex-col items-end gap-2">
+                <Badge variant={getStatusColor(shift.status)} className="px-3 py-1 font-black text-[9px] uppercase tracking-widest shadow-sm border-none">
                   {shift.status === 'CONFIRMED' ? 'Confirmado' : shift.status === 'AWAITING_CONFIRMATION' ? 'Em Confirmação' : 'Aberto'}
                 </Badge>
-                {shift.members.some(m => m.status === 'VOLUNTEER_PENDING') && (
-                  <Badge variant="info" className="animate-pulse bg-blue-600 text-white border-none font-black text-[10px] px-3 py-1 shadow-lg shadow-blue-100 uppercase tracking-tighter">
-                    NOVA SOLICITAÇÃO
-                  </Badge>
-                )}
                 {canEdit && (
-                  <div className="flex gap-2 mt-1">
-                    <button onClick={() => { setEditingShift({ ...shift, date: shift.fullDate }); setIsEditModalOpen(true); }} className="p-2.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all">
-                      <Edit size={18} />
+                  <div className="flex gap-1.5">
+                    <button onClick={() => { setEditingShift({ ...shift, date: shift.fullDate }); setIsEditModalOpen(true); }} className="p-1.5 text-slate-300 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all">
+                      <Edit size={14} />
                     </button>
-                    <button onClick={() => handleDeleteShift(shift.id)} className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
-                      <Trash2 size={18} />
+                    <button onClick={() => handleDeleteShift(shift.id)} className="p-1.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 )}
               </div>
             </div>
  
-            <div className="p-8 space-y-8 flex-1 flex flex-col">
+            <div className="p-5 space-y-4 flex-1 flex flex-col">
               <div className="flex-1">
-                <h3 className="font-black text-slate-900 text-3xl uppercase leading-none tracking-tighter group-hover:text-brand-600 transition-colors mb-6">{shift.team}</h3>
+                <h3 className="font-black text-slate-900 text-xl uppercase leading-none tracking-tight group-hover:text-brand-600 transition-colors mb-4">{shift.team}</h3>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 text-xs text-slate-700 font-black uppercase tracking-widest bg-slate-50 px-4 py-3 rounded-2xl border border-slate-100">
-                    <Clock size={18} className="text-brand-500" strokeWidth={3} /> {shift.startTime} <span className="text-slate-300 mx-1">|</span> {shift.endTime}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 text-[10px] text-slate-700 font-bold uppercase tracking-tight bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
+                    <Clock size={14} className="text-brand-500" /> {shift.startTime} <span className="text-slate-300">|</span> {shift.endTime}
                   </div>
                   
                   {shift.leader && (
-                    <div className="flex items-center gap-3 text-[11px] text-slate-500 font-black uppercase tracking-widest bg-amber-50/50 px-4 py-3 rounded-2xl border border-amber-100 flex-1">
-                      <Shield size={16} className="text-amber-500" /> <span className="truncate">LDR: <span className="text-amber-900">{shift.leader}</span></span>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-amber-50/50 px-3 py-2 rounded-xl border border-amber-100 flex-1">
+                      <Shield size={14} className="text-amber-500" /> <span className="truncate">LDR: <span className="text-amber-900">{shift.leader.split(' ')[0]}</span></span>
                     </div>
                   )}
                   
                   {shift.organizer && (
-                     <div className="flex items-center gap-3 text-[11px] text-slate-500 font-black uppercase tracking-widest bg-blue-50/50 px-4 py-3 rounded-2xl border border-blue-100 flex-1">
-                      <Users size={16} className="text-blue-500" /> <span className="truncate">ORG: <span className="text-blue-900">{shift.organizer}</span></span>
+                     <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100 flex-1">
+                      <Users size={14} className="text-blue-500" /> <span className="truncate">ORG: <span className="text-blue-900">{shift.organizer}</span></span>
                     </div>
                   )}
 
-                  <div className="flex items-center gap-3 text-[11px] text-slate-500 font-black uppercase tracking-widest bg-emerald-50/50 px-4 py-3 rounded-2xl border border-emerald-100">
-                    <DollarSign size={16} className="text-emerald-500" /> {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(shift.amount || 0)}
+                  <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-emerald-50/50 px-3 py-2 rounded-xl border border-emerald-100">
+                    <DollarSign size={14} className="text-emerald-500" /> {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(shift.amount || 0)}
                   </div>
                 </div>
- 
-                {shift.description && (
-                  <div className="mt-6 p-5 bg-slate-50/30 rounded-3xl border border-slate-100 border-dashed relative group/desc transition-colors hover:bg-slate-50/60">
-                    <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed italic pr-4">
-                      "{shift.description}"
-                    </p>
-                    <FileText size={14} className="absolute top-4 right-4 text-slate-300" />
-                  </div>
-                )}
               </div>
  
-              {/* Members List Preview */}
-              <div className="bg-slate-50/50 p-6 rounded-3xl space-y-4 border border-slate-100">
-                <div className="flex justify-between items-center border-b border-slate-200/50 pb-3">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Equipe Escalada</span>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[11px] font-black px-4 py-1.5 rounded-xl border-2 transition-all ${
-                      (shift.members.filter(m => m.status === 'CONFIRMED').length + (shift.leader ? 1 : 0)) >= shift.vacancies
-                      ? 'bg-emerald-500 text-white border-emerald-400'
-                      : 'bg-white text-slate-900 border-slate-200 shadow-sm'
-                    }`}>
-                      {shift.members.filter(m => m.status === 'CONFIRMED').length + (shift.leader ? 1 : 0)} / {shift.vacancies} VAGAS
-                    </span>
-                  </div>
+              {/* Members List Preview - Ultra Compact */}
+              <div className="bg-slate-50/50 p-4 rounded-2xl space-y-3 border border-slate-100">
+                <div className="flex justify-between items-center border-b border-slate-200/30 pb-2">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Escalados</span>
+                  <span className={`text-[10px] font-bold px-3 py-1 rounded-lg border transition-all ${
+                    (shift.members.filter(m => m.status === 'CONFIRMED').length + (shift.leader ? 1 : 0)) >= shift.vacancies
+                    ? 'bg-emerald-500 text-white border-emerald-400'
+                    : 'bg-white text-slate-600 border-slate-200 shadow-sm'
+                  }`}>
+                    {shift.members.filter(m => m.status === 'CONFIRMED').length + (shift.leader ? 1 : 0)}/{shift.vacancies}
+                  </span>
                 </div>
-                <div className="flex -space-x-4 overflow-hidden py-1 h-12 items-center">
+                <div className="flex -space-x-3 overflow-hidden py-1 h-10 items-center">
                   {shift.leader && (
-                     <div className="relative group/leader z-10 hover:translate-y-[-6px] transition-transform duration-300">
-                      <Avatar alt={shift.leader} fallback={shift.leader.substring(0, 2)} size="lg" className="ring-4 ring-white border-amber-400 shadow-md" />
-                      <div className="absolute -bottom-1 -right-1 bg-amber-500 rounded-full p-1 shadow-sm ring-2 ring-white">
-                        <Shield size={12} className="text-white" />
-                      </div>
+                     <div className="relative group/leader z-10 hover:translate-y-[-4px] transition-transform duration-300">
+                      <Avatar alt={shift.leader} fallback={shift.leader.substring(0, 2)} size="md" className="ring-2 ring-white border-amber-400 shadow-md" />
                     </div>
                   )}
                   {shift.members.filter(m => ['CONFIRMED', 'PENDING'].includes(m.status) && m.name.trim().toLowerCase() !== (shift.leader || '').trim().toLowerCase()).slice(0, 8).map((m, i) => (
-                    <div key={i} className="relative group/avatar hover:translate-y-[-6px] transition-transform duration-300" style={{ zIndex: 9 - i }}>
-                      <Avatar alt={m.name} fallback={m.name.substring(0, 2)} size="lg" className="ring-4 ring-white shadow-md" />
-                      <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm ring-2 ring-white">
-                        {getMemberStatusIcon(m.status)}
-                      </div>
+                    <div key={i} className="relative group/avatar hover:translate-y-[-4px] transition-transform duration-300" style={{ zIndex: 9 - i }}>
+                      <Avatar alt={m.name} fallback={m.name.substring(0, 2)} size="md" className="ring-2 ring-white shadow-md text-[10px]" />
                     </div>
                   ))}
-                  {shift.members.length === 0 && !shift.leader && <span className="text-xs text-slate-400 italic pl-2">Nenhum convocado...</span>}
                 </div>
               </div>
  
               {/* Actions */}
-              <div className="pt-2 mt-auto">
+              <div className="pt-2">
                 <Button 
                   variant={shift.members.some(m => m.status === 'VOLUNTEER_PENDING') ? "primary" : "secondary"} 
-                  className={`w-full h-16 text-sm font-black uppercase tracking-[0.2em] transition-all rounded-2xl ${
+                  className={`w-full h-12 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl ${
                     shift.members.some(m => m.status === 'VOLUNTEER_PENDING') 
                     ? 'bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-100 border-none' 
-                    : 'bg-slate-900 hover:bg-black shadow-2xl shadow-slate-300'
+                    : 'bg-slate-900 hover:bg-black shadow-lg shadow-slate-200'
                   }`} 
                   onClick={() => { setSelectedShift(shift); setIsDetailsOpen(true); }}
                 >
                   {canEdit ? (
                     shift.members.some(m => m.status === 'VOLUNTEER_PENDING') ? (
-                      <><UserCheck size={22} className="mr-4" /> Resolver Solicitação</>
+                      <><UserCheck size={16} className="mr-2" /> Resolver Pendência</>
                     ) : (
-                      <><Search size={22} className="mr-4" /> Gerenciar Registro</>
+                      <><Search size={16} className="mr-2" /> Gerenciar Registro</>
                     )
                   ) : (
-                    <><Eye size={22} className="mr-4" /> Ver Detalhes</>
+                    <><Eye size={16} className="mr-2" /> Ver Detalhes</>
                   )}
                 </Button>
               </div>
