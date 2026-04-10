@@ -584,25 +584,32 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                      "{selectedShift.description}"
                    </p>
                    <div className="absolute bottom-0 right-0 p-4 opacity-[0.03]">
-                          {((selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING') || (user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase() && selectedShift.status === 'AWAITING_CONFIRMATION')) && (
-               <div className="p-6 bg-brand-50 border-2 border-brand-200 rounded-3xl text-center shadow-xl shadow-brand-100 border-dashed scrollbar-hide">
-                  <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
-                    <AlertCircle className="text-brand-600" size={24} />
-                  </div>
-                  <h4 className="font-black text-brand-900 uppercase text-base mb-1">
-                    {user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase() ? 'Atenção: Designação de Líder' : 'Você foi convocado!'}
-                  </h4>
-                  <p className="text-xs text-brand-700 font-bold mb-4">
-                    {user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase() 
-                      ? 'Você foi designado como líder deste plantão. Deseja assumir?' 
-                      : 'Sua presença foi solicitada via sistema de rodízio para preencher esta vaga.'}
-                  </p>
-                  <div className="flex gap-3 justify-center">
-                     <Button variant="outline" className="h-12 px-6 border-brand-200 text-brand-700 hover:bg-white rounded-xl font-black uppercase text-[10px] tracking-widest" onClick={() => handleRespondSummon(selectedShift.id, false)}>Recusar</Button>
-                     <Button className="h-12 px-8 bg-brand-600 hover:bg-brand-700 shadow-2xl shadow-brand-200 rounded-xl font-black uppercase text-[10px] tracking-widest" onClick={() => handleRespondSummon(selectedShift.id, true)}>Confirmar Presença</Button>
-                  </div>
-               </div>
-             )}
+                     <FileText size={80} />
+                   </div>
+                 </div>
+               )}
+            </div>
+
+            {/* 3. Self Action for Summons (Leader or Member) */}
+            {((selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING') || (user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase() && selectedShift.status === 'AWAITING_CONFIRMATION')) && (
+              <div className="p-6 bg-brand-50 border-2 border-brand-200 rounded-3xl text-center shadow-xl shadow-brand-100 border-dashed scrollbar-hide">
+                 <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                   <AlertCircle className="text-brand-600" size={24} />
+                 </div>
+                 <h4 className="font-black text-brand-900 uppercase text-base mb-1">
+                   {user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase() ? 'Atenção: Designação de Líder' : 'Você foi convocado!'}
+                 </h4>
+                 <p className="text-xs text-brand-700 font-bold mb-4">
+                   {user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase() 
+                     ? 'Você foi designado como líder deste plantão. Deseja assumir?' 
+                     : 'Sua presença foi solicitada via sistema de rodízio para preencher esta vaga.'}
+                 </p>
+                 <div className="flex gap-3 justify-center">
+                    <Button variant="outline" className="h-12 px-6 border-brand-200 text-brand-700 hover:bg-white rounded-xl font-black uppercase text-[10px] tracking-widest" onClick={() => handleRespondSummon(selectedShift.id, false)}>Recusar</Button>
+                    <Button className="h-12 px-8 bg-brand-600 hover:bg-brand-700 shadow-2xl shadow-brand-200 rounded-xl font-black uppercase text-[10px] tracking-widest" onClick={() => handleRespondSummon(selectedShift.id, true)}>Confirmar Presença</Button>
+                 </div>
+              </div>
+            )}
 
             {/* 4. Members Management Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
