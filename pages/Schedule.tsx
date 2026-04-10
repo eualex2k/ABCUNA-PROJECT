@@ -780,8 +780,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       {/* Create Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="➕ Lançar Novo Plantão Operacional" maxWidth="3xl">
         <form onSubmit={handleCreateShift} className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 scrollbar-hide p-1">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-4">
+          <div className="grid grid-cols-12 gap-x-4 gap-y-3">
+            <div className="col-span-12">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Equipe / Serviço</label>
               <Input
                 required
@@ -792,62 +792,40 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               />
             </div>
 
-            <div className="md:col-span-2">
+            <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Data</label>
               <Input
                 type="date"
                 required
                 value={newShift.fullDate}
                 onChange={(e) => setNewShift({ ...newShift, fullDate: e.target.value })}
-                className="h-10 rounded-xl"
+                className="h-10 rounded-xl px-2"
               />
             </div>
 
-            <div className="md:col-span-2">
-               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Localização</label>
-               <Input
-                 value={newShift.location}
-                 onChange={(e) => setNewShift({ ...newShift, location: e.target.value })}
-                 placeholder="Cidade ou Setor"
-                 className="h-10 rounded-xl"
-               />
+            <div className="col-span-6 md:col-span-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
+              <Input
+                type="time"
+                required
+                value={newShift.startTime}
+                onChange={(e) => setNewShift({ ...newShift, startTime: e.target.value })}
+                className="h-10 rounded-xl px-2"
+              />
             </div>
 
-            <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Ajuda Custo</label>
-                <Input
-                  type="number"
-                  value={newShift.amount}
-                  onChange={(e) => setNewShift({ ...newShift, amount: parseFloat(e.target.value) })}
-                  placeholder="R$"
-                  className="h-10 rounded-xl"
-                />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
-                <Input
-                  type="time"
-                  required
-                  value={newShift.startTime}
-                  onChange={(e) => setNewShift({ ...newShift, startTime: e.target.value })}
-                  className="h-10 rounded-xl px-2"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
-                <Input
-                  type="time"
-                  required
-                  value={newShift.endTime}
-                  onChange={(e) => setNewShift({ ...newShift, endTime: e.target.value })}
-                  className="h-10 rounded-xl px-2"
-                />
-              </div>
+            <div className="col-span-6 md:col-span-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
+              <Input
+                type="time"
+                required
+                value={newShift.endTime}
+                onChange={(e) => setNewShift({ ...newShift, endTime: e.target.value })}
+                className="h-10 rounded-xl px-2"
+              />
             </div>
 
-            <div>
+            <div className="col-span-6 md:col-span-2">
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Vagas</label>
                 <Input
                   type="number"
@@ -858,8 +836,29 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                 />
             </div>
 
-            <div className="md:col-span-1">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Líder</label>
+            <div className="col-span-6 md:col-span-3">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Ajuda Custo</label>
+                <Input
+                  type="number"
+                  value={newShift.amount}
+                  onChange={(e) => setNewShift({ ...newShift, amount: parseFloat(e.target.value) })}
+                  placeholder="R$"
+                  className="h-10 rounded-xl"
+                />
+            </div>
+
+            <div className="col-span-12 md:col-span-5">
+               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Localização</label>
+               <Input
+                 value={newShift.location}
+                 onChange={(e) => setNewShift({ ...newShift, location: e.target.value })}
+                 placeholder="Cidade ou Setor"
+                 className="h-10 rounded-xl"
+               />
+            </div>
+
+            <div className="col-span-12 md:col-span-4">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Líder (Diretoria)</label>
               <select
                 className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                 value={newShift.leader}
@@ -872,12 +871,22 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               </select>
             </div>
 
-            <div className="md:col-span-4">
+            <div className="col-span-12 md:col-span-3">
+               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Organizador</label>
+               <Input
+                 value={newShift.organizer}
+                 onChange={(e) => setNewShift({ ...newShift, organizer: e.target.value })}
+                 placeholder="Ex: ABCUNA"
+                 className="h-10 rounded-xl"
+               />
+            </div>
+
+            <div className="col-span-12">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Observações do Plantão</label>
               <Input
                 value={newShift.description}
                 onChange={(e) => setNewShift({ ...newShift, description: e.target.value })}
-                placeholder="Observações importantes aqui..."
+                placeholder="Diferencial, detalhes..."
                 className="h-10 rounded-xl"
               />
             </div>
@@ -895,44 +904,43 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       {/* Edit Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="⚙️ Editar Registro" maxWidth="3xl">
         <form onSubmit={handleUpdateShift} className="space-y-4 animate-in fade-in scrollbar-hide p-1">
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-4">
+          <div className="grid grid-cols-12 gap-x-4 gap-y-3">
+            <div className="col-span-12">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Título da Equipe</label>
               <Input value={editingShift.team} onChange={e => setEditingShift({ ...editingShift, team: e.target.value })} required className="h-10 rounded-xl" />
             </div>
 
-            <div className="md:col-span-2">
+            <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Data</label>
-              <Input type="date" value={editingShift.fullDate} onChange={e => setEditingShift({ ...editingShift, fullDate: e.target.value })} required className="h-10 rounded-xl" />
+              <Input type="date" value={editingShift.fullDate} onChange={e => setEditingShift({ ...editingShift, fullDate: e.target.value })} required className="h-10 rounded-xl px-2" />
             </div>
 
-            <div className="md:col-span-2">
-               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Local</label>
-               <Input value={editingShift.location} onChange={e => setEditingShift({ ...editingShift, location: e.target.value })} required className="h-10 rounded-xl" />
+            <div className="col-span-6 md:col-span-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
+              <Input type="time" value={editingShift.startTime} onChange={e => setEditingShift({ ...editingShift, startTime: e.target.value })} required className="h-10 rounded-xl px-2" />
             </div>
 
-            <div className="flex gap-2 md:col-span-2">
-              <div className="flex-1">
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
-                <Input type="time" value={editingShift.startTime} onChange={e => setEditingShift({ ...editingShift, startTime: e.target.value })} required className="h-10 rounded-xl" />
-              </div>
-              <div className="flex-1">
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
-                <Input type="time" value={editingShift.endTime} onChange={e => setEditingShift({ ...editingShift, endTime: e.target.value })} required className="h-10 rounded-xl" />
-              </div>
+            <div className="col-span-6 md:col-span-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
+              <Input type="time" value={editingShift.endTime} onChange={e => setEditingShift({ ...editingShift, endTime: e.target.value })} required className="h-10 rounded-xl px-2" />
             </div>
 
-            <div>
+            <div className="col-span-6 md:col-span-2">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Vagas</label>
               <Input type="number" value={editingShift.vacancies} onChange={e => setEditingShift({ ...editingShift, vacancies: parseInt(e.target.value) })} required className="h-10 rounded-xl" />
             </div>
 
-            <div>
+            <div className="col-span-6 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Valor (R$)</label>
               <Input type="number" step="0.01" value={editingShift.amount} onChange={e => setEditingShift({ ...editingShift, amount: parseFloat(e.target.value) })} required className="h-10 rounded-xl" />
             </div>
 
-            <div className="md:col-span-2">
+            <div className="col-span-12 md:col-span-5">
+               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Local</label>
+               <Input value={editingShift.location} onChange={e => setEditingShift({ ...editingShift, location: e.target.value })} required className="h-10 rounded-xl" />
+            </div>
+
+            <div className="col-span-12 md:col-span-4">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Líder</label>
                <select
                 className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
@@ -944,6 +952,16 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                   <option key={d.id} value={d.name}>{d.name}</option>
                 ))}
               </select>
+            </div>
+
+            <div className="col-span-12 md:col-span-3">
+               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Organizador</label>
+               <Input
+                 value={editingShift.organizer}
+                 onChange={(e) => setEditingShift({ ...editingShift, organizer: e.target.value })}
+                 placeholder="Ex: ABCUNA"
+                 className="h-10 rounded-xl"
+               />
             </div>
           </div>
 

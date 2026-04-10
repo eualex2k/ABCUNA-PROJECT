@@ -15,12 +15,14 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
     const [activeTab, setActiveTab] = useState<'events' | 'schedule'>('schedule');
 
     useEffect(() => {
-        if (location.pathname === '/events' || location.pathname === '/events/') {
+        const path = location.pathname.replace(/\/$/, ''); // Remove trailing slash
+        if (path.endsWith('/schedule')) {
             setActiveTab('schedule');
-        } else if (location.pathname.includes('/events/schedule')) {
-            setActiveTab('schedule');
-        } else {
+        } else if (path === '/events') {
             setActiveTab('events');
+        } else {
+            // Default to schedule as requested by user
+            setActiveTab('schedule');
         }
     }, [location]);
 

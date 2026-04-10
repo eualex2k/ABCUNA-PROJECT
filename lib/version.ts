@@ -1,1 +1,1 @@
-export const APP_VERSION = 'v2.3.0'; // Módulo de Plantão v2.3 (Zero-Scroll & Ultra-Minimalist)
+export const APP_VERSION = 'v2.3.1'; // Layout balanced & Navigation fixed
