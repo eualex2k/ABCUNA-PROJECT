@@ -803,29 +803,29 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               />
             </div>
 
-            <div className="col-span-6 md:col-span-2">
+            <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
               <Input
                 type="time"
                 required
                 value={newShift.startTime}
                 onChange={(e) => setNewShift({ ...newShift, startTime: e.target.value })}
-                className="h-10 rounded-xl px-2"
+                className="h-10 rounded-xl px-4"
               />
             </div>
 
-            <div className="col-span-6 md:col-span-2">
+            <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
               <Input
                 type="time"
                 required
                 value={newShift.endTime}
                 onChange={(e) => setNewShift({ ...newShift, endTime: e.target.value })}
-                className="h-10 rounded-xl px-2"
+                className="h-10 rounded-xl px-4"
               />
             </div>
 
-            <div className="col-span-6 md:col-span-2">
+            <div className="col-span-12 md:col-span-3">
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Vagas</label>
                 <Input
                   type="number"
@@ -836,8 +836,18 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                 />
             </div>
 
-            <div className="col-span-6 md:col-span-3">
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Ajuda Custo</label>
+            <div className="col-span-12 md:col-span-4">
+               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Localização</label>
+               <Input
+                 value={newShift.location}
+                 onChange={(e) => setNewShift({ ...newShift, location: e.target.value })}
+                 placeholder="Cidade ou Setor"
+                 className="h-10 rounded-xl"
+               />
+            </div>
+
+            <div className="col-span-12 md:col-span-3">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Valor do Plantão</label>
                 <Input
                   type="number"
                   value={newShift.amount}
@@ -848,16 +858,6 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
             </div>
 
             <div className="col-span-12 md:col-span-5">
-               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Localização</label>
-               <Input
-                 value={newShift.location}
-                 onChange={(e) => setNewShift({ ...newShift, location: e.target.value })}
-                 placeholder="Cidade ou Setor"
-                 className="h-10 rounded-xl"
-               />
-            </div>
-
-            <div className="col-span-12 md:col-span-4">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Líder (Diretoria)</label>
               <select
                 className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
@@ -871,7 +871,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               </select>
             </div>
 
-            <div className="col-span-12 md:col-span-3">
+            <div className="col-span-12 md:col-span-12">
                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Organizador</label>
                <Input
                  value={newShift.organizer}
@@ -915,32 +915,32 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               <Input type="date" value={editingShift.fullDate} onChange={e => setEditingShift({ ...editingShift, fullDate: e.target.value })} required className="h-10 rounded-xl px-2" />
             </div>
 
-            <div className="col-span-6 md:col-span-2">
+            <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Início</label>
-              <Input type="time" value={editingShift.startTime} onChange={e => setEditingShift({ ...editingShift, startTime: e.target.value })} required className="h-10 rounded-xl px-2" />
+              <Input type="time" value={editingShift.startTime} onChange={e => setEditingShift({ ...editingShift, startTime: e.target.value })} required className="h-10 rounded-xl px-4" />
             </div>
 
-            <div className="col-span-6 md:col-span-2">
+            <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fim</label>
-              <Input type="time" value={editingShift.endTime} onChange={e => setEditingShift({ ...editingShift, endTime: e.target.value })} required className="h-10 rounded-xl px-2" />
+              <Input type="time" value={editingShift.endTime} onChange={e => setEditingShift({ ...editingShift, endTime: e.target.value })} required className="h-10 rounded-xl px-4" />
             </div>
 
-            <div className="col-span-6 md:col-span-2">
+            <div className="col-span-12 md:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Vagas</label>
               <Input type="number" value={editingShift.vacancies} onChange={e => setEditingShift({ ...editingShift, vacancies: parseInt(e.target.value) })} required className="h-10 rounded-xl" />
             </div>
 
-            <div className="col-span-6 md:col-span-3">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Valor (R$)</label>
-              <Input type="number" step="0.01" value={editingShift.amount} onChange={e => setEditingShift({ ...editingShift, amount: parseFloat(e.target.value) })} required className="h-10 rounded-xl" />
-            </div>
-
-            <div className="col-span-12 md:col-span-5">
+            <div className="col-span-12 md:col-span-4">
                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Local</label>
                <Input value={editingShift.location} onChange={e => setEditingShift({ ...editingShift, location: e.target.value })} required className="h-10 rounded-xl" />
             </div>
 
-            <div className="col-span-12 md:col-span-4">
+            <div className="col-span-12 md:col-span-3">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Valor do Plantão</label>
+              <Input type="number" step="0.01" value={editingShift.amount} onChange={e => setEditingShift({ ...editingShift, amount: parseFloat(e.target.value) })} required className="h-10 rounded-xl" />
+            </div>
+
+            <div className="col-span-12 md:col-span-5">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Líder</label>
                <select
                 className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
@@ -954,7 +954,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               </select>
             </div>
 
-            <div className="col-span-12 md:col-span-3">
+            <div className="col-span-12">
                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Organizador</label>
                <Input
                  value={editingShift.organizer}
