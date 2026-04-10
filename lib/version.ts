@@ -1,1 +1,1 @@
-export const APP_VERSION = 'v3.2.0'; // Custom Multi-Select Time Picker Overhaul
+export const APP_VERSION = 'v3.3.0'; // Institutional Event Calendar & Sidebar Feed

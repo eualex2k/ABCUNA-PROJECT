@@ -12,24 +12,28 @@ interface EventsManagerProps {
 export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'events' | 'schedule'>('schedule');
+    const [activeTab, setActiveTab] = useState<'events' | 'schedule' | 'calendar'>('calendar');
 
     useEffect(() => {
         const path = location.pathname.replace(/\/$/, ''); // Remove trailing slash
         if (path.endsWith('/schedule')) {
             setActiveTab('schedule');
-        } else if (path === '/events') {
+        } else if (path.endsWith('/calendar')) {
+            setActiveTab('calendar');
+        } else if (path === '/events' || path.endsWith('/list')) {
             setActiveTab('events');
         } else {
-            // Default to schedule as requested by user
-            setActiveTab('schedule');
+            // Default to calendar as requested for the new dashboard
+            setActiveTab('calendar');
         }
     }, [location]);
 
-    const handleTabChange = (tab: 'events' | 'schedule') => {
+    const handleTabChange = (tab: 'events' | 'schedule' | 'calendar') => {
         setActiveTab(tab);
         if (tab === 'events') {
-            navigate('/events');
+            navigate('/events/list');
+        } else if (tab === 'calendar') {
+            navigate('/events/calendar');
         } else {
             navigate('/events/schedule');
         }
@@ -49,12 +53,22 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
                 </div>
 
                 {/* Tabs Navigation */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white p-2 rounded-xl border border-slate-200 shadow-sm w-fit">
+                <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm w-fit">
+                    <button
+                        onClick={() => handleTabChange('calendar')}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'calendar'
+                                ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                            }`}
+                    >
+                        <Calendar size={18} />
+                        Calendário de Eventos
+                    </button>
                     <button
                         onClick={() => handleTabChange('schedule')}
                         className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'schedule'
-                                ? 'bg-red-600 text-white shadow-md'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-red-600'
+                                ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                             }`}
                     >
                         <RefreshCcw size={18} />
@@ -63,12 +77,12 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
                     <button
                         onClick={() => handleTabChange('events')}
                         className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'events'
-                                ? 'bg-red-600 text-white shadow-md'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-red-600'
+                                ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                             }`}
                     >
                         <CalendarDays size={18} />
-                        Eventos Gerais
+                        Lista de Eventos
                     </button>
                 </div>
 
@@ -77,7 +91,7 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
                     {activeTab === 'schedule' ? (
                         <SchedulePage user={user} />
                     ) : (
-                        <EventsPage user={user} />
+                        <EventsPage user={user} initialView={activeTab === 'calendar' ? 'calendar' : 'list'} />
                     )}
                 </div>
             </div>

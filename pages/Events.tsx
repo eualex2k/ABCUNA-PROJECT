@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CalendarDays, MapPin, Clock, Plus, Users, Search, Trash2, Edit3, X, CheckSquare, CheckCircle, Shield, Globe } from 'lucide-react';
+import { CalendarDays, MapPin, Clock, Plus, Users, Search, Trash2, Edit3, X, CheckSquare, CheckCircle, Shield, Globe, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { Card, Button, Input, Modal, Badge } from '../components/ui';
 import { notificationService } from '../services/notifications';
 import { eventsService } from '../services/events';
@@ -7,13 +7,17 @@ import { Event, User, UserRole } from '../types';
 
 interface EventsPageProps {
   user: User;
+  initialView?: 'list' | 'calendar';
 }
 
-export const EventsPage: React.FC<EventsPageProps> = ({ user }) => {
+export const EventsPage: React.FC<EventsPageProps> = ({ user, initialView = 'list' }) => {
   const canEdit = [UserRole.ADMIN, UserRole.SECRETARY, UserRole.INSTRUCTOR].includes(user.role);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'list' | 'calendar'>(initialView);
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  useEffect(() => {
+    setActiveTab(initialView);
+  }, [initialView]);
 
   const loadEvents = async () => {
     try {
@@ -30,6 +34,28 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user }) => {
   useEffect(() => {
     loadEvents();
   }, []);
+
+  const holidays = [
+    { date: '2026-01-01', title: 'Confraternização Universal' },
+    { date: '2026-02-16', title: 'Carnaval' },
+    { date: '2026-02-17', title: 'Carnaval' },
+    { date: '2026-04-03', title: 'Sexta-feira Santa' },
+    { date: '2026-04-21', title: 'Tiradentes' },
+    { date: '2026-05-01', title: 'Dia do Trabalho' },
+    { date: '2026-06-04', title: 'Corpus Christi' },
+    { date: '2026-09-07', title: 'Independência do Brasil' },
+    { date: '2026-10-12', title: 'Nossa Sra. Aparecida' },
+    { date: '2026-11-02', title: 'Finados' },
+    { date: '2026-11-15', title: 'Proclamação da República' },
+    { date: '2026-11-20', title: 'Consciência Negra' },
+    { date: '2026-12-25', title: 'Natal' }
+  ];
+
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+  const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+  const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const initialFormState: Partial<Event> = {
@@ -139,7 +165,7 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user }) => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-end gap-4 mb-4">
+      <div className="flex justify-end">
         {canEdit && (
           <Button onClick={handleOpenCreate} className="flex items-center gap-2 shadow-lg shadow-brand-200">
             <Plus size={18} /> Criar Evento
@@ -147,7 +173,150 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user }) => {
         )}
       </div>
 
-      <div className="grid gap-6">
+      {activeTab === 'calendar' ? (
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          {/* Main Calendar Card */}
+          <Card className="xl:col-span-3 p-0 border-slate-200 overflow-hidden shadow-xl shadow-slate-100 rounded-[2.5rem]">
+             <div className="bg-slate-900 text-white p-8 flex justify-between items-center">
+                <div>
+                   <h2 className="text-3xl font-black uppercase tracking-tighter leading-none mb-1">
+                     {currentDate.toLocaleDateString('pt-BR', { month: 'long' })}
+                   </h2>
+                   <p className="text-brand-400 font-black text-sm uppercase tracking-[0.3em] ml-0.5">{currentDate.getFullYear()}</p>
+                </div>
+                <div className="flex gap-2">
+                   <button onClick={handlePrevMonth} className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl transition-all border border-white/5">
+                      <ChevronLeft size={24} />
+                   </button>
+                   <button onClick={handleNextMonth} className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl transition-all border border-white/5">
+                      <ChevronRight size={24} />
+                   </button>
+                </div>
+             </div>
+
+             <div className="p-8">
+                <div className="grid grid-cols-7 gap-4 mb-4">
+                   {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+                      <div key={day} className="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest py-2">
+                         {day}
+                      </div>
+                   ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-4">
+                   {Array.from({ length: getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth()) }).map((_, i) => (
+                      <div key={`empty-${i}`} className="h-28 rounded-2xl bg-slate-50 opacity-30" />
+                   ))}
+                   
+                   {Array.from({ length: getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth()) }).map((_, i) => {
+                      const day = i + 1;
+                      const dayStr = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                      const dayEvents = events.filter(e => e.date === dayStr);
+                      const dayHolidays = holidays.filter(h => h.date === dayStr);
+                      const isToday = new Date().toISOString().split('T')[0] === dayStr;
+
+                      return (
+                         <div key={day} className={`h-28 rounded-3xl p-3 border group transition-all relative ${isToday ? 'bg-brand-50 border-brand-200 shadow-inner' : 'bg-white border-slate-100 hover:border-slate-300 hover:shadow-md'}`}>
+                            <span className={`text-lg font-black ${isToday ? 'text-brand-600' : 'text-slate-400 group-hover:text-slate-900'}`}>{day}</span>
+                            
+                            <div className="mt-2 space-y-1 overflow-hidden">
+                               {dayHolidays.map((h, idx) => (
+                                  <div key={idx} className="bg-amber-100 text-amber-700 text-[8px] font-black uppercase px-2 py-0.5 rounded-full truncate border border-amber-200">
+                                     {h.title}
+                                  </div>
+                               ))}
+                               {dayEvents.map((e, idx) => (
+                                  <div key={idx} className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full truncate border ${e.visibility === 'BOARD' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                                     {e.title}
+                                  </div>
+                               ))}
+                            </div>
+
+                            {(dayEvents.length > 0 || dayHolidays.length > 0) && (
+                               <div className="absolute top-3 right-3 flex gap-0.5">
+                                  {dayHolidays.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                                  {dayEvents.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                               </div>
+                            )}
+                         </div>
+                      );
+                   })}
+                </div>
+             </div>
+          </Card>
+
+          {/* Sidebar: Month Insights */}
+          <div className="space-y-6">
+             {/* 1. Month Summary Card */}
+             <Card className="p-6 border-slate-200 bg-slate-50/50 rounded-3xl">
+                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                   <Clock size={16} /> Eventos e Feriados
+                </h3>
+                
+                <div className="space-y-4">
+                   {/* Holidays this month */}
+                   {holidays.filter(h => {
+                       const d = new Date(h.date + 'T12:00:00');
+                       return d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear();
+                   }).map((h, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-3 bg-amber-50 rounded-2xl border border-amber-100 shadow-sm">
+                         <div className="w-10 h-10 bg-amber-400 text-white rounded-xl flex flex-col items-center justify-center">
+                            <span className="text-xs font-black">{h.date.split('-')[2]}</span>
+                            <span className="text-[8px] font-black uppercase">{new Date(h.date + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
+                         </div>
+                         <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest line-clamp-1">{h.title}</p>
+                            <p className="text-[8px] font-bold text-amber-600/70 uppercase tracking-widest">Feriado Nacional</p>
+                         </div>
+                      </div>
+                   ))}
+
+                   {/* Events this month */}
+                   {events.filter(e => {
+                       const d = new Date(e.date + 'T12:00:00');
+                       return d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear();
+                   }).length === 0 && holidays.filter(h => {
+                       const d = new Date(h.date + 'T12:00:00');
+                       return d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear();
+                   }).length === 0 ? (
+                      <div className="py-8 text-center bg-white/50 rounded-2xl border border-dashed border-slate-200">
+                         <Info size={24} className="mx-auto text-slate-300 mb-2" />
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nenhuma atividade registrada</p>
+                      </div>
+                   ) : (
+                      events.filter(e => {
+                          const d = new Date(e.date + 'T12:00:00');
+                          return d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear();
+                      }).map((e, idx) => (
+                        <div key={idx} className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-100 hover:shadow-md transition-all">
+                           <div className={`w-10 h-10 text-white rounded-xl flex flex-col items-center justify-center ${e.visibility === 'BOARD' ? 'bg-blue-600 shadow-lg shadow-blue-100' : 'bg-emerald-600 shadow-lg shadow-emerald-100'}`}>
+                              <span className="text-xs font-black">{e.date.split('-')[2]}</span>
+                              <span className="text-[8px] font-black uppercase">{new Date(e.date + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
+                           </div>
+                           <div className="flex-1 min-w-0">
+                              <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest line-clamp-1 leading-tight mb-0.5">{e.title}</p>
+                              <div className="flex items-center gap-1">
+                                 <MapPin size={8} className="text-brand-500" />
+                                 <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest truncate">{e.location}</p>
+                              </div>
+                           </div>
+                        </div>
+                      ))
+                   )}
+                </div>
+             </Card>
+
+             <Card className="p-6 border-slate-200 bg-brand-600 rounded-3xl shadow-xl shadow-brand-100">
+                <Users className="text-white/20 mb-3" size={32} />
+                <h4 className="text-white font-black uppercase tracking-tighter text-xl leading-none mb-1">Engajamento</h4>
+                <p className="text-brand-100 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                   Ajude a planejar as atividades da associação sugerindo eventos à diretoria.
+                </p>
+             </Card>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-6">
         {loading ? (
           <div className="py-20 text-center text-slate-400 italic">Buscando agenda atualizada...</div>
         ) : visibleEvents.map((event) => (
