@@ -361,17 +361,26 @@ function mapToFrontend(row: any): Shift {
 
     const adjustedEndDate = endObj ? new Date(endObj.getTime() + userTimezoneOffset) : null;
 
+    // Extração direta para evitar bugs de fuso horário na exibição do texto
+    const startTimeFormatted = row.start_time?.includes('T') 
+        ? row.start_time.split('T')[1].substring(0, 5)
+        : (row.start_time?.split(' ')[1]?.substring(0, 5) || '08:00');
+        
+    const endTimeFormatted = row.end_time?.includes('T')
+        ? row.end_time.split('T')[1].substring(0, 5)
+        : (row.end_time?.split(' ')[1]?.substring(0, 5) || '20:00');
+
     return {
         id: row.id,
-        fullDate: row.start_time?.split('T')[0] || '',
+        fullDate: row.start_time?.split('T')[0] || row.start_time?.split(' ')[0] || '',
         day: dayStr,
         date: dateStr,
         team: row.title,
         leader: row.leader || 'A definir',
         status: row.status as any,
         location: row.location || 'Sede',
-        startTime: adjustedDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        endTime: adjustedEndDate ? adjustedEndDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '18:00',
+        startTime: startTimeFormatted,
+        endTime: endTimeFormatted,
         amount: Number(row.amount || 0),
         organizer: row.organizer || 'Interno',
         vacancies: row.vacancies || 1,

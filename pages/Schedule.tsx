@@ -313,7 +313,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
               </div>
 
               {/* Admin Controls */}
-              {canEdit && shift.status === 'PENDING' && (
+              {canEdit && (shift.status === 'PENDING' || shift.status === 'OPEN') && (
                 <Button
                   variant="outline"
                   size="sm"
