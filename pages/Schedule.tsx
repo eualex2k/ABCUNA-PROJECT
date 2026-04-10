@@ -640,21 +640,25 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
 
                {selectedShift.description && (
                  <div className="md:col-span-2 p-6 bg-slate-50 border border-slate-100 border-dashed rounded-3xl relative overflow-hidden">
-                   <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                      <FileText size={16} className="text-slate-400" /> Observações do Plantão
-                   </p>
-                   <p className="text-base text-slate-600 leading-relaxed italic font-medium">
-                     "{selectedShift.description}"
-                   </p>
-                   <div className="absolute bottom-0 right-0 p-4 opacity-[0.03]">
-                     <FileText size={80} />
-                   </div>
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                       <FileText size={16} className="text-slate-400" /> Observações do Plantão
+                    </p>
+                    <p className="text-base text-slate-600 leading-relaxed italic font-medium">
+                      "{selectedShift.description}"
+                    </p>
+                    <div className="absolute bottom-0 right-0 p-4 opacity-[0.03]">
+                      <FileText size={80} />
+                    </div>
                  </div>
                )}
             </div>
 
             {/* 3. Self Action for Summons (Leader or Member) */}
-            {((selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING') || (user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase() && selectedShift.status === 'AWAITING_CONFIRMATION')) && (
+            {((selectedShift.members.find(m => m.userId === user.id)?.status === 'PENDING') || 
+               (user.name.trim().toLowerCase() === (selectedShift.leader || '').trim().toLowerCase() && 
+                selectedShift.status === 'AWAITING_CONFIRMATION' && 
+                selectedShift.members.find(m => m.userId === user.id)?.status !== 'CONFIRMED'
+               )) && (
               <div className="p-6 bg-brand-50 border-2 border-brand-200 rounded-3xl text-center shadow-xl shadow-brand-100 border-dashed scrollbar-hide">
                  <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
                    <AlertCircle className="text-brand-600" size={24} />

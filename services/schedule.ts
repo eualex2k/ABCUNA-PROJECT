@@ -210,7 +210,14 @@ export const scheduleService = {
                 joinedAt: new Date().toISOString()
             }));
 
-            return [...currentMembers, ...proposedMembers];
+            const combined = [...currentMembers, ...proposedMembers];
+            
+            // Garantia final: remover duplicados por userId
+            const uniqueMembers = combined.filter((v, i, a) => 
+                a.findIndex(t => (t.userId === v.userId && t.userId !== '')) === i
+            );
+
+            return uniqueMembers;
 
         } catch (error) {
             console.error('Error generating preview:', error);
