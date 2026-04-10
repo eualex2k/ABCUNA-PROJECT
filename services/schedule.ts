@@ -359,6 +359,8 @@ function mapToFrontend(row: any): Shift {
         });
     }
 
+    const adjustedEndDate = endObj ? new Date(endObj.getTime() + userTimezoneOffset) : null;
+
     return {
         id: row.id,
         fullDate: row.start_time?.split('T')[0] || '',
@@ -368,8 +370,8 @@ function mapToFrontend(row: any): Shift {
         leader: row.leader || 'A definir',
         status: row.status as any,
         location: row.location || 'Sede',
-        startTime: startObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        endTime: endObj ? endObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '18:00',
+        startTime: adjustedDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        endTime: adjustedEndDate ? adjustedEndDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '18:00',
         amount: Number(row.amount || 0),
         organizer: row.organizer || 'Interno',
         vacancies: row.vacancies || 1,

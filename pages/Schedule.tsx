@@ -47,7 +47,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
   const initialFormState: Partial<Shift> = {
     team: '',
     leader: '',
-    status: 'OPEN',
+    status: 'PENDING',
     location: '',
     startTime: '08:00',
     endTime: '20:00',
@@ -157,6 +157,10 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
 
   const handleApproveVolunteer = async (shift: Shift, memberId: string) => {
     try {
+      if (user.role !== UserRole.ADMIN) {
+        alert('Apenas o Presidente pode aprovar solicitações.');
+        return;
+      }
       const updatedMembers = shift.members.map(m => {
         if (m.userId === memberId) {
           return { ...m, status: 'CONFIRMED', type: 'VOLUNTEER' } as ShiftMember;
@@ -182,6 +186,10 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
   };
 
   const handleRejectVolunteer = async (shift: Shift, memberId: string) => {
+    if (user.role !== UserRole.ADMIN) {
+      alert('Apenas o Presidente pode recusar solicitações.');
+      return;
+    }
     if (confirm("Rejeitar este voluntário?")) {
       try {
         const updatedMembers = shift.members.filter(m => m.userId !== memberId);
@@ -533,8 +541,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
                              </div>
                           </div>
 
-                          {/* Approval Actions for Admin */}
-                          {canEdit && m.status === 'VOLUNTEER_PENDING' && (
+                          {/* Approval Actions for Admin (Only President/ADMIN) */}
+                          {user.role === UserRole.ADMIN && m.status === 'VOLUNTEER_PENDING' && (
                              <div className="flex gap-1.5 animate-in slide-in-from-right-2">
                                 <button 
                                   onClick={() => handleRejectVolunteer(selectedShift, m.userId)}
