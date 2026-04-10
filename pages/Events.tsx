@@ -229,7 +229,11 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(({ us
                                   </div>
                                ))}
                                {dayEvents.map((e, idx) => (
-                                  <div key={idx} className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full truncate border ${e.visibility === 'BOARD' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                                  <div 
+                                    key={idx} 
+                                    onClick={(e) => { e.stopPropagation(); setActiveTab('list'); }}
+                                    className={`cursor-pointer hover:scale-105 transition-all text-[8px] font-black uppercase px-2 py-0.5 rounded-full truncate border ${e.visibility === 'BOARD' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}
+                                  >
                                      {e.title}
                                   </div>
                                ))}
@@ -291,13 +295,17 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(({ us
                           const d = new Date(e.date + 'T12:00:00');
                           return d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear();
                       }).map((e, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-100 hover:shadow-md transition-all">
-                           <div className={`w-10 h-10 text-white rounded-xl flex flex-col items-center justify-center ${e.visibility === 'BOARD' ? 'bg-blue-600 shadow-lg shadow-blue-100' : 'bg-emerald-600 shadow-lg shadow-emerald-100'}`}>
+                        <div 
+                          key={idx} 
+                          onClick={() => setActiveTab('list')}
+                          className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-100 hover:shadow-md transition-all cursor-pointer group"
+                        >
+                           <div className={`w-10 h-10 text-white rounded-xl flex flex-col items-center justify-center transition-transform group-hover:scale-110 ${e.visibility === 'BOARD' ? 'bg-blue-600 shadow-lg shadow-blue-100' : 'bg-emerald-600 shadow-lg shadow-emerald-100'}`}>
                               <span className="text-xs font-black">{e.date.split('-')[2]}</span>
                               <span className="text-[8px] font-black uppercase">{new Date(e.date + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
                            </div>
                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest line-clamp-1 leading-tight mb-0.5">{e.title}</p>
+                              <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest line-clamp-1 leading-tight mb-0.5 group-hover:text-brand-600 transition-colors">{e.title}</p>
                               <div className="flex items-center gap-1">
                                  <MapPin size={8} className="text-brand-500" />
                                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest truncate">{e.location}</p>
@@ -309,12 +317,16 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(({ us
                 </div>
              </Card>
 
-             <Card className="p-6 border-slate-200 bg-brand-600 rounded-3xl shadow-xl shadow-brand-100">
-                <Users className="text-white/20 mb-3" size={32} />
-                <h4 className="text-white font-black uppercase tracking-tighter text-xl leading-none mb-1">Engajamento</h4>
-                <p className="text-brand-100 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
-                   Ajude a planejar as atividades da associação sugerindo eventos à diretoria.
-                </p>
+             <Card className="p-6 border-slate-200 bg-slate-900 rounded-3xl shadow-xl shadow-slate-200 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 text-white/5 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500">
+                    <Users size={80} />
+                </div>
+                <div className="relative z-10">
+                    <h4 className="text-white font-black uppercase tracking-tighter text-xl leading-none mb-1">Engajamento</h4>
+                    <p className="text-slate-300 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                       Ajude a planejar as atividades da associação sugerindo eventos à diretoria.
+                    </p>
+                </div>
              </Card>
           </div>
         </div>
