@@ -12,10 +12,12 @@ interface EventsManagerProps {
 export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'events' | 'schedule'>('events');
+    const [activeTab, setActiveTab] = useState<'events' | 'schedule'>('schedule');
 
     useEffect(() => {
-        if (location.pathname.includes('/events/schedule')) {
+        if (location.pathname === '/events' || location.pathname === '/events/') {
+            setActiveTab('schedule');
+        } else if (location.pathname.includes('/events/schedule')) {
             setActiveTab('schedule');
         } else {
             setActiveTab('events');
