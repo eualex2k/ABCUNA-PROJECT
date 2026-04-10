@@ -337,6 +337,18 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } />
 
+            <Route path="/events/calendar" element={
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
+                <EventsManagerPage user={user} />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/events/list" element={
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
+                <EventsManagerPage user={user} />
+              </ProtectedRoute>
+            } />
+
             {/* Rota legada redirecionando para a nova */}
             <Route path="/schedule" element={<Navigate to="/events/schedule" replace />} />
 
