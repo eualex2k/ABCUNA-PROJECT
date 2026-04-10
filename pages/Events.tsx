@@ -319,17 +319,18 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(({ us
                 </div>
              </Card>
 
-             <Card className="p-6 border-slate-200 bg-slate-900 rounded-3xl shadow-xl shadow-slate-200 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 text-white/5 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500">
+             {/* 2. Engagement Card */}
+             <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl shadow-slate-200 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 text-white/10 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500">
                     <Users size={80} />
                 </div>
                 <div className="relative z-10">
                     <h4 className="text-white font-black uppercase tracking-tighter text-xl leading-none mb-1">Engajamento</h4>
-                    <p className="text-slate-300 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                    <p className="text-slate-100 text-[10px] font-bold uppercase tracking-widest leading-relaxed opacity-90">
                        Ajude a planejar as atividades da associação sugerindo eventos à diretoria.
                     </p>
                 </div>
-             </Card>
+             </div>
           </div>
         </div>
       ) : (
