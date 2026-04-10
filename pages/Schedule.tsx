@@ -352,15 +352,12 @@ export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>
     }
   };
 
+  React.useImperativeHandle(ref, () => ({
+    openCreateModal: () => setIsModalOpen(true)
+  }));
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-end gap-3 mb-4">
-        {canEdit && (
-          <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 shadow-lg shadow-brand-200">
-            <Plus size={18} /> 
-          </Button>
-        )}
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 scrollbar-hide">
         {shifts.map((shift) => (
