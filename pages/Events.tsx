@@ -14,6 +14,9 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user, initialView = 'lis
   const canEdit = [UserRole.ADMIN, UserRole.SECRETARY, UserRole.INSTRUCTOR].includes(user.role);
   const [activeTab, setActiveTab] = useState<'list' | 'calendar'>(initialView);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     setActiveTab(initialView);

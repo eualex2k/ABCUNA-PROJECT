@@ -1,1 +1,1 @@
-export const APP_VERSION = 'v3.3.0'; // Institutional Event Calendar & Sidebar Feed
+export const APP_VERSION = 'v3.3.2'; // Institutional Event Calendar - Hotfix 2
