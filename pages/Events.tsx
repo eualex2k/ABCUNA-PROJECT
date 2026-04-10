@@ -10,13 +10,21 @@ interface EventsPageProps {
   initialView?: 'list' | 'calendar';
 }
 
-export const EventsPage: React.FC<EventsPageProps> = ({ user, initialView = 'list' }) => {
+export interface EventsPageRef {
+  openCreateModal: () => void;
+}
+
+export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(({ user, initialView = 'list' }, ref) => {
   const canEdit = [UserRole.ADMIN, UserRole.SECRETARY, UserRole.INSTRUCTOR].includes(user.role);
   const [activeTab, setActiveTab] = useState<'list' | 'calendar'>(initialView);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  React.useImperativeHandle(ref, () => ({
+    openCreateModal: () => handleOpenCreate()
+  }));
 
   useEffect(() => {
     setActiveTab(initialView);
@@ -168,14 +176,6 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user, initialView = 'lis
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-end">
-        {canEdit && (
-          <Button onClick={handleOpenCreate} className="flex items-center gap-2 shadow-lg shadow-brand-200">
-            <Plus size={18} /> Criar Evento
-          </Button>
-        )}
-      </div>
-
       {activeTab === 'calendar' ? (
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Main Calendar Card */}
@@ -453,4 +453,4 @@ export const EventsPage: React.FC<EventsPageProps> = ({ user, initialView = 'lis
       </Modal>
     </div>
   );
-};
+});

@@ -13,7 +13,12 @@ interface SchedulePageProps {
 
 const INITIAL_SHIFTS: Shift[] = [];
 
-export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
+export interface SchedulePageRef {
+  openCreateModal: () => void;
+}
+
+export const SchedulePage = React.forwardRef<SchedulePageRef, SchedulePageProps>(({ user }, ref) => {
+
   const canEdit = [UserRole.ADMIN, UserRole.SECRETARY].includes(user.role);
   const [shifts, setShifts] = useState<Shift[]>(INITIAL_SHIFTS);
   const [loading, setLoading] = useState(false);
@@ -352,7 +357,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
       <div className="flex justify-end gap-3 mb-4">
         {canEdit && (
           <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 shadow-lg shadow-brand-200">
-            <Plus size={18} /> Lançar Plantão Operacional
+            <Plus size={18} /> 
           </Button>
         )}
       </div>
@@ -994,7 +999,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ user }) => {
 
     </div>
   );
-};
+});
 
 // Helper Icon
 const InfoIcon = ({ size, className }: { size?: number, className?: string }) => (
