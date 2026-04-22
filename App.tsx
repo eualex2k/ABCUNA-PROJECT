@@ -232,7 +232,8 @@ const App: React.FC = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [updateActivity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (isSessionLoading) {
     return (

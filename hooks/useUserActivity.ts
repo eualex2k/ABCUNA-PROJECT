@@ -84,9 +84,12 @@ export const useUserActivity = ({
             'keydown'
         ];
 
-        // Handler para eventos de atividade
+        // Handler para eventos de atividade com throttle
         const handleActivity = () => {
-            updateActivity();
+            const now = Date.now();
+            if (now - lastActivityRef.current > 5000) { // Throttle de 5 segundos
+                updateActivity();
+            }
         };
 
         // Adiciona listeners
