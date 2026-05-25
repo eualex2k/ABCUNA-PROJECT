@@ -1,184 +1,183 @@
-import React, { useState } from 'react';
-import { Search, Filter, ArrowUpCircle, ArrowDownCircle, AlertCircle, Edit3, Trash2, Download, FileText, Eye } from 'lucide-react';
-import { Card, Button, Badge, Skeleton, Input } from '../ui';
-import { Transaction, translateTransactionType } from '../../types';
+import React from 'react';
+import { Card, Button, Badge } from '../ui';
+import { Transaction } from '../../types';
+import { Download, Edit3, Trash2, FileText } from 'lucide-react';
 
 interface TransactionTableProps {
-    transactions: Transaction[];
-    onEdit: (tx: Transaction) => void;
-    onDelete: (tx: Transaction) => void;
-    onViewComprovantes?: (tx: Transaction) => void;
-    onExport?: () => void;
-    loading?: boolean;
-    canEdit?: boolean;
+  transactions: Transaction[];
+  onEdit: (transaction: Transaction) => void;
+  onDelete: (transaction?: Transaction) => void;
+  onViewComprovantes: (transaction: Transaction) => void;
+  onExport?: () => void;
+  loading: boolean;
+  canEdit: boolean;
 }
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({
-    transactions,
-    onEdit,
-    onDelete,
-    onViewComprovantes,
-    onExport,
-    loading = false,
-    canEdit = false
+  transactions,
+  onEdit,
+  onDelete,
+  onViewComprovantes,
+  onExport,
+  loading,
+  canEdit
 }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  };
 
-    const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, 'success' | 'warning' | 'danger' | 'info'> = {
+      'COMPLETED': 'success',
+      'PENDING': 'warning',
+      'FAILED': 'danger',
+      'CANCELLED': 'info'
     };
-
-    const filteredTransactions = transactions.filter(tx => {
-        const matchesSearch = tx.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            tx.category.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesType = filterType === 'ALL' || tx.type === filterType;
-        return matchesSearch && matchesType;
-    });
-
+    
     return (
-        <Card className="overflow-hidden">
-            <div className="p-4 lg:p-6 border-b border-slate-100 bg-slate-50/50 space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                        Histórico Financeiro
-                        <Badge variant="neutral" className="ml-2">{filteredTransactions.length}</Badge>
-                    </h3>
-                    {onExport && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-9 font-bold text-xs uppercase tracking-wider"
-                            onClick={onExport}
-                        >
-                            <Download size={14} className="mr-2" /> Exportar PDF
-                        </Button>
-                    )}
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Buscar por descrição ou categoria..."
-                            className="w-full h-10 pl-10 pr-4 bg-white border border-slate-200 rounded-lg text-sm focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <select
-                            className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none"
-                            value={filterType}
-                            onChange={(e) => setFilterType(e.target.value as any)}
-                        >
-                            <option value="ALL">Todos os Tipos</option>
-                            <option value="INCOME">Entradas</option>
-                            <option value="EXPENSE">Saídas</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                            <th className="px-6 py-4">Data</th>
-                            <th className="px-6 py-4">Descrição</th>
-                            <th className="px-6 py-4">Categoria</th>
-                            <th className="px-6 py-4">Valor</th>
-                            <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4 text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {loading ? (
-                            [1, 2, 3, 4, 5].map(i => (
-                                <tr key={i}>
-                                    <td className="px-6 py-4"><Skeleton className="h-4 w-16" /></td>
-                                    <td className="px-6 py-4"><Skeleton className="h-4 w-40" /></td>
-                                    <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
-                                    <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
-                                    <td className="px-6 py-4"><Skeleton className="h-4 w-16" /></td>
-                                    <td className="px-6 py-4"><Skeleton className="h-8 w-16 mx-auto" /></td>
-                                </tr>
-                            ))
-                        ) : filteredTransactions.length > 0 ? (
-                            filteredTransactions.map((tx) => (
-                                <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-6 py-4">
-                                        <p className="text-sm font-bold text-slate-700">
-                                            {(() => {
-                                                const [y, m, d] = tx.date.split('-');
-                                                return `${d}/${m}/${y}`;
-                                            })()}
-                                        </p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
-                                                {tx.type === 'INCOME' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
-                                            </div>
-                                            <p className="text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{tx.description}</p>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{tx.category}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className={`text-sm font-black ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900'}`}>
-                                            {tx.type === 'EXPENSE' ? '- ' : ''}{formatCurrency(tx.amount)}
-                                        </p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <Badge variant={tx.status === 'COMPLETED' ? 'success' : 'warning'}>
-                                            {tx.status === 'COMPLETED' ? 'Concluído' : 'Pendente'}
-                                        </Badge>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <button
-                                                onClick={() => onViewComprovantes && onViewComprovantes(tx)}
-                                                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                                                title="Ver Detalhes e Comprovante"
-                                            >
-                                                <Eye size={16} />
-                                            </button>
-                                            {canEdit && (
-                                              <>
-                                                <button
-                                                    onClick={() => onEdit(tx)}
-                                                    className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all"
-                                                    title="Editar"
-                                                >
-                                                    <Edit3 size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => onDelete(tx)}
-                                                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                    title="Excluir"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                              </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-slate-400 text-sm">
-                                    <AlertCircle size={32} className="mx-auto mb-3 opacity-20" />
-                                    Nenhuma transação encontrada com os filtros atuais.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </Card>
+      <Badge variant={variants[status] || 'info'} className="font-bold py-0.5 px-2 text-[10px] uppercase">
+        {status === 'COMPLETED' ? 'Confirmado' : status === 'PENDING' ? 'Pendente' : status}
+      </Badge>
     );
+  };
+
+  if (loading) {
+    return (
+      <Card className="p-6">
+        <div className="animate-pulse space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+              <div className="h-4 bg-slate-200 rounded w-1/6"></div>
+              <div className="h-4 bg-slate-200 rounded w-1/6"></div>
+              <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    );
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <Card className="p-12 text-center">
+        <div className="text-slate-400">
+          <FileText size={48} className="mx-auto mb-4 opacity-50" />
+          <p className="font-bold uppercase tracking-widest text-sm">Nenhuma movimentação encontrada</p>
+          <p className="text-xs mt-1">Registre sua primeira entrada ou saída</p>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="font-bold text-slate-900">Movimentações Financeiras</h3>
+        {onExport && (
+          <Button variant="outline" onClick={onExport} className="flex items-center gap-2">
+            <Download size={16} /> Exportar PDF
+          </Button>
+        )}
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-200 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th className="pb-3">Data</th>
+              <th className="pb-3">Descrição</th>
+              <th className="pb-3">Categoria</th>
+              <th className="pb-3">Tipo</th>
+              <th className="pb-3 text-right">Valor</th>
+              <th className="pb-3">Status</th>
+              {canEdit && <th className="pb-3 w-24">Ações</th>}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {transactions.map((transaction) => (
+              <tr key={transaction.id} className="hover:bg-slate-50 transition-colors">
+                <td className="py-4 text-sm font-medium text-slate-900">
+                  {formatDate(transaction.date)}
+                </td>
+                <td className="py-4">
+                  <div className="text-sm font-medium text-slate-900">
+                    {transaction.description}
+                  </div>
+                  {transaction.notes && (
+                    <div className="text-xs text-slate-500 mt-1">
+                      {transaction.notes}
+                    </div>
+                  )}
+                </td>
+                <td className="py-4">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${
+                      transaction.type === 'INCOME' ? 'bg-emerald-500' : 'bg-rose-500'
+                    }`} />
+                    <span className="text-sm text-slate-700">
+                      {transaction.category || 'Geral'}
+                    </span>
+                  </div>
+                </td>
+                <td className="py-4">
+                  <Badge 
+                    variant={transaction.type === 'INCOME' ? 'success' : 'danger'} 
+                    className="font-bold py-0.5 px-2 text-[10px] uppercase"
+                  >
+                    {transaction.type === 'INCOME' ? 'Entrada' : 'Saída'}
+                  </Badge>
+                </td>
+                <td className={`py-4 text-sm font-bold text-right ${
+                  transaction.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
+                }`}>
+                  {transaction.type === 'INCOME' ? '+' : '-'} {formatCurrency(transaction.amount)}
+                </td>
+                <td className="py-4">
+                  {getStatusBadge(transaction.status)}
+                </td>
+                {canEdit && (
+                  <td className="py-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewComprovantes(transaction)}
+                        className="p-1.5 h-8 w-8 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                        title="Ver comprovantes"
+                      >
+                        <FileText size={14} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(transaction)}
+                        className="p-1.5 h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        title="Editar"
+                      >
+                        <Edit3 size={14} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(transaction)}
+                        className="p-1.5 h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="Excluir"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
 };
