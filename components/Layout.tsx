@@ -427,7 +427,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                 case 'ASSOCIATE':
                   return ['/', '/events', '/audit'];
                 case 'CANDIDATE':
-                  return ['/', '/selection', '/audit'];
+                  return ['/', '/audit'];
                 default:
                   return ['/'];
               }

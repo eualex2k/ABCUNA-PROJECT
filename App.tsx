@@ -16,7 +16,6 @@ import { EventsManagerPage } from './pages/EventsManager';
 
 import { AuditPage } from './pages/Audit';
 import { ClassroomPage } from './pages/Classroom';
-import { SelectionPage } from './pages/Selection';
 import { ProfilePage } from './pages/Profile';
 import { CompanyPage } from './pages/Company';
 import { ResetPasswordPage } from './pages/ResetPassword';
@@ -365,11 +364,7 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } />
 
-            <Route path="/selection" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <SelectionPage user={user} />
-              </ProtectedRoute>
-            } />
+
 
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/profile" element={<ProfilePage user={user} onUpdate={handleUpdateUser} />} />
