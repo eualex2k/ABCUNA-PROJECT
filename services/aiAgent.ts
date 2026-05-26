@@ -447,8 +447,8 @@ export const aiAgentService = {
         }
 
         // Definir modelo padrão compatível com plano gratuito
-        const PRIMARY_MODEL = 'gemini-1.5-flash-latest';
-        const FALLBACK_MODEL = 'gemini-1.5-pro-latest';
+        const PRIMARY_MODEL = 'gemini-1.5-flash';
+        const FALLBACK_MODEL = 'gemini-1.5-pro';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${apiKey}`;
 
         try {
