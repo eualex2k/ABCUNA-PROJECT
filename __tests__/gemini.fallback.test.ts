@@ -1,5 +1,5 @@
 // __tests__/gemini.fallback.test.ts
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeAll } from 'vitest';
 import '@testing-library/jest-dom';
 import { aiAgentService } from '../services/aiAgent';
 
@@ -9,9 +9,8 @@ import { aiAgentService } from '../services/aiAgent';
 describe('Gemini fallback handling', () => {
   const history: any[] = [];
   const userMessage = 'Teste fallback';
-
-  beforeEach(() => {
-    // Mock localStorage for the duration of each test
+  beforeAll(() => {
+    // Mock localStorage for the duration of tests
     (globalThis as any).localStorage = {
       getItem: vi.fn().mockReturnValue('FAKE_API_KEY'),
       setItem: vi.fn(),
