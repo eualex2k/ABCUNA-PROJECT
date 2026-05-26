@@ -29,7 +29,20 @@ export const AuditPage: React.FC<AuditPageProps> = ({ user }) => {
 
     // Upload Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newDoc, setNewDoc] = useState<{ title: string, category: DocCategory }>({ title: '', category: 'ATA' });
+    const [newDoc, setNewDoc] = useState<{ title: string; category: DocCategory }>({ title: '', category: 'ATA' });
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [fileError, setFileError] = useState<string>('');
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) {
+            setFileError('Arquivo excede 10MB. Selecione outro arquivo.');
+            return;
+        }
+        setFileError('');
+        setSelectedFile(file);
+    };
 
     const handleDownload = (docTitle: string) => {
         alert(`Iniciando download do documento: ${docTitle}`);
@@ -43,28 +56,36 @@ export const AuditPage: React.FC<AuditPageProps> = ({ user }) => {
 
     const handleUpload = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newDoc.title) {
-            const doc: Document = {
-                id: Math.random().toString(36).substr(2, 9),
-                title: newDoc.title,
-                category: newDoc.category,
-                date: new Date().toISOString().split('T')[0],
-                size: '1.5 MB', // Mock size
-                author: 'Administrador'
-            };
-
-            setDocuments([doc, ...documents]);
-
-            notificationService.add({
-                title: 'Novo Documento Publicado',
-                message: `O documento "${newDoc.title}" foi adicionado à área de transparência.`,
-                type: 'AUDIT', // Reusing AUDIT type for system transparency notifications
-                link: '/audit'
-            });
-
-            setIsModalOpen(false);
-            setNewDoc({ title: '', category: 'ATA' });
+        if (!newDoc.title) {
+            alert('O título do documento é obrigatório.');
+            return;
         }
+        if (!selectedFile) {
+            alert('Selecione um arquivo PDF antes de publicar.');
+            return;
+        }
+        const doc: Document = {
+            id: Math.random().toString(36).substr(2, 9),
+            title: newDoc.title,
+            category: newDoc.category,
+            date: new Date().toISOString().split('T')[0],
+            size: `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB`,
+            author: 'Administrador'
+        };
+
+        setDocuments([doc, ...documents]);
+
+        notificationService.add({
+            title: 'Novo Documento Publicado',
+            message: `O documento "${newDoc.title}" foi adicionado à área de transparência.`,
+            type: 'AUDIT',
+            link: '/audit'
+        });
+
+        setIsModalOpen(false);
+        setNewDoc({ title: '', category: 'ATA' });
+        setSelectedFile(null);
+        setFileError('');
     };
 
     const getCategoryIcon = (cat: DocCategory) => {
@@ -207,10 +228,13 @@ export const AuditPage: React.FC<AuditPageProps> = ({ user }) => {
                         </select>
                     </div>
 
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer">
+                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                        <input type="file" accept=".pdf" style={{ display: 'none' }} onChange={handleFileChange} ref={fileInputRef} />
                         <Upload className="mx-auto mb-2 text-slate-400" />
                         <p className="text-sm font-medium">Clique para carregar o arquivo (PDF)</p>
                         <p className="text-xs text-slate-400 mt-1">Tamanho máximo: 10MB</p>
+                        {fileError && <p className="text-xs text-red-600 mt-2">{fileError}</p>}
+                        {selectedFile && <p className="text-xs text-slate-600 mt-1">{selectedFile.name}</p>}
                     </div>
 
                     <div className="pt-2 flex justify-end gap-2">
