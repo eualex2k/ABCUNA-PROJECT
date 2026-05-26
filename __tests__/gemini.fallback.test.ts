@@ -4,9 +4,8 @@ import '@testing-library/jest-dom';
 import { aiAgentService } from '../services/aiAgent';
 
 // Provide a minimal mock for localStorage used in getGeminiApiKey
-beforeEach(() => {
-  // @ts-ignore
-  globalThis.localStorage = { getItem: () => null };
+
+
 describe('Gemini fallback handling', () => {
   const history: any[] = [];
   const userMessage = 'Teste fallback';
