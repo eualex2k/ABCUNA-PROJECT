@@ -449,7 +449,7 @@ export const aiAgentService = {
         // Definir modelo padrão estável compatível com plano gratuito
         const PRIMARY_MODEL = 'gemini-1.5-flash';
         const FALLBACK_MODEL = 'gemini-1.5-flash';
-        const url = `https://generativelanguage.googleapis.com/v1/models/${PRIMARY_MODEL}:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${apiKey}`;
 
         try {
             // Tentativa com modelo primário
@@ -472,7 +472,7 @@ export const aiAgentService = {
                 const shouldFallback = errMsgLower.includes('quota') || errMsgLower.includes('model') || errMsgLower.includes('unavailable');
                 if (shouldFallback) {
                     console.warn('Fallback Gemini model triggered due to error:', errMsg);
-                    const fallbackUrl = `https://generativelanguage.googleapis.com/v1/models/${FALLBACK_MODEL}:generateContent?key=${apiKey}`;
+                    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${FALLBACK_MODEL}:generateContent?key=${apiKey}`;
                     response = await fetch(fallbackUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
