@@ -446,10 +446,10 @@ export const aiAgentService = {
             });
         }
 
-        // Definir modelo padrão compatível com plano gratuito
+        // Definir modelo padrão estável compatível com plano gratuito
         const PRIMARY_MODEL = 'gemini-1.5-flash';
-        const FALLBACK_MODEL = 'gemini-1.5-pro';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${apiKey}`;
+        const FALLBACK_MODEL = 'gemini-1.5-flash';
+        const url = `https://generativelanguage.googleapis.com/v1/models/${PRIMARY_MODEL}:generateContent?key=${apiKey}`;
 
         try {
             // Tentativa com modelo primário
@@ -467,11 +467,12 @@ export const aiAgentService = {
             // Se falhar por quota, modelo não encontrado ou indisponibilidade, tenta fallback
             if (!response.ok) {
                 const errData = await response.json();
-                const errMsg = errData.error?.message?.toLowerCase() || '';
-                const shouldFallback = errMsg.includes('quota') || errMsg.includes('model') || errMsg.includes('unavailable');
+                const errMsg = errData.error?.message || 'Erro desconhecido no modelo principal.';
+                const errMsgLower = errMsg.toLowerCase();
+                const shouldFallback = errMsgLower.includes('quota') || errMsgLower.includes('model') || errMsgLower.includes('unavailable');
                 if (shouldFallback) {
                     console.warn('Fallback Gemini model triggered due to error:', errMsg);
-                    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${FALLBACK_MODEL}:generateContent?key=${apiKey}`;
+                    const fallbackUrl = `https://generativelanguage.googleapis.com/v1/models/${FALLBACK_MODEL}:generateContent?key=${apiKey}`;
                     response = await fetch(fallbackUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -484,11 +485,12 @@ export const aiAgentService = {
                     });
                     if (!response.ok) {
                         const fallErr = await response.json();
-                        throw new Error(fallErr.error?.message || 'Falha na resposta do Gemini (Fallback).');
+                        const fallErrMsg = fallErr.error?.message || 'Falha na resposta do Gemini (Fallback).';
+                        throw new Error(`${fallErrMsg} (Erro original: ${errMsg})`);
                     }
                 } else {
                     console.error('Gemini API Error details:', errData);
-                    throw new Error(errData.error?.message || 'Falha na resposta do Gemini.');
+                    throw new Error(errMsg);
                 }
             }
 
