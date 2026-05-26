@@ -468,6 +468,21 @@ export const aiAgentService = {
             if (!response.ok) {
                 const errData = await response.json();
                 const errMsg = errData.error?.message || 'Erro desconhecido no modelo principal.';
+                
+                // Log diagnóstico premium para ajudar a depurar chaves de API restritas ou inválidas
+                console.error(`[IA ABCUNA] Erro detalhado retornado pelo Gemini:`, errData);
+                try {
+                    const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+                    fetch(listUrl)
+                        .then(res => res.json())
+                        .then(data => {
+                            console.warn(`[IA ABCUNA] Modelos disponíveis para esta chave de API:`, data);
+                        })
+                        .catch(err => {
+                            console.error(`[IA ABCUNA] Erro ao tentar listar modelos da chave:`, err);
+                        });
+                } catch (diagErr) {}
+
                 const errMsgLower = errMsg.toLowerCase();
                 const shouldFallback = errMsgLower.includes('quota') || errMsgLower.includes('model') || errMsgLower.includes('unavailable');
                 if (shouldFallback) {
