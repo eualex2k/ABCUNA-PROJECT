@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 import { financialService } from './financial';
 import { associatesService } from './associates';
 import { eventsService } from './events';
@@ -32,6 +33,7 @@ export function getGeminiApiKey(): string {
     const envKey = (import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY) as string;
     if (envKey && envKey !== 'PLACEHOLDER_API_KEY') return envKey;
     
+    logger.warn('IA', 'Chave da API Gemini não encontrada');
     return '';
 }
 
@@ -429,32 +431,46 @@ export const aiAgentService = {
             parts: newParts
         });
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        // Definir modelo padrão compatível com plano gratuito
+        const PRIMARY_MODEL = 'gemini-1.5-flash-latest';
+        const FALLBACK_MODEL = 'gemini-1.5-pro-latest';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${apiKey}`;
 
         try {
-            const response = await fetch(url, {
+            // Tentativa com modelo primário
+            let response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: formattedContents,
-                    systemInstruction: {
-                        parts: [{ text: SYSTEM_INSTRUCTION }]
-                    },
+                    systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
                     tools: GEMINI_TOOLS,
-                    toolConfig: {
-                        functionCallingConfig: {
-                            mode: 'AUTO'
-                        }
-                    }
+                    toolConfig: { functionCallingConfig: { mode: 'AUTO' } }
                 })
             });
 
+            // Se falhar por quota, modelo não encontrado ou indisponibilidade, tenta fallback
             if (!response.ok) {
                 const errData = await response.json();
-                console.error('Gemini API Error details:', errData);
-                throw new Error(errData.error?.message || 'Falha na resposta do Gemini.');
+                const errMsg = errData.error?.message?.toLowerCase() || '';
+                const shouldFallback = errMsg.includes('quota') || errMsg.includes('model') || errMsg.includes('unavailable');
+                if (shouldFallback) {
+                    console.warn('Fallback Gemini model triggered due to error:', errMsg);
+                    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${FALLBACK_MODEL}:generateContent?key=${apiKey}`;
+                    response = await fetch(fallbackUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: formattedContents,
+                            systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+                            tools: GEMINI_TOOLS,
+                            toolConfig: { functionCallingConfig: { mode: 'AUTO' } }
+                        })
+                    });
+                } else {
+                    console.error('Gemini API Error details:', errData);
+                    throw new Error(errData.error?.message || 'Falha na resposta do Gemini.');
+                }
             }
 
             const data = await response.json();
@@ -464,42 +480,25 @@ export const aiAgentService = {
 
             let textResponse = '';
             let pendingAction: AgentPendingAction | null = null;
-
             for (const part of parts) {
-                if (part.text) {
-                    textResponse += part.text;
-                }
-                
-                // Se a IA solicitou uma Function Call (Execução de Ferramenta)
+                if (part.text) textResponse += part.text;
                 if (part.functionCall) {
                     const fc = part.functionCall;
-                    const functionName = fc.name;
-                    const args = fc.args;
-
                     pendingAction = {
                         id: Math.random().toString(36).substring(2, 9),
-                        functionName,
-                        args,
-                        label: getFriendlyActionLabel(functionName, args)
+                        functionName: fc.name,
+                        args: fc.args,
+                        label: getFriendlyActionLabel(fc.name, fc.args)
                     };
                 }
             }
-
             if (!textResponse && pendingAction) {
                 textResponse = `Agendando ação: **${pendingAction.label}**. Aguardando sua confirmação para executar no sistema...`;
             }
-
-            return {
-                text: textResponse || 'Não consegui processar a resposta.',
-                pendingAction
-            };
-
+            return { text: textResponse || 'Não consegui processar a resposta.', pendingAction };
         } catch (error: any) {
             console.error('Error communicating with Gemini API:', error);
-            return {
-                text: `❌ Ocorreu um erro ao comunicar com a inteligência artificial: ${error.message || 'Verifique sua conexão e chave de API.'}`,
-                pendingAction: null
-            };
+            return { text: `❌ Ocorreu um erro ao comunicar com a inteligência artificial: ${error.message || 'Verifique sua conexão e chave de API.'}`, pendingAction: null };
         }
     },
 
