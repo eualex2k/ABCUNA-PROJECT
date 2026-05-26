@@ -13,6 +13,7 @@ import { FinancialPage } from './pages/Financial';
 import { SettingsPage } from './pages/Settings';
 import { InventoryPage } from './pages/Inventory';
 import { EventsManagerPage } from './pages/EventsManager';
+import { AIChatPage } from './pages/AIChat';
 
 import { AuditPage } from './pages/Audit';
 import { ClassroomPage } from './pages/Classroom';
@@ -286,6 +287,12 @@ const App: React.FC = () => {
             <Route path="/financial" element={
               <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
                 <FinancialPage user={user} />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/ai-assistant" element={
+              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
+                <AIChatPage user={user} />
               </ProtectedRoute>
             } />
 
