@@ -102,7 +102,6 @@ export const AIChatPage: React.FC<AIChatProps> = ({ user }) => {
 
         // 2. Enviar para a IA
         const currentHistory = [...messages];
-        if (userMsg) currentHistory.push(userMsg);
 
         const response = await aiAgentService.sendMessage(currentHistory, textToSend);
 
@@ -129,8 +128,14 @@ export const AIChatPage: React.FC<AIChatProps> = ({ user }) => {
                 const formattedResult = JSON.stringify(queryResult, null, 2);
                 const followUpPrompt = `O sistema executou a ferramenta '${response.pendingAction.functionName}' com sucesso. Resultados:\n${formattedResult}\nPor favor, formate e explique estes resultados em português para o usuário.`;
                 
+                // A local state array with the newly added messages since `messages` isn't updated yet.
+                const updatedHistory = [...messages, { role: 'user' as const, content: textToSend }];
+                if (response.text) {
+                    updatedHistory.push({ role: 'model' as const, content: response.text });
+                }
+
                 const synthResponse = await aiAgentService.sendMessage(
-                    [...messages, { role: 'user', content: followUpPrompt }],
+                    updatedHistory,
                     followUpPrompt
                 );
 
@@ -169,8 +174,7 @@ export const AIChatPage: React.FC<AIChatProps> = ({ user }) => {
             const feedbackText = `O usuário CONFIRMOU e executou a ação: ${pendingAction.label}. Os dados foram persistidos no banco de dados.`;
             
             // Adiciona mensagem sistêmica no histórico e chama Gemini
-            const sysMsg = { role: 'user' as const, content: feedbackText };
-            const synthResponse = await aiAgentService.sendMessage([...messages, sysMsg], feedbackText);
+            const synthResponse = await aiAgentService.sendMessage([...messages], feedbackText);
             
             const aiMsg = await aiAgentService.saveMessage('model', synthResponse.text);
             if (aiMsg) {
@@ -206,7 +210,7 @@ export const AIChatPage: React.FC<AIChatProps> = ({ user }) => {
         
         // Notifica a IA que o usuário cancelou para que ela reconheça
         const synthResponse = await aiAgentService.sendMessage(
-            [...messages, { role: 'user', content: feedbackText }],
+            [...messages],
             feedbackText
         );
 
@@ -331,7 +335,7 @@ Por favor, analise esses dados. Se houver um nome de associado ou valor legível
                             </div>
                             <Button 
                                 variant="ghost" 
-                                size="xs" 
+                                size="sm" 
                                 className="w-full justify-center bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-white"
                                 onClick={() => setShowKeyModal(true)}
                             >

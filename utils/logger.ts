@@ -25,7 +25,7 @@ function maskSensitive(obj: any): any {
 }
 
 function createLogger(): Logger {
-  const colorMap: Record<LogCategory, chalk.Chalk> = {
+  const colorMap: Record<LogCategory, any> = {
     IA: chalk.cyan,
     OCR: chalk.magenta,
     Supabase: chalk.yellow,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Transaction, Associate } from '../../types';
+import { Transaction, Associate } from '../../../types';
 import { financialService } from '../../../services/financial';
 import { associatesService } from '../../../services/associates';
 

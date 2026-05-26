@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Transaction, Associate } from '../../types';
-import { financialService } from '../../services/financial';
+import { Transaction, Associate } from '../../../types';
+import { financialService } from '../../../services/financial';
 
 export interface FeeRecord {
   id: string;

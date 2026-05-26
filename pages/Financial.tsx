@@ -331,9 +331,9 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
           registrations={[]}
           onAdd={() => console.log('Adicionar inscrição')}
           onEdit={(reg) => console.log('Editar inscrição:', reg)}
-          onDelete={(reg) => {
-            if (confirm(`Tem certeza que deseja excluir a inscrição de ${reg.full_name}?`)) {
-              console.log('Excluir inscrição:', reg);
+          onDelete={(id, name) => {
+            if (confirm(`Tem certeza que deseja excluir a inscrição de ${name}?`)) {
+              console.log('Excluir inscrição:', id);
             }
           }}
           onPay={(reg) => console.log('Pagar inscrição:', reg)}
