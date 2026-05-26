@@ -404,13 +404,22 @@ export const aiAgentService = {
 
         // Formata o histórico no padrão aceito pela API do Gemini
         const formattedContents: any[] = [];
+        let lastRole = '';
         
-        // Adiciona as mensagens anteriores
+        // Adiciona as mensagens anteriores agrupando roles consecutivas
         history.forEach(msg => {
-            formattedContents.push({
-                role: msg.role === 'user' ? 'user' : 'model',
-                parts: [{ text: msg.content }]
-            });
+            const role = msg.role === 'user' ? 'user' : 'model';
+            
+            if (role === lastRole && formattedContents.length > 0) {
+                // Se for a mesma role, apenas adiciona o texto como uma nova parte
+                formattedContents[formattedContents.length - 1].parts.push({ text: '\n\n' + msg.content });
+            } else {
+                formattedContents.push({
+                    role: role,
+                    parts: [{ text: msg.content }]
+                });
+                lastRole = role;
+            }
         });
 
         // Adiciona o novo prompt do usuário
@@ -426,10 +435,16 @@ export const aiAgentService = {
             });
         }
 
-        formattedContents.push({
-            role: 'user',
-            parts: newParts
-        });
+        if (lastRole === 'user' && formattedContents.length > 0) {
+            // Se a última mensagem já foi do usuário, agrupa
+            formattedContents[formattedContents.length - 1].parts.push(...newParts);
+        } else {
+            // Caso contrário, adiciona uma nova entrada
+            formattedContents.push({
+                role: 'user',
+                parts: newParts
+            });
+        }
 
         // Definir modelo padrão compatível com plano gratuito
         const PRIMARY_MODEL = 'gemini-1.5-flash-latest';
@@ -467,6 +482,10 @@ export const aiAgentService = {
                             toolConfig: { functionCallingConfig: { mode: 'AUTO' } }
                         })
                     });
+                    if (!response.ok) {
+                        const fallErr = await response.json();
+                        throw new Error(fallErr.error?.message || 'Falha na resposta do Gemini (Fallback).');
+                    }
                 } else {
                     console.error('Gemini API Error details:', errData);
                     throw new Error(errData.error?.message || 'Falha na resposta do Gemini.');
