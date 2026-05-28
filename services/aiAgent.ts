@@ -17,7 +17,8 @@ export interface AgentPendingAction {
     label: string; // Descrição em português para o Administrador aprovar
 }
 
-const BACKEND_URL = 'http://localhost:3001/api/ai';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://abcuna-backend.onrender.com';
+const BACKEND_URL = `${API_URL}/api/ai`;
 
 export const aiAgentService = {
     /**
@@ -179,7 +180,7 @@ export const aiAgentService = {
         } catch (erro: any) {
             console.error('Falha de rede ao se comunicar com o backend de IA:', erro);
             return {
-                text: `❌ Não foi possível se conectar ao Servidor Administrativo de IA ABCUNA local. Verifique se o servidor backend Express na porta 3001 está ativo. Erro: ${erro.message || 'Sem conexão.'}`,
+                text: `❌ Não foi possível se conectar ao Servidor Administrativo de IA ABCUNA. Verifique a conexão com o backend. Erro: ${erro.message || 'Sem conexão.'}`,
                 pendingAction: null
             };
         }

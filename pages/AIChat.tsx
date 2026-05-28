@@ -53,7 +53,7 @@ export const AIChatPage: React.FC<AIChatProps> = ({ user }) => {
             
             // Healthcheck do backend local Express
             try {
-                const res = await fetch('http://localhost:3001/status');
+                const res = await fetch(`${API_URL}/status`);
                 if (res.ok) {
                     setIsBackendOnline(true);
                 } else {
