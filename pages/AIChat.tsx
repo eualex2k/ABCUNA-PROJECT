@@ -19,7 +19,7 @@ import {
     Bell,
     ArrowRight
 } from 'lucide-react';
-import { aiAgentService, ChatMessage, AgentPendingAction, hasApiKey, getGeminiApiKey } from '../services/aiAgent';
+import { aiAgentService, ChatMessage, AgentPendingAction } from '../services/aiAgent';
 import { processPixReceipt } from '../utils/ocrProcessor';
 import { User, UserRole } from '../types';
 import { Avatar, Button } from '../components/ui';
@@ -32,9 +32,7 @@ export const AIChatPage: React.FC<AIChatProps> = ({ user }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [apiKeyInput, setApiKeyInput] = useState('');
-    const [isSavingKey, setIsSavingKey] = useState(false);
-    const [showKeyModal, setShowKeyModal] = useState(false);
+    const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
     const [pendingAction, setPendingAction] = useState<AgentPendingAction | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
     const [actionResult, setActionResult] = useState<{ success: boolean; msg: string } | null>(null);
@@ -47,17 +45,22 @@ export const AIChatPage: React.FC<AIChatProps> = ({ user }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Carrega histórico de mensagens e chave API
+    // Carrega histórico de mensagens e valida conexão com o servidor seguro
     useEffect(() => {
         const initChat = async () => {
             const history = await aiAgentService.loadMessages();
             setMessages(history);
             
-            const savedKey = localStorage.getItem('gemini_api_key') || '';
-            setApiKeyInput(savedKey);
-            
-            if (!savedKey && !hasApiKey()) {
-                setShowKeyModal(true);
+            // Healthcheck do backend local Express
+            try {
+                const res = await fetch('http://localhost:3001/status');
+                if (res.ok) {
+                    setIsBackendOnline(true);
+                } else {
+                    setIsBackendOnline(false);
+                }
+            } catch {
+                setIsBackendOnline(false);
             }
         };
         initChat();
@@ -68,18 +71,7 @@ export const AIChatPage: React.FC<AIChatProps> = ({ user }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
 
-    const handleSaveKey = () => {
-        setIsSavingKey(true);
-        if (apiKeyInput.trim()) {
-            localStorage.setItem('gemini_api_key', apiKeyInput.trim());
-        } else {
-            localStorage.removeItem('gemini_api_key');
-        }
-        setTimeout(() => {
-            setIsSavingKey(false);
-            setShowKeyModal(false);
-        }, 800);
-    };
+    // Configurações de credenciais centralizadas de forma segura no backend.
 
     const handleSendMessage = async (e?: React.FormEvent, customText?: string) => {
         e?.preventDefault();
@@ -327,20 +319,19 @@ Por favor, analise esses dados. Se houver um nome de associado ou valor legível
                         
                         <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-2">
                             <div className="flex items-center justify-between text-[11px] font-bold text-slate-300">
-                                <span>Status da Chave Gemini</span>
-                                <span className={`flex items-center gap-1 ${hasApiKey() ? 'text-emerald-400' : 'text-amber-400'}`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full ${hasApiKey() ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
-                                    {hasApiKey() ? 'Ativa' : 'Pendente'}
+                                <span>Servidor de IA ABCUNA</span>
+                                <span className={`flex items-center gap-1 ${isBackendOnline === true ? 'text-emerald-400' : isBackendOnline === false ? 'text-rose-400' : 'text-slate-400'}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isBackendOnline === true ? 'bg-emerald-400 animate-pulse' : isBackendOnline === false ? 'bg-rose-400' : 'bg-slate-400'}`} />
+                                    {isBackendOnline === true ? 'Conectado' : isBackendOnline === false ? 'Desconectado' : 'Checando...'}
                                 </span>
                             </div>
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="w-full justify-center bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-white"
-                                onClick={() => setShowKeyModal(true)}
-                            >
-                                <Key size={12} className="mr-1.5" /> Configurar Chave API
-                            </Button>
+                            <div className="text-[9px] text-slate-400 text-center leading-relaxed">
+                                {isBackendOnline === true 
+                                  ? 'Comunicação ativa via OpenRouter.' 
+                                  : isBackendOnline === false 
+                                    ? 'Aviso: Inicie o servidor Express local na porta 3001.' 
+                                    : 'Aguardando validação do túnel de rede...'}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -639,74 +630,8 @@ Por favor, analise esses dados. Se houver um nome de associado ou valor legível
                 </form>
             </div>
 
-            {/* Modal de Configuração da Chave API do Gemini */}
-            {showKeyModal && (
-                <div className="fixed inset-0 bg-slate-950/65 z-[1000] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 max-w-md w-full text-white shadow-premium animate-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-brand-500/10 rounded-xl text-brand-400">
-                                    <Key size={20} />
-                                </div>
-                                <h3 className="font-extrabold text-base">Configurar API Key</h3>
-                            </div>
-                            <button 
-                                onClick={() => setShowKeyModal(false)}
-                                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <p className="text-xs text-slate-400 leading-relaxed">
-                                Para habilitar as funções de inteligência artificial, você precisa inserir sua **chave de API gratuita do Gemini**.
-                                Ela será salva **somente localmente no seu navegador** (seguro e privado).
-                            </p>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-300">Chave API do Gemini</label>
-                                <input
-                                    type="password"
-                                    placeholder="Cole sua API Key do Gemini aqui..."
-                                    value={apiKeyInput}
-                                    onChange={(e) => setApiKeyInput(e.target.value)}
-                                    className="w-full h-11 px-4 bg-white/5 border border-white/10 focus:border-brand-500 rounded-xl text-sm outline-none text-white focus:ring-4 focus:ring-brand-500/10 placeholder:text-slate-500 transition-all font-mono"
-                                />
-                            </div>
-
-                            <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-[10px] text-slate-400 leading-relaxed flex gap-2">
-                                <AlertCircle size={14} className="text-brand-500 flex-shrink-0 mt-0.5" />
-                                <span>
-                                    Não tem uma chave? Acesse o **Google AI Studio** para obter uma chave de API gratuita do Gemini em menos de 1 minuto.
-                                </span>
-                            </div>
-
-                            <div className="flex gap-3 pt-2">
-                                <Button
-                                    onClick={handleSaveKey}
-                                    className="flex-1 justify-center bg-brand-600 hover:bg-brand-700 text-white font-extrabold"
-                                    disabled={isSavingKey}
-                                >
-                                    {isSavingKey ? (
-                                        <Loader2 size={16} className="animate-spin mr-2" />
-                                    ) : (
-                                        <Check size={16} className="mr-2" />
-                                    )}
-                                    Salvar Chave
-                                </Button>
-                                <Button
-                                    onClick={() => setShowKeyModal(false)}
-                                    variant="ghost"
-                                    className="flex-1 justify-center bg-white/5 hover:bg-white/10 text-white border border-white/10"
-                                >
-                                    Fechar
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* O modal de credenciais do Gemini local foi removido de forma definitiva.
+                As credenciais da IA administrativa da ABCUNA agora são gerenciadas e armazenadas de forma 100% segura no backend Node.js. */}
         </div>
     );
 };
