@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { aiAgentService, ChatMessage, AgentPendingAction } from '../services/aiAgent';
 import { processPixReceipt } from '../utils/ocrProcessor';
+import { API_URL } from '../services/aiAgent';
 import { User, UserRole } from '../types';
 import { Avatar, Button } from '../components/ui';
 
@@ -165,7 +166,7 @@ export const AIChatPage: React.FC<AIChatProps> = ({ user }) => {
             // Informa a IA que a ação foi confirmada para que ela agradeça/finalize
             const feedbackText = `O usuário CONFIRMOU e executou a ação: ${pendingAction.label}. Os dados foram persistidos no banco de dados.`;
             
-            // Adiciona mensagem sistêmica no histórico e chama Gemini
+            // Adiciona mensagem sistêmica no histórico e invoca o backend IA
             const synthResponse = await aiAgentService.sendMessage([...messages], feedbackText);
             
             const aiMsg = await aiAgentService.saveMessage('model', synthResponse.text);
