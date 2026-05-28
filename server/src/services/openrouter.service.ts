@@ -82,6 +82,7 @@ export class ServicoOpenRouter {
       content: comandoAtual
     });
 
+    console.log('🔑 OpenRouter Key:', env.OPENROUTER_API_KEY?.slice(0, 15) + '...');
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -92,17 +93,16 @@ export class ServicoOpenRouter {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'deepseek/deepseek-chat', // Usando DeepSeek estável
+          model: 'deepseek/deepseek-r1-0528:free',
           messages: mensagensOpenRouter,
-          temperature: 0.1, // Temperatura baixa para respostas lógicas estruturadas e evitar alucinação
-          response_format: { type: 'json_object' } // Força o modelo a responder estritamente em JSON
+          temperature: 0.1
         })
       });
 
       if (!response.ok) {
-        const erroJson = await response.json().catch(() => ({}));
-        const msgErro = (erroJson as any)?.error?.message || `Erro HTTP ${response.status}`;
-        throw new Error(`Falha de comunicação com o OpenRouter: ${msgErro}`);
+        const erroTexto = await response.text();
+        console.error('❌ ERRO OPENROUTER RAW:', erroTexto);
+        throw new Error(`Falha OpenRouter [${response.status}]: ${erroTexto}`);
       }
 
       const dados = await response.json();
@@ -114,8 +114,9 @@ export class ServicoOpenRouter {
 
       return respostaIA.trim();
     } catch (erro: any) {
-      console.error("❌ Erro no Serviço do OpenRouter:", erro);
+      console.error('❌ ERRO OPENROUTER RAW:', erro);
       throw new Error(`Falha ao se comunicar com o OpenRouter/DeepSeek: ${erro.message || 'Erro de rede.'}`);
     }
+
   }
 }
