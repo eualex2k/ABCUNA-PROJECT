@@ -2,19 +2,33 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# ABCUNA - Sistema de Gestão Integrada
 
-This contains everything you need to run your app locally.
+Este repositório contém o sistema de gestão administrativa e operacional da Associação de Bombeiros Civis de Uiraúna (ABCUNA).
 
-View your app in AI Studio: https://ai.studio/apps/drive/15Lv3JYuNRiuJzxCk-tTlTg8skjOEfd8Q
+## Como Executar Localmente
 
-## Run Locally
+### Pré-requisitos
+- Node.js (versão LTS recomendada)
+- Instância do Supabase configurada
 
-**Prerequisites:**  Node.js
+### Passo a Passo
 
+1. **Instalar dependências na raiz (Frontend):**
+   ```bash
+   npm install
+   ```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+2. **Instalar dependências no servidor (Backend):**
+   ```bash
+   cd server
+   npm install
+   cd ..
+   ```
+
+3. **Configurar as Variáveis de Ambiente:**
+   Copie o arquivo `.env.example` para `.env` tanto no diretório raiz quanto no diretório `server/` e preencha com as credenciais do Supabase.
+
+4. **Executar em modo de desenvolvimento:**
+   - **Frontend:** `npm run dev` (roda na porta 3000)
+   - **Backend:** `npm run dev --prefix server` (roda na porta 3001)

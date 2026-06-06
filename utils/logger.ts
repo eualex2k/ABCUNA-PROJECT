@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 
-type LogCategory = 'IA' | 'OCR' | 'Supabase' | 'Seguranca' | 'Ferramentas' | 'Financeiro' | 'Geral';
+type LogCategory = 'Supabase' | 'Seguranca' | 'Ferramentas' | 'Financeiro' | 'Geral';
 
 interface Logger {
   info: (category: LogCategory, message: string, meta?: any) => void;
@@ -26,8 +26,6 @@ function maskSensitive(obj: any): any {
 
 function createLogger(): Logger {
   const colorMap: Record<LogCategory, any> = {
-    IA: chalk.cyan,
-    OCR: chalk.magenta,
     Supabase: chalk.yellow,
     Seguranca: chalk.redBright,
     Ferramentas: chalk.green,

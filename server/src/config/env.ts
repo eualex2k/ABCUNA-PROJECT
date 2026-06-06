@@ -7,9 +7,6 @@ dotenv.config();
 // Define o schema de validação para as variáveis de ambiente usando Zod
 const envSchema = z.object({
   PORT: z.string().transform((val) => parseInt(val, 10)).default('3001'),
-  OPENROUTER_API_KEY: z.string({
-    required_error: "A chave OPENROUTER_API_KEY é obrigatória para o funcionamento da IA."
-  }).min(1, "A chave OPENROUTER_API_KEY não pode estar vazia."),
   SUPABASE_URL: z.string({
     required_error: "A variável SUPABASE_URL é obrigatória para a integração com o banco de dados."
   }).url("A variável SUPABASE_URL precisa ser uma URL válida."),

@@ -1,0 +1,5 @@
+id,user_id,action,details,confirmed,success,error_message,created_at
+0b96a585-23da-4db5-9081-601f07c5d965,fe6c9ee9-8973-40a7-a063-a28f20785f31,buscar_associado,"{""query"": ""ativos""}",false,true,,2026-05-28 17:09:40.241826+00
+fbb1ad24-503c-4871-8877-1e263566323c,fe6c9ee9-8973-40a7-a063-a28f20785f31,consultar_financeiro,{},false,true,,2026-05-28 17:10:28.545419+00
+3c0a9371-dd00-448b-a492-ccd7459f097e,fe6c9ee9-8973-40a7-a063-a28f20785f31,IA_PARSER_ERROR,"{""mensagem"": ""Gerar relatório financeiro do mês"", ""respostaBruta"": """"}",false,false,Falha estrita de validação do Zod após múltiplos retries automáticos.,2026-05-28 17:38:05.147702+00
+c7666103-320a-4ebd-9d11-6bc4b0d2286b,fe6c9ee9-8973-40a7-a063-a28f20785f31,buscar_associado,"{""query"": """"}",false,true,,2026-05-28 18:32:31.292521+00

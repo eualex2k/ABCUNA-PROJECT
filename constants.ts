@@ -10,8 +10,7 @@ import {
   GraduationCap,
   Settings,
   Building2,
-  Home,
-  Sparkles
+  Home
 } from 'lucide-react';
 
 export const MOCK_USER = {
@@ -31,7 +30,6 @@ export const MENU_ITEMS = [
   { label: 'Eventos', icon: CalendarDays, path: '/events', allowedRoles: [UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE] },
   { label: 'Auditoria', icon: FileText, path: '/audit', allowedRoles: [UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE] },
   { label: 'Sala de Aula', icon: GraduationCap, path: '/classroom', allowedRoles: [UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE] },
-  { label: 'Assistente IA', icon: Sparkles, path: '/ai-assistant', allowedRoles: [UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE] },
   { label: 'Configurações', icon: Settings, path: '/settings', allowedRoles: [UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE] },
 ];
 

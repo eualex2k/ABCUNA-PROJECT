@@ -417,17 +417,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             const getPriorityPaths = (role: string) => {
               switch (role) {
                 case 'ADMIN':
-                  return ['/', '/associates', '/financial', '/events', '/ai-assistant'];
+                  return ['/', '/associates', '/financial', '/events'];
                 case 'FINANCIAL':
-                  return ['/', '/financial', '/associates', '/ai-assistant'];
+                  return ['/', '/financial', '/associates'];
                 case 'SECRETARY':
-                  return ['/', '/associates', '/financial', '/events', '/ai-assistant'];
+                  return ['/', '/associates', '/financial', '/events'];
                 case 'INSTRUCTOR':
-                  return ['/', '/classroom', '/audit', '/ai-assistant'];
+                  return ['/', '/classroom', '/audit'];
                 case 'ASSOCIATE':
-                  return ['/', '/events', '/ai-assistant', '/audit'];
+                  return ['/', '/events', '/audit'];
                 case 'CANDIDATE':
-                  return ['/', '/ai-assistant', '/audit'];
+                  return ['/', '/audit'];
                 default:
                   return ['/'];
               }

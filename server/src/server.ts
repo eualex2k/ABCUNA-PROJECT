@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
-import { rotasIA } from './routes/ai.routes.js';
 
 const app = express();
 
@@ -20,7 +19,7 @@ const configuracaoCors = {
 };
 app.use(cors(configuracaoCors));
 
-// Limitação de requisições contra injeção em massa, flood e abuse financeiro das APIs de IA
+// Limitação de requisições contra injeção em massa e flood
 const limitadorGlobal = rateLimit({
   windowMs: 15 * 60 * 1000, // Janela temporal de 15 minutos
   max: 100, // Limita cada IP a no máximo 100 requisições por janela
@@ -28,7 +27,7 @@ const limitadorGlobal = rateLimit({
   legacyHeaders: false,
   message: {
     sucesso: false,
-    mensagem: "O sistema detectou um volume elevado de comandos operacionais. Por favor, aguarde alguns minutos antes de fazer novas requisições à IA."
+    mensagem: "O sistema detectou um volume elevado de comandos operacionais. Por favor, aguarde alguns minutos antes de fazer novas requisições."
   }
 });
 app.use(limitadorGlobal);
@@ -37,9 +36,6 @@ app.use(limitadorGlobal);
 app.use(express.json({ limit: '1mb' }));
 
 // --- ROTAS DO SISTEMA ---
-
-// Acopla o módulo de rotas do agente de IA operacional
-app.use('/api/ai', rotasIA);
 
 // Rota de status/healthcheck básica
 app.get('/status', (_req, res) => {
