@@ -352,7 +352,7 @@ const App: React.FC = () => {
               }
             />
 
-            <Route path="/ai-assistant" element={<Navigate to="/" replace />} />
+
 
             <Route
               path="/settings"
