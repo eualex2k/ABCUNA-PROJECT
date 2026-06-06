@@ -28,78 +28,120 @@ export const translateRole = (role: UserRole | string): string => {
 
 export const translateStatus = (status: string): string => {
   switch (status) {
-    case 'ACTIVE': return 'Ativo';
-    case 'INACTIVE': return 'Inativo';
-    case 'PENDING': return 'Pendente';
-    case 'FINISHED': return 'Concluído';
-    case 'COMPLETED': return 'Concluído';
-    case 'CONFIRMED': return 'Confirmado';
-    case 'APPROVED': return 'Aprovado';
-    case 'REJECTED': return 'Reprovado';
-    case 'VOLUNTEER': return 'Voluntário';
-    case 'PAID': return 'Pago';
-    case 'OPEN': return 'Aberto';
-    case 'LATE': return 'Em Atraso';
-    case 'CANCELLED': return 'Cancelado';
-    default: return status;
+    case 'ACTIVE':
+      return 'Ativo';
+    case 'INACTIVE':
+      return 'Inativo';
+    case 'PENDING':
+      return 'Pendente';
+    case 'FINISHED':
+      return 'Concluído';
+    case 'COMPLETED':
+      return 'Concluído';
+    case 'CONFIRMED':
+      return 'Confirmado';
+    case 'APPROVED':
+      return 'Aprovado';
+    case 'REJECTED':
+      return 'Reprovado';
+    case 'VOLUNTEER':
+      return 'Voluntário';
+    case 'PAID':
+      return 'Pago';
+    case 'OPEN':
+      return 'Aberto';
+    case 'LATE':
+      return 'Em Atraso';
+    case 'CANCELLED':
+      return 'Cancelado';
+    default:
+      return status;
   }
 };
 
 export const translatePaymentStatus = (status: string): string => {
   switch (status) {
-    case 'UP_TO_DATE': return 'Em Dia';
-    case 'LATE': return 'Em Atraso';
-    case 'PENDING': return 'Pendente';
-    default: return status;
+    case 'UP_TO_DATE':
+      return 'Em Dia';
+    case 'LATE':
+      return 'Em Atraso';
+    case 'PENDING':
+      return 'Pendente';
+    default:
+      return status;
   }
 };
 
 export const translateVisibility = (visibility: string): string => {
   switch (visibility) {
-    case 'PUBLIC': return 'Público';
-    case 'BOARD': return 'Diretoria';
-    default: return visibility;
+    case 'PUBLIC':
+      return 'Público';
+    case 'BOARD':
+      return 'Diretoria';
+    default:
+      return visibility;
   }
 };
 
 export const translateCondition = (condition: string): string => {
   switch (condition) {
-    case 'AVAILABLE': return 'Disponível';
-    case 'MAINTENANCE': return 'Manutenção';
-    case 'LOW_STOCK': return 'Estoque Baixo';
-    case 'CRITICAL': return 'Crítico';
-    case 'ADEQUATE': return 'Adequado';
-    default: return condition;
+    case 'AVAILABLE':
+      return 'Disponível';
+    case 'MAINTENANCE':
+      return 'Manutenção';
+    case 'LOW_STOCK':
+      return 'Estoque Baixo';
+    case 'CRITICAL':
+      return 'Crítico';
+    case 'ADEQUATE':
+      return 'Adequado';
+    default:
+      return condition;
   }
 };
 
 export const translateEventType = (type: string): string => {
   switch (type) {
-    case 'TRAINING': return 'Treinamento';
-    case 'MEETING': return 'Reunião';
-    case 'OPERATION': return 'Operação';
-    case 'EVENT': return 'Evento';
-    default: return type;
+    case 'TRAINING':
+      return 'Treinamento';
+    case 'MEETING':
+      return 'Reunião';
+    case 'OPERATION':
+      return 'Operação';
+    case 'EVENT':
+      return 'Evento';
+    default:
+      return type;
   }
 };
 
 export const translateTransactionType = (type: string): string => {
   switch (type) {
-    case 'INCOME': return 'Entrada';
-    case 'EXPENSE': return 'Saída';
-    default: return type;
+    case 'INCOME':
+      return 'Entrada';
+    case 'EXPENSE':
+      return 'Saída';
+    default:
+      return type;
   }
 };
 
 export const translateCategory = (category: string): string => {
   switch (category) {
-    case 'Donation': return 'Doação';
-    case 'Membership': return 'Mensalidade';
-    case 'Maintenance': return 'Manutenção';
-    case 'Equipment': return 'Equipamento';
-    case 'Taxa de Inscrição': return 'Taxa de Inscrição';
-    case 'Other': return 'Outro';
-    default: return category;
+    case 'Donation':
+      return 'Doação';
+    case 'Membership':
+      return 'Mensalidade';
+    case 'Maintenance':
+      return 'Manutenção';
+    case 'Equipment':
+      return 'Equipamento';
+    case 'Taxa de Inscrição':
+      return 'Taxa de Inscrição';
+    case 'Other':
+      return 'Outro';
+    default:
+      return category;
   }
 };
 
@@ -208,7 +250,13 @@ export interface Registration {
   updated_at: string;
 }
 
-export type NotificationType = 'FINANCIAL' | 'EVENT' | 'SCHEDULE' | 'CLASSROOM' | 'AUDIT' | 'SYSTEM';
+export type NotificationType =
+  | 'FINANCIAL'
+  | 'EVENT'
+  | 'SCHEDULE'
+  | 'CLASSROOM'
+  | 'AUDIT'
+  | 'SYSTEM';
 
 export interface Notification {
   id: string;
@@ -227,7 +275,12 @@ export interface InventoryItem {
   name: string;
   quantity: number;
   category: string;
-  condition: 'AVAILABLE' | 'MAINTENANCE' | 'LOW_STOCK' | 'CRITICAL' | 'ADEQUATE';
+  condition:
+    | 'AVAILABLE'
+    | 'MAINTENANCE'
+    | 'LOW_STOCK'
+    | 'CRITICAL'
+    | 'ADEQUATE';
   location: string;
   lastInspection: string;
   unit?: string;
@@ -267,7 +320,12 @@ export interface CompanyInfo {
   website?: string;
 }
 
-export type ShiftMemberStatus = 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'VOLUNTEER_PENDING' | 'VOLUNTEER_APPROVED';
+export type ShiftMemberStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'DECLINED'
+  | 'VOLUNTEER_PENDING'
+  | 'VOLUNTEER_APPROVED';
 
 export interface ShiftMember {
   userId: string;
@@ -279,7 +337,13 @@ export interface ShiftMember {
   joinedAt: string;
 }
 
-export type ShiftStatus = 'PENDING' | 'CONFIRMED' | 'AWAITING_CONFIRMATION' | 'FINISHED' | 'DRAFT' | 'OPEN';
+export type ShiftStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'AWAITING_CONFIRMATION'
+  | 'FINISHED'
+  | 'DRAFT'
+  | 'OPEN';
 
 export interface Shift {
   id: string;

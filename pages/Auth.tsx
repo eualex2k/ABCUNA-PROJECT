@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, ArrowRight, Loader2, ShieldCheck, ArrowLeft, Mail, Lock, User as UserIcon, Phone } from 'lucide-react';
+import {
+  Flame,
+  ArrowRight,
+  Loader2,
+  ShieldCheck,
+  ArrowLeft,
+  Mail,
+  Lock,
+  User as UserIcon,
+  Phone,
+} from 'lucide-react';
 import { Button, Input, Card } from '../components/ui';
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
@@ -12,7 +22,9 @@ interface AuthPageProps {
 
 export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
   const navigate = useNavigate();
-  const [authMode, setAuthMode] = useState<'LOGIN' | 'REGISTER' | 'RESET'>('LOGIN');
+  const [authMode, setAuthMode] = useState<'LOGIN' | 'REGISTER' | 'RESET'>(
+    'LOGIN'
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -54,29 +66,41 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
       const inputDigits = formData.cpfDigits.replace(/\D/g, '');
 
       if (inputDigits.length !== 4) {
-        throw new Error('Informe exatamente os 4 primeiros dígitos do seu CPF.');
+        throw new Error(
+          'Informe exatamente os 4 primeiros dígitos do seu CPF.'
+        );
       }
 
       // 1. Verificar os dados via função segura (RPC) para contornar o RLS de usuários deslogados
-      const { data: isValid, error: rpcError } = await supabase.rpc('verify_reset_data', {
-        p_email: inputEmail,
-        p_cpf_prefix: inputDigits
-      });
+      const { data: isValid, error: rpcError } = await supabase.rpc(
+        'verify_reset_data',
+        {
+          p_email: inputEmail,
+          p_cpf_prefix: inputDigits,
+        }
+      );
 
       if (rpcError) throw rpcError;
 
       if (!isValid) {
-        throw new Error('E-mail não cadastrado ou dados de verificação incorretos. Verifique se o seu CPF está preenchido no perfil.');
+        throw new Error(
+          'E-mail não cadastrado ou dados de verificação incorretos. Verifique se o seu CPF está preenchido no perfil.'
+        );
       }
 
       // 2. Solicitar reset via Supabase - Usamos um parâmetro de busca para blindar a rota contra limpezas de hash
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(inputEmail, {
-        redirectTo: `${window.location.origin}/#/reset-password?recovery=true`,
-      });
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        inputEmail,
+        {
+          redirectTo: `${window.location.origin}/#/reset-password?recovery=true`,
+        }
+      );
 
       if (resetError) throw resetError;
 
-      setSuccess('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
+      setSuccess(
+        'E-mail de recuperação enviado! Verifique sua caixa de entrada.'
+      );
       setFormData({ ...formData, cpfDigits: '' });
     } catch (err: any) {
       setError(err.message || 'Erro ao processar solicitação.');
@@ -117,7 +141,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
             name: '',
             phone: '',
             accessCode: '',
-            cpfDigits: ''
+            cpfDigits: '',
           });
         }
       } else {
@@ -145,7 +169,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
             avatar: profile.avatar_url,
             phone: profile.phone,
             cpf: profile.cpf,
-            bio: profile.bio
+            bio: profile.bio,
           };
 
           onLogin(appUser);
@@ -159,13 +183,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className={`
+    <div
+      className={`
       fixed inset-0 z-50 bg-[#0f172a] text-slate-900 flex items-center justify-center p-4 lg:p-8 overflow-y-auto overscroll-none font-sans 
       transition-all duration-700 ease-out
       ${showContent ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-95 blur-sm'}
-    `}>
+    `}
+    >
       <div className="w-full max-w-6xl h-full lg:h-[80vh] min-h-[550px] bg-[#0f172a] rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
-
         {/* Lado Esquerdo - Branding (40%) */}
         <div className="lg:w-[40%] bg-gradient-to-br from-red-800 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjFmIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-10"></div>
@@ -176,7 +201,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
               onClick={handleBackToHome}
               className="flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-8 group text-sm font-medium"
             >
-              <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft
+                size={18}
+                className="group-hover:-translate-x-1 transition-transform"
+              />
               Voltar ao Início
             </button>
 
@@ -188,14 +216,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
             </div>
 
             <h2 className="text-3xl font-bold leading-tight mb-4 text-white">
-              {authMode === 'REGISTER' ? 'Solicitar Acesso' : authMode === 'RESET' ? 'Recuperar Senha' : 'Bem-vindo de volta'}
+              {authMode === 'REGISTER'
+                ? 'Solicitar Acesso'
+                : authMode === 'RESET'
+                  ? 'Recuperar Senha'
+                  : 'Bem-vindo de volta'}
             </h2>
             <p className="text-slate-300 font-light leading-relaxed">
               {authMode === 'REGISTER'
                 ? 'Insira seu código de acesso exclusivo para se juntar à equipe.'
                 : authMode === 'RESET'
-                ? 'Siga os passos para verificar sua identidade e redefinir sua senha.'
-                : 'Acesse o painel de gestão integrada para gerenciar operações e escalas.'}
+                  ? 'Siga os passos para verificar sua identidade e redefinir sua senha.'
+                  : 'Acesse o painel de gestão integrada para gerenciar operações e escalas.'}
             </p>
           </div>
 
@@ -213,13 +245,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
         {/* Lado Direito - Formulário (60%) */}
         <div className="lg:w-[60%] bg-white flex flex-col justify-center relative p-6 lg:p-12 overflow-hidden">
           <div className="w-full max-w-md mx-auto">
-
             <div className="text-center lg:text-left mb-6">
               <h3 className="text-2xl font-bold text-slate-800 mb-1">
-                {authMode === 'REGISTER' ? 'Criar Nova Conta' : authMode === 'RESET' ? 'Redefinir Senha' : 'Login no Sistema'}
+                {authMode === 'REGISTER'
+                  ? 'Criar Nova Conta'
+                  : authMode === 'RESET'
+                    ? 'Redefinir Senha'
+                    : 'Login no Sistema'}
               </h3>
               <p className="text-xs text-slate-500">
-                {authMode === 'REGISTER' ? 'Preencha seus dados para solicitar cadastro.' : authMode === 'RESET' ? 'Valide seu e-mail e CPF para prosseguir.' : 'Digite suas credenciais para continuar.'}
+                {authMode === 'REGISTER'
+                  ? 'Preencha seus dados para solicitar cadastro.'
+                  : authMode === 'RESET'
+                    ? 'Valide seu e-mail e CPF para prosseguir.'
+                    : 'Digite suas credenciais para continuar.'}
               </p>
             </div>
 
@@ -322,9 +361,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                     className="h-9 text-sm"
                   />
                   <div className="flex justify-end">
-                    <button 
+                    <button
                       type="button"
-                      onClick={() => { setAuthMode('RESET'); setError(''); setSuccess(''); }}
+                      onClick={() => {
+                        setAuthMode('RESET');
+                        setError('');
+                        setSuccess('');
+                      }}
                       className="text-[10px] font-bold text-slate-400 hover:text-red-600 transition-colors uppercase tracking-widest"
                     >
                       Esqueceu a senha?
@@ -335,14 +378,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
 
               {error && (
                 <div className="p-3 bg-red-50 border border-red-100 text-red-700 text-xs rounded-lg flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
-                  <div className="mt-0.5"><ShieldCheck size={14} /></div>
+                  <div className="mt-0.5">
+                    <ShieldCheck size={14} />
+                  </div>
                   {error}
                 </div>
               )}
 
               {success && (
                 <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs rounded-lg flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
-                  <div className="mt-0.5"><ShieldCheck size={14} /></div>
+                  <div className="mt-0.5">
+                    <ShieldCheck size={14} />
+                  </div>
                   {success}
                 </div>
               )}
@@ -356,7 +403,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                   <Loader2 className="animate-spin" size={18} />
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    {authMode === 'REGISTER' ? 'Finalizar Cadastro' : authMode === 'RESET' ? 'Solicitar Recuperação' : 'Entrar na Plataforma'}
+                    {authMode === 'REGISTER'
+                      ? 'Finalizar Cadastro'
+                      : authMode === 'RESET'
+                        ? 'Solicitar Recuperação'
+                        : 'Entrar na Plataforma'}
                     <ArrowRight size={16} />
                   </span>
                 )}
@@ -375,7 +426,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                     name: '',
                     phone: '',
                     accessCode: '',
-                    cpfDigits: ''
+                    cpfDigits: '',
                   });
                 }}
                 className="text-xs text-slate-500 hover:text-red-700 font-medium transition-colors block w-full"
@@ -387,7 +438,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
 
               {authMode === 'RESET' && (
                 <button
-                  onClick={() => { setAuthMode('LOGIN'); setError(''); setSuccess(''); }}
+                  onClick={() => {
+                    setAuthMode('LOGIN');
+                    setError('');
+                    setSuccess('');
+                  }}
                   className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   Voltar para o Login
@@ -395,15 +450,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
               )}
             </div>
           </div>
-          
+
           {/* Site Version - Professional Footer */}
           <div className="fixed bottom-8 left-0 right-0 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
-             <div className="flex items-center justify-center gap-2 mb-1">
-                <div className="w-1 h-1 rounded-full bg-slate-300" />
-                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">ABCUNA SGI</span>
-                <div className="w-1 h-1 rounded-full bg-slate-300" />
-             </div>
-             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-50">Build {APP_VERSION} • 2026 High Security</p>
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <div className="w-1 h-1 rounded-full bg-slate-300" />
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
+                ABCUNA SGI
+              </span>
+              <div className="w-1 h-1 rounded-full bg-slate-300" />
+            </div>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-50">
+              Build {APP_VERSION} • 2026 High Security
+            </p>
           </div>
         </div>
       </div>

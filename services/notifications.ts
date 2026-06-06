@@ -11,12 +11,12 @@ class NotificationManager {
   subscribe(listener: () => void) {
     this.listeners.push(listener);
     return () => {
-      this.listeners = this.listeners.filter(l => l !== listener);
+      this.listeners = this.listeners.filter((l) => l !== listener);
     };
   }
 
   private notifyListeners() {
-    this.listeners.forEach(l => l());
+    this.listeners.forEach((l) => l());
   }
 
   setCurrentUser(userId: string) {
@@ -30,7 +30,8 @@ class NotificationManager {
 
     const { data, error } = await supabase
       .from('user_notifications')
-      .select(`
+      .select(
+        `
         id,
         read,
         created_at,
@@ -41,7 +42,8 @@ class NotificationManager {
           type,
           link
         )
-      `)
+      `
+      )
       .eq('user_id', this.currentUserId)
       .order('created_at', { ascending: false });
 
@@ -61,7 +63,7 @@ class NotificationManager {
         date: item.created_at,
         read: item.read,
         link: item.notification.link,
-        userId: this.currentUserId!
+        userId: this.currentUserId!,
       }));
 
     this.notifyListeners();
@@ -80,7 +82,7 @@ class NotificationManager {
           event: 'INSERT',
           schema: 'public',
           table: 'user_notifications',
-          filter: `user_id=eq.${userId}`
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           this.loadFromSupabase(); // Reload when new notification arrives
@@ -94,14 +96,22 @@ class NotificationManager {
   }
 
   getUnreadCount(): number {
-    return this.notifications.filter(n => !n.read).length;
+    return this.notifications.filter((n) => !n.read).length;
   }
 
   /**
    * Envia uma notificação (Cria no DB)
    */
-  async add(data: { title: string; message: string; type: NotificationType; link?: string; targetUserIds?: string[]; broadcast?: boolean }) {
-    let targets = data.targetUserIds || [this.currentUserId].filter(Boolean) as string[];
+  async add(data: {
+    title: string;
+    message: string;
+    type: NotificationType;
+    link?: string;
+    targetUserIds?: string[];
+    broadcast?: boolean;
+  }) {
+    let targets =
+      data.targetUserIds || ([this.currentUserId].filter(Boolean) as string[]);
 
     // Se for broadcast, busca todos os associados (exclui candidatos exceto se especificado)
     if (data.broadcast) {
@@ -113,32 +123,35 @@ class NotificationManager {
 
     try {
       // 1. Cria os registros de notificação no banco de dados
-      const { data: notificationId, error: rpcError } = await supabase.rpc('notify_users', {
-        target_user_ids: targets,
-        notif_title: data.title,
-        notif_message: data.message,
-        notif_type: data.type,
-        notif_link: data.link || null
-      });
+      const { data: notificationId, error: rpcError } = await supabase.rpc(
+        'notify_users',
+        {
+          target_user_ids: targets,
+          notif_title: data.title,
+          notif_message: data.message,
+          notif_type: data.type,
+          notif_link: data.link || null,
+        }
+      );
 
       if (rpcError) throw rpcError;
 
       // 2. Dispara a Edge Function para enviar o Push (Web Push API)
       console.log(`Triggering push for ${targets.length} targets...`);
 
-      const { data: funcResult, error: funcError } = await supabase.functions.invoke('send-push-notification', {
-        body: {
-          notificationId,
-          userIds: targets
-        }
-      });
+      const { data: funcResult, error: funcError } =
+        await supabase.functions.invoke('send-push-notification', {
+          body: {
+            notificationId,
+            userIds: targets,
+          },
+        });
 
       if (funcError) {
         console.error('Failed to trigger push edge function:', funcError);
       } else {
         console.log('Push function result:', funcResult);
       }
-
     } catch (err) {
       console.error('Failed to create notification:', err);
     }
@@ -151,7 +164,7 @@ class NotificationManager {
       .eq('id', id);
 
     if (!error) {
-      const index = this.notifications.findIndex(n => n.id === id);
+      const index = this.notifications.findIndex((n) => n.id === id);
       if (index !== -1) {
         this.notifications[index].read = true;
         this.notifyListeners();
@@ -169,7 +182,7 @@ class NotificationManager {
       .eq('read', false);
 
     if (!error) {
-      this.notifications.forEach(n => n.read = true);
+      this.notifications.forEach((n) => (n.read = true));
       this.notifyListeners();
     }
   }

@@ -26,7 +26,8 @@ export async function middlewareAutenticacao(
     if (!cabecalhoAutorizacao || !cabecalhoAutorizacao.startsWith('Bearer ')) {
       res.status(401).json({
         sucesso: false,
-        mensagem: "Acesso negado. Token de autorização ausente ou malformatado no cabeçalho."
+        mensagem:
+          'Acesso negado. Token de autorização ausente ou malformatado no cabeçalho.',
       });
       return;
     }
@@ -34,12 +35,16 @@ export async function middlewareAutenticacao(
     const token = cabecalhoAutorizacao.split(' ')[1];
 
     // Valida criptograficamente o JWT na nuvem do Supabase de forma nativa e segura
-    const { data: { user }, error: erroAuth } = await supabaseAdmin.auth.getUser(token);
+    const {
+      data: { user },
+      error: erroAuth,
+    } = await supabaseAdmin.auth.getUser(token);
 
     if (erroAuth || !user) {
       res.status(401).json({
         sucesso: false,
-        mensagem: "Sessão inválida ou expirada. Por favor, faça login novamente no painel da ABCUNA."
+        mensagem:
+          'Sessão inválida ou expirada. Por favor, faça login novamente no painel da ABCUNA.',
       });
       return;
     }
@@ -54,7 +59,8 @@ export async function middlewareAutenticacao(
     if (erroPerfil || !perfil) {
       res.status(403).json({
         sucesso: false,
-        mensagem: "Perfil de usuário não cadastrado ou sem permissões de acesso ativas."
+        mensagem:
+          'Perfil de usuário não cadastrado ou sem permissões de acesso ativas.',
       });
       return;
     }
@@ -64,15 +70,19 @@ export async function middlewareAutenticacao(
       id: user.id,
       email: user.email || '',
       role: perfil.role as 'ADMIN' | 'FINANCIAL' | 'ASSOCIATE',
-      nome: perfil.full_name || 'Usuário ABCUNA'
+      nome: perfil.full_name || 'Usuário ABCUNA',
     };
 
     next();
   } catch (erro: any) {
-    console.error("❌ Erro interno de interceptação no middleware de autenticação:", erro);
+    console.error(
+      '❌ Erro interno de interceptação no middleware de autenticação:',
+      erro
+    );
     res.status(500).json({
       sucesso: false,
-      mensagem: "Ocorreu um erro interno de segurança ao validar sua assinatura digital."
+      mensagem:
+        'Ocorreu um erro interno de segurança ao validar sua assinatura digital.',
     });
   }
 }

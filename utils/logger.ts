@@ -1,6 +1,11 @@
 import chalk from 'chalk';
 
-type LogCategory = 'Supabase' | 'Seguranca' | 'Ferramentas' | 'Financeiro' | 'Geral';
+type LogCategory =
+  | 'Supabase'
+  | 'Seguranca'
+  | 'Ferramentas'
+  | 'Financeiro'
+  | 'Geral';
 
 interface Logger {
   info: (category: LogCategory, message: string, meta?: any) => void;
@@ -33,12 +38,19 @@ function createLogger(): Logger {
     Geral: chalk.white,
   };
 
-  const log = (level: string, category: LogCategory, message: string, meta?: any) => {
+  const log = (
+    level: string,
+    category: LogCategory,
+    message: string,
+    meta?: any
+  ) => {
     const timestamp = new Date().toISOString();
     const color = colorMap[category] || chalk.white;
     const metaStr = meta ? ` | ${JSON.stringify(maskSensitive(meta))}` : '';
     // eslint-disable-next-line no-console
-    console.log(`${chalk.gray(timestamp)} ${color(level)} [${category}] ${message}${metaStr}`);
+    console.log(
+      `${chalk.gray(timestamp)} ${color(level)} [${category}] ${message}${metaStr}`
+    );
   };
 
   return {
@@ -51,4 +63,3 @@ function createLogger(): Logger {
 
 export const logger = createLogger();
 export { createLogger };
-

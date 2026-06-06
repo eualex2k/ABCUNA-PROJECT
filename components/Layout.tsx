@@ -17,7 +17,7 @@ import {
   Clock,
   LayoutDashboard,
   Package,
-  Users
+  Users,
 } from 'lucide-react';
 import { MENU_ITEMS } from '../constants';
 import { User, Notification as AppNotification, translateRole } from '../types';
@@ -38,7 +38,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [searchResults, setSearchResults] = useState<{ label: string; path: string; icon: any }[]>([]);
+  const [searchResults, setSearchResults] = useState<
+    { label: string; path: string; icon: any }[]
+  >([]);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -61,10 +63,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+      if (
+        notifRef.current &&
+        !notifRef.current.contains(event.target as Node)
+      ) {
         setIsNotifOpen(false);
       }
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setIsSearchOpen(false);
       }
     };
@@ -98,13 +106,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
     }
 
     const query = searchQuery.toLowerCase();
-    const results = MENU_ITEMS.filter(item =>
-      item.label.toLowerCase().includes(query) &&
-      item.allowedRoles.includes(user?.role || ('' as any))
-    ).map(item => ({
+    const results = MENU_ITEMS.filter(
+      (item) =>
+        item.label.toLowerCase().includes(query) &&
+        item.allowedRoles.includes(user?.role || ('' as any))
+    ).map((item) => ({
       label: item.label,
       path: item.path,
-      icon: item.icon
+      icon: item.icon,
     }));
 
     setSearchResults(results);
@@ -117,18 +126,24 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
 
   if (!user) return <>{children}</>;
 
-  const filteredMenu = MENU_ITEMS.filter(item =>
+  const filteredMenu = MENU_ITEMS.filter((item) =>
     item.allowedRoles.includes(user.role)
   );
 
   const getNotifIcon = (type: string) => {
     switch (type) {
-      case 'FINANCIAL': return <DollarSign size={16} className="text-green-600" />;
-      case 'EVENT': return <Calendar size={16} className="text-blue-600" />;
-      case 'SCHEDULE': return <Clock size={16} className="text-purple-600" />;
-      case 'CLASSROOM': return <BookOpen size={16} className="text-indigo-600" />;
-      case 'AUDIT': return <Shield size={16} className="text-orange-600" />;
-      default: return <Flame size={16} className="text-brand-600" />;
+      case 'FINANCIAL':
+        return <DollarSign size={16} className="text-green-600" />;
+      case 'EVENT':
+        return <Calendar size={16} className="text-blue-600" />;
+      case 'SCHEDULE':
+        return <Clock size={16} className="text-purple-600" />;
+      case 'CLASSROOM':
+        return <BookOpen size={16} className="text-indigo-600" />;
+      case 'AUDIT':
+        return <Shield size={16} className="text-orange-600" />;
+      default:
+        return <Flame size={16} className="text-brand-600" />;
     }
   };
 
@@ -157,9 +172,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                 <Flame size={22} fill="currentColor" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white leading-tight tracking-tight">ABCUNA</h1>
+                <h1 className="text-xl font-bold text-white leading-tight tracking-tight">
+                  ABCUNA
+                </h1>
                 <div className="flex items-center gap-1.5 pt-0.5">
-                  <p className="text-[9px] font-bold text-slate-400 tracking-[0.15em] uppercase">Sistema de Gestão Integrada</p>
+                  <p className="text-[9px] font-bold text-slate-400 tracking-[0.15em] uppercase">
+                    Sistema de Gestão Integrada
+                  </p>
                 </div>
               </div>
             </div>
@@ -188,16 +207,27 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                   onClick={() => setIsSidebarOpen(false)}
                   className={`
                     group flex items-center justify-between px-3.5 py-3 rounded-lg text-sm font-medium transition-all duration-200
-                    ${isActive
-                      ? 'bg-brand-600 text-white'
-                      : 'text-slate-400 hover:bg-white/5 hover:text-white'}
+                    ${
+                      isActive
+                        ? 'bg-brand-600 text-white'
+                        : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                    }
                   `}
                 >
                   <div className="flex items-center gap-3.5">
-                    <Icon size={18} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'} />
+                    <Icon
+                      size={18}
+                      className={
+                        isActive
+                          ? 'text-white'
+                          : 'text-slate-500 group-hover:text-slate-300'
+                      }
+                    />
                     <span className="tracking-tight">{item.label}</span>
                   </div>
-                  {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_white]" />}
+                  {isActive && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_white]" />
+                  )}
                 </NavLink>
               );
             })}
@@ -205,23 +235,42 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
 
           {/* Site Version - New Display */}
           <div className="px-7 py-2 flex items-center gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
-             <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Build {APP_VERSION}</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              Build {APP_VERSION}
+            </span>
           </div>
 
           {/* User Profile Footer */}
           <div className="p-4 mt-auto mb-[68px] lg:mb-0 flex-shrink-0">
             <div
               className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors group"
-              onClick={() => { setIsSidebarOpen(false); navigate('/profile'); }}
+              onClick={() => {
+                setIsSidebarOpen(false);
+                navigate('/profile');
+              }}
             >
-              <Avatar src={user.avatar} alt={user.name} fallback={user.name.substring(0, 2)} size="sm" className="ring-2 ring-white/5" />
+              <Avatar
+                src={user.avatar}
+                alt={user.name}
+                fallback={user.name.substring(0, 2)}
+                size="sm"
+                className="ring-2 ring-white/5"
+              />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate group-hover:text-brand-400 transition-colors">{user.name}</p>
-                <p className="text-xs text-slate-400 truncate opacity-70">{translateRole(user.role)}</p>
+                <p className="text-sm font-semibold text-white truncate group-hover:text-brand-400 transition-colors">
+                  {user.name}
+                </p>
+                <p className="text-xs text-slate-400 truncate opacity-70">
+                  {translateRole(user.role)}
+                </p>
               </div>
               <button
-                onClick={(e) => { e.stopPropagation(); setIsSidebarOpen(false); onLogout(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsSidebarOpen(false);
+                  onLogout();
+                }}
                 className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 title="Sair"
               >
@@ -244,7 +293,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               <Menu size={20} />
             </button>
             {/* Global Search */}
-            <div className="hidden md:flex items-center relative max-w-md w-full" ref={searchRef}>
+            <div
+              className="hidden md:flex items-center relative max-w-md w-full"
+              ref={searchRef}
+            >
               <Search
                 className={`absolute left-3.5 transition-colors ${isSearchOpen ? 'text-brand-600' : 'text-slate-400'}`}
                 size={16}
@@ -268,13 +320,23 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               {isSearchOpen && (searchQuery || searchResults.length > 0) && (
                 <div className="absolute top-12 left-0 w-[400px] glass shadow-premium-xl rounded-2xl border border-slate-100 overflow-hidden z-[60] animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="p-3 bg-white/50 border-b border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Navegação Rápida</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">
+                      Navegação Rápida
+                    </p>
                   </div>
                   <div className="max-h-[300px] overflow-y-auto custom-scrollbar p-2">
                     {searchResults.length === 0 ? (
                       <div className="p-8 text-center">
-                        <Search size={32} className="mx-auto mb-3 text-slate-200" />
-                        <p className="text-sm text-slate-500 font-medium">Nenhum resultado encontrado para <span className="text-slate-900 font-bold">"{searchQuery}"</span></p>
+                        <Search
+                          size={32}
+                          className="mx-auto mb-3 text-slate-200"
+                        />
+                        <p className="text-sm text-slate-500 font-medium">
+                          Nenhum resultado encontrado para{' '}
+                          <span className="text-slate-900 font-bold">
+                            "{searchQuery}"
+                          </span>
+                        </p>
                       </div>
                     ) : (
                       <div className="space-y-1">
@@ -288,11 +350,19 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                             >
                               <div className="flex items-center gap-3">
                                 <div className="p-2 bg-slate-100 group-hover:bg-white rounded-lg transition-colors">
-                                  <Icon size={16} className="text-slate-500 group-hover:text-brand-600" />
+                                  <Icon
+                                    size={16}
+                                    className="text-slate-500 group-hover:text-brand-600"
+                                  />
                                 </div>
-                                <span className="text-sm font-bold text-slate-700 group-hover:text-brand-900">{result.label}</span>
+                                <span className="text-sm font-bold text-slate-700 group-hover:text-brand-900">
+                                  {result.label}
+                                </span>
                               </div>
-                              <ChevronRight size={14} className="text-slate-300 group-hover:text-brand-400" />
+                              <ChevronRight
+                                size={14}
+                                className="text-slate-300 group-hover:text-brand-400"
+                              />
                             </button>
                           );
                         })}
@@ -302,7 +372,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                   <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-bold px-4">
                     <span>DICA: Use as setas para navegar</span>
                     <div className="flex gap-2">
-                      <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200">ESC</span>
+                      <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                        ESC
+                      </span>
                       <span>para fechar</span>
                     </div>
                   </div>
@@ -336,7 +408,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               {isNotifOpen && (
                 <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white shadow-premium-xl rounded-2xl border border-slate-200 overflow-hidden z-[100] animate-in fade-in zoom-in-95 origin-top-right">
                   <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white/50">
-                    <h3 className="font-bold text-sm text-slate-900">Notificações</h3>
+                    <h3 className="font-bold text-sm text-slate-900">
+                      Notificações
+                    </h3>
                     <div className="flex gap-2">
                       {notifications.length > 0 && (
                         <button
@@ -353,7 +427,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                     {notifications.length === 0 ? (
                       <div className="p-8 text-center text-slate-400">
                         <Bell size={32} className="mx-auto mb-3 opacity-20" />
-                        <p className="text-sm font-medium">Nenhuma notificação nova.</p>
+                        <p className="text-sm font-medium">
+                          Nenhuma notificação nova.
+                        </p>
                       </div>
                     ) : (
                       <div className="divide-y divide-slate-100">
@@ -369,17 +445,26 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                             }}
                             className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!notif.read ? 'bg-brand-50/50' : ''}`}
                           >
-                            <div className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${!notif.read ? 'bg-brand-600 shadow-[0_0_8px_rgba(220,38,38,0.4)]' : 'bg-transparent'}`} />
+                            <div
+                              className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${!notif.read ? 'bg-brand-600 shadow-[0_0_8px_rgba(220,38,38,0.4)]' : 'bg-transparent'}`}
+                            />
                             <div className="flex-1">
                               <div className="flex items-start justify-between">
-                                <h4 className={`text-sm ${!notif.read ? 'font-bold text-slate-900' : 'font-medium text-slate-600'}`}>
+                                <h4
+                                  className={`text-sm ${!notif.read ? 'font-bold text-slate-900' : 'font-medium text-slate-600'}`}
+                                >
                                   {notif.title}
                                 </h4>
                                 <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap ml-2">
-                                  {new Date(notif.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {new Date(notif.date).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
                                 </span>
                               </div>
-                              <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{notif.message}</p>
+                              <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                {notif.message}
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -405,9 +490,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
 
         {/* Scrollable Page Content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar pb-24 lg:pb-8">
-          <div className="max-w-7xl mx-auto space-y-8">
-            {children}
-          </div>
+          <div className="max-w-7xl mx-auto space-y-8">{children}</div>
         </main>
 
         {/* Mobile Bottom Navigation - Dynamic Role-Based Quick Access */}
@@ -436,36 +519,45 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             const priorityPaths = getPriorityPaths(user.role);
 
             // Filter global MENU_ITEMS to find the ones in priority list AND allowed for role
-            return MENU_ITEMS
-              .filter(item =>
-                priorityPaths.includes(item.path) &&
-                item.allowedRoles.includes(user.role)
+            return (
+              MENU_ITEMS.filter(
+                (item) =>
+                  priorityPaths.includes(item.path) &&
+                  item.allowedRoles.includes(user.role)
               )
-              // Sort by the order in priorityPaths to respect user preference
-              .sort((a, b) => priorityPaths.indexOf(a.path) - priorityPaths.indexOf(b.path))
-              .slice(0, 5) // Safety cap
-              .map((item) => {
-                const isActive = location.pathname === item.path;
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500'}`}
-                  >
-                    <div className={`relative p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]' : ''}`}>
-                      <Icon size={20} />
-                    </div>
-                    <span className={`text-[9px] font-black uppercase tracking-tight transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
-                      {item.label === 'Dashboard' ? 'Início' : item.label}
-                    </span>
-                  </NavLink>
-                );
-              });
+                // Sort by the order in priorityPaths to respect user preference
+                .sort(
+                  (a, b) =>
+                    priorityPaths.indexOf(a.path) -
+                    priorityPaths.indexOf(b.path)
+                )
+                .slice(0, 5) // Safety cap
+                .map((item) => {
+                  const isActive = location.pathname === item.path;
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500'}`}
+                    >
+                      <div
+                        className={`relative p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]' : ''}`}
+                      >
+                        <Icon size={20} />
+                      </div>
+                      <span
+                        className={`text-[9px] font-black uppercase tracking-tight transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-40'}`}
+                      >
+                        {item.label === 'Dashboard' ? 'Início' : item.label}
+                      </span>
+                    </NavLink>
+                  );
+                })
+            );
           })()}
         </nav>
       </div>
-
     </div>
   );
 };

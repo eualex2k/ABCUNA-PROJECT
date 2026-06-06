@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Plus, Search, Trash2, Wrench, Calendar, DollarSign, Truck, Info, AlertCircle, Edit2, PlusSquare, ArrowUpRight, MapPin } from 'lucide-react';
+import {
+  Package,
+  Plus,
+  Search,
+  Trash2,
+  Wrench,
+  Calendar,
+  DollarSign,
+  Truck,
+  Info,
+  AlertCircle,
+  Edit2,
+  PlusSquare,
+  ArrowUpRight,
+  MapPin,
+} from 'lucide-react';
 import { Card, Button, Input, Badge, Modal, Skeleton } from '../components/ui';
 import { InventoryItem, User, UserRole } from '../types';
 import { inventoryService } from '../services/inventory';
@@ -37,7 +52,10 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
     }
   };
 
-  const calculateCondition = (quantity: number, type: 'REUSABLE' | 'DISPOSABLE'): 'AVAILABLE' | 'MAINTENANCE' | 'LOW_STOCK' | 'CRITICAL' | 'ADEQUATE' => {
+  const calculateCondition = (
+    quantity: number,
+    type: 'REUSABLE' | 'DISPOSABLE'
+  ): 'AVAILABLE' | 'MAINTENANCE' | 'LOW_STOCK' | 'CRITICAL' | 'ADEQUATE' => {
     if (type === 'REUSABLE') return 'AVAILABLE';
     if (quantity < 5) return 'CRITICAL';
     if (quantity < 15) return 'LOW_STOCK';
@@ -53,10 +71,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
     price: 0,
     supplier: '',
     description: '',
-    itemType: 'DISPOSABLE'
+    itemType: 'DISPOSABLE',
   };
 
-  const [formItem, setFormItem] = useState<Partial<InventoryItem>>(initialFormState);
+  const [formItem, setFormItem] =
+    useState<Partial<InventoryItem>>(initialFormState);
 
   const handleOpenCreate = () => {
     setEditingId(null);
@@ -77,7 +96,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
       description: item.description,
       expirationDate: item.expirationDate,
       lastInspection: item.lastInspection,
-      itemType: item.itemType || 'DISPOSABLE'
+      itemType: item.itemType || 'DISPOSABLE',
     });
     setIsModalOpen(true);
   };
@@ -104,13 +123,14 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
           category: formItem.category || 'Geral',
           condition: calculateCondition(formItem.quantity || 0, itemType),
           location: formItem.location || 'Sede',
-          lastInspection: formItem.lastInspection || new Date().toISOString().split('T')[0],
+          lastInspection:
+            formItem.lastInspection || new Date().toISOString().split('T')[0],
           unit: formItem.unit || 'un',
           price: formItem.price || 0,
           supplier: formItem.supplier || '',
           description: formItem.description || '',
           expirationDate: formItem.expirationDate || null,
-          itemType: itemType
+          itemType: itemType,
         };
 
         if (editingId) {
@@ -125,7 +145,10 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
         setEditingId(null);
       } catch (error: any) {
         console.error('Error saving inventory item:', error);
-        alert('Erro ao salvar item: ' + (error.message || 'Verifique os campos e tente novamente.'));
+        alert(
+          'Erro ao salvar item: ' +
+            (error.message || 'Verifique os campos e tente novamente.')
+        );
       }
     }
   };
@@ -139,7 +162,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
       const itemType = selectedItem.itemType || 'DISPOSABLE';
       await inventoryService.update(selectedItem.id, {
         quantity: newQuantity,
-        condition: calculateCondition(newQuantity, itemType)
+        condition: calculateCondition(newQuantity, itemType),
       });
       loadInventory();
       setIsAddQtyModalOpen(false);
@@ -163,7 +186,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
     try {
       if (item.condition === 'MAINTENANCE') {
         const itemType = item.itemType || 'DISPOSABLE';
-        await inventoryService.update(item.id, { condition: calculateCondition(item.quantity, itemType) });
+        await inventoryService.update(item.id, {
+          condition: calculateCondition(item.quantity, itemType),
+        });
       } else {
         await inventoryService.update(item.id, { condition: 'MAINTENANCE' });
       }
@@ -174,31 +199,49 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
   };
 
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(val);
   };
 
-  const filteredItems = items.filter(i =>
-    i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    i.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredItems = items.filter(
+    (i) =>
+      i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      i.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalValue = items.reduce((acc, curr) => acc + (curr.quantity * (curr.price || 0)), 0);
+  const totalValue = items.reduce(
+    (acc, curr) => acc + curr.quantity * (curr.price || 0),
+    0
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Estoque de Materiais</h2>
-          <p className="text-slate-500 text-sm">Gestão de equipamentos, EPIs e suprimentos operacionais.</p>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Estoque de Materiais
+          </h2>
+          <p className="text-slate-500 text-sm">
+            Gestão de equipamentos, EPIs e suprimentos operacionais.
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="h-10 px-4 bg-slate-900 rounded-lg flex items-center gap-3 shadow-sm border border-slate-800 select-none">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patrimônio</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Patrimônio
+            </span>
             <div className="h-4 w-px bg-slate-700"></div>
-            <span className="text-sm font-bold text-emerald-400">{formatCurrency(totalValue)}</span>
+            <span className="text-sm font-bold text-emerald-400">
+              {formatCurrency(totalValue)}
+            </span>
           </div>
           {canEdit && (
-            <Button onClick={handleOpenCreate} className="flex items-center gap-2 shadow-lg shadow-brand-200">
+            <Button
+              onClick={handleOpenCreate}
+              className="flex items-center gap-2 shadow-lg shadow-brand-200"
+            >
               <Plus size={18} /> Novo Item
             </Button>
           )}
@@ -207,7 +250,10 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
 
       <Card className="p-4 flex gap-4 bg-white border-slate-200">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
+          <Search
+            className="absolute left-3 top-2.5 text-slate-400"
+            size={16}
+          />
           <Input
             placeholder="Buscar equipamento por nome, categoria..."
             className="pl-10"
@@ -220,8 +266,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {loading ? (
           <>
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <Card key={i} className="p-0 border-slate-200 overflow-hidden flex flex-col bg-white h-[400px]">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card
+                key={i}
+                className="p-0 border-slate-200 overflow-hidden flex flex-col bg-white h-[400px]"
+              >
                 <div className="p-6 flex-1 space-y-6">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-4">
@@ -256,11 +305,16 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
             ))}
           </>
         ) : filteredItems.length > 0 ? (
-          filteredItems.map(item => {
-            const isExpired = item.expirationDate ? new Date(item.expirationDate) < new Date() : false;
+          filteredItems.map((item) => {
+            const isExpired = item.expirationDate
+              ? new Date(item.expirationDate) < new Date()
+              : false;
 
             return (
-              <Card key={item.id} className="group hover:ring-1 hover:ring-brand-500/20 transition-all border-slate-200 overflow-hidden flex flex-col bg-white">
+              <Card
+                key={item.id}
+                className="group hover:ring-1 hover:ring-brand-500/20 transition-all border-slate-200 overflow-hidden flex flex-col bg-white"
+              >
                 <div className="p-6 flex-1">
                   {/* Header Section */}
                   <div className="flex justify-between items-start mb-6">
@@ -269,23 +323,44 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                         <Package size={28} />
                       </div>
                       <div>
-                        <h3 className="font-black text-slate-900 leading-tight text-xl tracking-tight">{item.name}</h3>
+                        <h3 className="font-black text-slate-900 leading-tight text-xl tracking-tight">
+                          {item.name}
+                        </h3>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em]">{item.category}</p>
+                          <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em]">
+                            {item.category}
+                          </p>
                           <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                          <p className={`text-[11px] font-black uppercase tracking-[0.1em] ${item.itemType === 'REUSABLE' ? 'text-blue-500' : 'text-amber-500'}`}>
-                            {item.itemType === 'REUSABLE' ? 'Reutilizável' : 'Descartável'}
+                          <p
+                            className={`text-[11px] font-black uppercase tracking-[0.1em] ${item.itemType === 'REUSABLE' ? 'text-blue-500' : 'text-amber-500'}`}
+                          >
+                            {item.itemType === 'REUSABLE'
+                              ? 'Reutilizável'
+                              : 'Descartável'}
                           </p>
                         </div>
                       </div>
                     </div>
-                    <div className={`px-4 py-3 rounded-full text-xs font-bold shadow-sm whitespace-nowrap ${item.condition === 'ADEQUATE' || item.condition === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                      item.condition === 'LOW_STOCK' || item.condition === 'MAINTENANCE' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
-                      }`}>
-                      {item.condition === 'AVAILABLE' ? 'Disponível' :
-                        item.condition === 'ADEQUATE' ? 'Estoque OK' :
-                          item.condition === 'LOW_STOCK' ? 'Estoque Baixo' :
-                            item.condition === 'MAINTENANCE' ? 'Manutenção' : 'Crítico'}
+                    <div
+                      className={`px-4 py-3 rounded-full text-xs font-bold shadow-sm whitespace-nowrap ${
+                        item.condition === 'ADEQUATE' ||
+                        item.condition === 'AVAILABLE'
+                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                          : item.condition === 'LOW_STOCK' ||
+                              item.condition === 'MAINTENANCE'
+                            ? 'bg-amber-50 text-amber-600 border border-amber-100'
+                            : 'bg-rose-50 text-rose-600 border border-rose-100'
+                      }`}
+                    >
+                      {item.condition === 'AVAILABLE'
+                        ? 'Disponível'
+                        : item.condition === 'ADEQUATE'
+                          ? 'Estoque OK'
+                          : item.condition === 'LOW_STOCK'
+                            ? 'Estoque Baixo'
+                            : item.condition === 'MAINTENANCE'
+                              ? 'Manutenção'
+                              : 'Crítico'}
                     </div>
                   </div>
 
@@ -294,16 +369,23 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                   {/* Info Grid Section */}
                   <div className="grid grid-cols-2 gap-4 py-8">
                     <div className="space-y-2">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantidade</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Quantidade
+                      </p>
                       <p className="font-black text-slate-900 text-3xl flex items-baseline gap-1.5">
                         {item.quantity}
-                        <span className="text-xs font-bold text-slate-400 lowercase tracking-normal">{item.unit || 'un'}</span>
+                        <span className="text-xs font-bold text-slate-400 lowercase tracking-normal">
+                          {item.unit || 'un'}
+                        </span>
                       </p>
                     </div>
                     <div className="space-y-2 text-right">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Localização</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Localização
+                      </p>
                       <p className="font-black text-slate-900 text-xl flex items-center justify-end gap-2">
-                        <MapPin size={18} className="text-red-500" /> {item.location}
+                        <MapPin size={18} className="text-red-500" />{' '}
+                        {item.location}
                       </p>
                     </div>
                   </div>
@@ -314,7 +396,14 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                   <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50/50 rounded-2xl border border-slate-100 w-fit">
                     <Calendar size={16} className="text-slate-400" />
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      Auditado: <span className="text-slate-800 ml-1">{item.lastInspection ? new Date(item.lastInspection).toLocaleDateString('pt-BR') : 'Pendente'}</span>
+                      Auditado:{' '}
+                      <span className="text-slate-800 ml-1">
+                        {item.lastInspection
+                          ? new Date(item.lastInspection).toLocaleDateString(
+                              'pt-BR'
+                            )
+                          : 'Pendente'}
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -325,7 +414,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                     onClick={() => handleOpenView(item)}
                     className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-brand-600 transition-colors flex items-center gap-2 group/btn"
                   >
-                    <Info size={14} className="group-hover/btn:translate-x-0.5 transition-transform" /> Detalhes
+                    <Info
+                      size={14}
+                      className="group-hover/btn:translate-x-0.5 transition-transform"
+                    />{' '}
+                    Detalhes
                   </button>
 
                   <div className="flex items-center gap-1">
@@ -370,31 +463,46 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
         ) : (
           <div className="col-span-full py-20 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
             <Package size={48} className="mx-auto mb-4 text-slate-300" />
-            <h4 className="text-lg font-bold text-slate-900">Nenhum item encontrado</h4>
-            <p className="text-slate-500">Tente ajustar sua busca ou adicione um novo equipamento.</p>
+            <h4 className="text-lg font-bold text-slate-900">
+              Nenhum item encontrado
+            </h4>
+            <p className="text-slate-500">
+              Tente ajustar sua busca ou adicione um novo equipamento.
+            </p>
           </div>
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Editar Equipamento" : "Cadastrar Novo Item"} maxWidth="6xl">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingId ? 'Editar Equipamento' : 'Cadastrar Novo Item'}
+        maxWidth="6xl"
+      >
         <form onSubmit={handleSaveItem} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-3">
             <div className="md:col-span-2">
               <Input
                 label="Nome do Equipamento / Material"
                 value={formItem.name}
-                onChange={e => setFormItem({ ...formItem, name: e.target.value })}
+                onChange={(e) =>
+                  setFormItem({ ...formItem, name: e.target.value })
+                }
                 placeholder="Ex: Colete Refletivo"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Categoria</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">
+                Categoria
+              </label>
               <select
                 className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-500"
                 value={formItem.category}
-                onChange={e => setFormItem({ ...formItem, category: e.target.value })}
+                onChange={(e) =>
+                  setFormItem({ ...formItem, category: e.target.value })
+                }
               >
                 <option value="Geral">Geral</option>
                 <option value="EPI">EPI</option>
@@ -407,11 +515,15 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Tipo de Material</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">
+                Tipo de Material
+              </label>
               <select
                 className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-500 transition-all"
                 value={formItem.itemType}
-                onChange={e => setFormItem({ ...formItem, itemType: e.target.value as any })}
+                onChange={(e) =>
+                  setFormItem({ ...formItem, itemType: e.target.value as any })
+                }
               >
                 <option value="REUSABLE">Reutilizável</option>
                 <option value="DISPOSABLE">Descartável</option>
@@ -424,15 +536,24 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                 type="number"
                 min="0"
                 value={formItem.quantity}
-                onChange={e => setFormItem({ ...formItem, quantity: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setFormItem({
+                    ...formItem,
+                    quantity: parseInt(e.target.value),
+                  })
+                }
                 required
               />
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Unid</label>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">
+                  Unid
+                </label>
                 <select
                   className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-500"
                   value={formItem.unit}
-                  onChange={e => setFormItem({ ...formItem, unit: e.target.value })}
+                  onChange={(e) =>
+                    setFormItem({ ...formItem, unit: e.target.value })
+                  }
                 >
                   <option value="un">un</option>
                   <option value="par">Par</option>
@@ -453,23 +574,35 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                 min="0"
                 placeholder="0,00"
                 value={formItem.price}
-                onChange={e => setFormItem({ ...formItem, price: parseFloat(e.target.value) })}
+                onChange={(e) =>
+                  setFormItem({
+                    ...formItem,
+                    price: parseFloat(e.target.value),
+                  })
+                }
               />
-              <DollarSign size={14} className="absolute right-4 top-[38px] text-slate-400" />
+              <DollarSign
+                size={14}
+                className="absolute right-4 top-[38px] text-slate-400"
+              />
             </div>
 
             <Input
               label="Localização Exata"
               placeholder="Ex: Prateleira B, Sede"
               value={formItem.location}
-              onChange={e => setFormItem({ ...formItem, location: e.target.value })}
+              onChange={(e) =>
+                setFormItem({ ...formItem, location: e.target.value })
+              }
             />
 
             <Input
               label="Data de Validade"
               type="date"
               value={formItem.expirationDate || ''}
-              onChange={e => setFormItem({ ...formItem, expirationDate: e.target.value })}
+              onChange={(e) =>
+                setFormItem({ ...formItem, expirationDate: e.target.value })
+              }
             />
 
             <div className="md:col-span-2">
@@ -477,31 +610,49 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                 label="Fornecedor / Fabricante"
                 placeholder="Ex: Loja do Bombeiro Ltda."
                 value={formItem.supplier || ''}
-                onChange={e => setFormItem({ ...formItem, supplier: e.target.value })}
+                onChange={(e) =>
+                  setFormItem({ ...formItem, supplier: e.target.value })
+                }
               />
             </div>
 
             <div className="md:col-span-2 space-y-1.5">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Notas e Descrição</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">
+                Notas e Descrição
+              </label>
               <textarea
                 className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none resize-none h-20 transition-all"
                 placeholder="Detalhes técnicos, condições de uso, etc..."
                 value={formItem.description || ''}
-                onChange={e => setFormItem({ ...formItem, description: e.target.value })}
+                onChange={(e) =>
+                  setFormItem({ ...formItem, description: e.target.value })
+                }
               />
             </div>
           </div>
 
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
-            <Button type="button" variant="ghost" className="h-10" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-10"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancelar
+            </Button>
             <Button type="submit" className="h-10 shadow-lg shadow-brand-200">
-              {editingId ? "Salvar Alterações" : "Adicionar ao Inventário"}
+              {editingId ? 'Salvar Alterações' : 'Adicionar ao Inventário'}
             </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal isOpen={isAddQtyModalOpen} onClose={() => setIsAddQtyModalOpen(false)} title="Nova Entrada de Estoque" maxWidth="md">
+      <Modal
+        isOpen={isAddQtyModalOpen}
+        onClose={() => setIsAddQtyModalOpen(false)}
+        title="Nova Entrada de Estoque"
+        maxWidth="md"
+      >
         <form onSubmit={handleSaveQuantity} className="space-y-6">
           {selectedItem && (
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center gap-3">
@@ -509,9 +660,16 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                 <Package size={20} className="text-brand-600" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Item Selecionado</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Item Selecionado
+                </p>
                 <p className="font-bold text-slate-900">{selectedItem.name}</p>
-                <p className="text-xs text-slate-500">Saldo Atual: <span className="font-bold">{selectedItem.quantity} {selectedItem.unit}</span></p>
+                <p className="text-xs text-slate-500">
+                  Saldo Atual:{' '}
+                  <span className="font-bold">
+                    {selectedItem.quantity} {selectedItem.unit}
+                  </span>
+                </p>
               </div>
             </div>
           )}
@@ -522,7 +680,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
               type="number"
               min="1"
               value={qtyToAdd}
-              onChange={e => setQtyToAdd(parseInt(e.target.value))}
+              onChange={(e) => setQtyToAdd(parseInt(e.target.value))}
               placeholder="Ex: 10"
               required
               autoFocus
@@ -530,21 +688,40 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 flex gap-2">
               <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
               <p className="text-[11px] text-blue-700 font-medium">
-                Esta ação atualizará o status do item automaticamente com base no novo saldo total de <span className="font-bold">{(selectedItem?.quantity || 0) + qtyToAdd}</span>.
+                Esta ação atualizará o status do item automaticamente com base
+                no novo saldo total de{' '}
+                <span className="font-bold">
+                  {(selectedItem?.quantity || 0) + qtyToAdd}
+                </span>
+                .
               </p>
             </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" onClick={() => setIsAddQtyModalOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsAddQtyModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100"
+            >
               Confirmar Entrada
             </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} title="Detalhes do Item" maxWidth="lg">
+      <Modal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        title="Detalhes do Item"
+        maxWidth="lg"
+      >
         {viewItem && (
           <div className="space-y-6">
             <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -552,11 +729,19 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
                 <Package size={32} />
               </div>
               <div>
-                <h4 className="text-xl font-bold text-slate-900">{viewItem.name}</h4>
+                <h4 className="text-xl font-bold text-slate-900">
+                  {viewItem.name}
+                </h4>
                 <div className="flex items-center gap-2">
                   <Badge variant="neutral">{viewItem.category}</Badge>
-                  <Badge variant={viewItem.itemType === 'REUSABLE' ? 'info' : 'warning'}>
-                    {viewItem.itemType === 'REUSABLE' ? 'Reutilizável' : 'Descartável'}
+                  <Badge
+                    variant={
+                      viewItem.itemType === 'REUSABLE' ? 'info' : 'warning'
+                    }
+                  >
+                    {viewItem.itemType === 'REUSABLE'
+                      ? 'Reutilizável'
+                      : 'Descartável'}
                   </Badge>
                 </div>
               </div>
@@ -564,57 +749,100 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-white border border-slate-100 rounded-xl">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status Atual</p>
-                <Badge variant={
-                  viewItem.condition === 'ADEQUATE' || viewItem.condition === 'AVAILABLE' ? 'success' :
-                    viewItem.condition === 'LOW_STOCK' || viewItem.condition === 'MAINTENANCE' ? 'warning' : 'danger'
-                }>
-                  {viewItem.condition === 'AVAILABLE' ? 'Disponível' :
-                    viewItem.condition === 'ADEQUATE' ? 'Estoque OK' :
-                      viewItem.condition === 'LOW_STOCK' ? 'Estoque Baixo' :
-                        viewItem.condition === 'MAINTENANCE' ? 'Manutenção' : 'Crítico'}
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                  Status Atual
+                </p>
+                <Badge
+                  variant={
+                    viewItem.condition === 'ADEQUATE' ||
+                    viewItem.condition === 'AVAILABLE'
+                      ? 'success'
+                      : viewItem.condition === 'LOW_STOCK' ||
+                          viewItem.condition === 'MAINTENANCE'
+                        ? 'warning'
+                        : 'danger'
+                  }
+                >
+                  {viewItem.condition === 'AVAILABLE'
+                    ? 'Disponível'
+                    : viewItem.condition === 'ADEQUATE'
+                      ? 'Estoque OK'
+                      : viewItem.condition === 'LOW_STOCK'
+                        ? 'Estoque Baixo'
+                        : viewItem.condition === 'MAINTENANCE'
+                          ? 'Manutenção'
+                          : 'Crítico'}
                 </Badge>
               </div>
               <div className="p-4 bg-white border border-slate-100 rounded-xl">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Quantidade</p>
-                <p className="text-xl font-bold text-slate-900">{viewItem.quantity} {viewItem.unit}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                  Quantidade
+                </p>
+                <p className="text-xl font-bold text-slate-900">
+                  {viewItem.quantity} {viewItem.unit}
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Localização</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                    Localização
+                  </label>
                   <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                    <MapPin size={16} className="text-brand-500" /> {viewItem.location}
+                    <MapPin size={16} className="text-brand-500" />{' '}
+                    {viewItem.location}
                   </p>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Fornecedor</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                    Fornecedor
+                  </label>
                   <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                    <Truck size={16} className="text-slate-400" /> {viewItem.supplier || 'Não informado'}
+                    <Truck size={16} className="text-slate-400" />{' '}
+                    {viewItem.supplier || 'Não informado'}
                   </p>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Preço de Aquisição</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                    Preço de Aquisição
+                  </label>
                   <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                    <DollarSign size={16} className="text-emerald-500" /> {viewItem.price ? formatCurrency(viewItem.price) : 'Não informado'}
+                    <DollarSign size={16} className="text-emerald-500" />{' '}
+                    {viewItem.price
+                      ? formatCurrency(viewItem.price)
+                      : 'Não informado'}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Última Auditoria</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                    Última Auditoria
+                  </label>
                   <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                    <Calendar size={16} className="text-slate-400" /> {viewItem.lastInspection ? new Date(viewItem.lastInspection).toLocaleDateString('pt-BR') : 'Pendente'}
+                    <Calendar size={16} className="text-slate-400" />{' '}
+                    {viewItem.lastInspection
+                      ? new Date(viewItem.lastInspection).toLocaleDateString(
+                          'pt-BR'
+                        )
+                      : 'Pendente'}
                   </p>
                 </div>
                 {viewItem.expirationDate && (
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Data de Validade</label>
-                    <p className={`text-sm font-bold flex items-center gap-2 ${new Date(viewItem.expirationDate) < new Date() ? 'text-red-600' : 'text-slate-700'}`}>
-                      <AlertCircle size={16} /> {new Date(viewItem.expirationDate).toLocaleDateString('pt-BR')}
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                      Data de Validade
+                    </label>
+                    <p
+                      className={`text-sm font-bold flex items-center gap-2 ${new Date(viewItem.expirationDate) < new Date() ? 'text-red-600' : 'text-slate-700'}`}
+                    >
+                      <AlertCircle size={16} />{' '}
+                      {new Date(viewItem.expirationDate).toLocaleDateString(
+                        'pt-BR'
+                      )}
                     </p>
                   </div>
                 )}
@@ -623,18 +851,26 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ user }) => {
 
             {viewItem.description && (
               <div className="p-4 bg-slate-50 rounded-xl border border-dotted border-slate-200">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Descrição e Notas</label>
-                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{viewItem.description}</p>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                  Descrição e Notas
+                </label>
+                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                  {viewItem.description}
+                </p>
               </div>
             )}
 
             <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
               <Button onClick={() => setIsViewModalOpen(false)}>Fechar</Button>
               {canEdit && (
-                <Button variant="outline" onClick={() => {
-                  setIsViewModalOpen(false);
-                  handleOpenEdit(viewItem);
-                }} className="gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleOpenEdit(viewItem);
+                  }}
+                  className="gap-2"
+                >
                   <Edit2 size={16} /> Editar Item
                 </Button>
               )}

@@ -1,0 +1,6 @@
+node_modules/
+.supine/
+supabase/**
+vite.config.ts
+vitest.config.ts
+server/**

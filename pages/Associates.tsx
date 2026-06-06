@@ -1,12 +1,46 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Plus, Download, Trash2, Edit2, X, FileText, Calendar, DollarSign, Clock, Save, AlertCircle, ArrowRight, Users, Shield, MapPin } from 'lucide-react';
-import { Card, Button, Input, Badge, Avatar, Modal, Skeleton } from '../components/ui';
-import { Associate, Transaction, User, UserRole, translateRole, translateStatus, translatePaymentStatus } from '../types';
+import {
+  Search,
+  Filter,
+  Plus,
+  Download,
+  Trash2,
+  Edit2,
+  X,
+  FileText,
+  Calendar,
+  DollarSign,
+  Clock,
+  Save,
+  AlertCircle,
+  ArrowRight,
+  Users,
+  Shield,
+  MapPin,
+} from 'lucide-react';
+import {
+  Card,
+  Button,
+  Input,
+  Badge,
+  Avatar,
+  Modal,
+  Skeleton,
+} from '../components/ui';
+import {
+  Associate,
+  Transaction,
+  User,
+  UserRole,
+  translateRole,
+  translateStatus,
+  translatePaymentStatus,
+  Shift,
+} from '../types';
 import { associatesService } from '../services/associates';
 import { scheduleService } from '../services/schedule';
 import { financialService } from '../services/financial';
-import { Shift } from '../types';
 import { AssociateDetails } from '../components/associates/AssociateDetails';
 
 interface AssociatesPageProps {
@@ -29,7 +63,7 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
       const [assocData, shiftsData, financialData] = await Promise.all([
         associatesService.getAll(),
         scheduleService.getAll(),
-        financialService.getAll()
+        financialService.getAll(),
       ]);
       setAssociates(assocData);
       setAllShifts(shiftsData);
@@ -51,8 +85,12 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
 
   // Details Modal State
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [selectedAssociate, setSelectedAssociate] = useState<Associate | null>(null);
-  const [detailsTab, setDetailsTab] = useState<'OVERVIEW' | 'FINANCIAL' | 'HISTORY'>('OVERVIEW');
+  const [selectedAssociate, setSelectedAssociate] = useState<Associate | null>(
+    null
+  );
+  const [detailsTab, setDetailsTab] = useState<
+    'OVERVIEW' | 'FINANCIAL' | 'HISTORY'
+  >('OVERVIEW');
   const [associateNotes, setAssociateNotes] = useState('');
 
   const initialFormState: Partial<Associate> = {
@@ -61,10 +99,11 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
     phone: '',
     role: 'Bombeiro Civil',
     status: 'ACTIVE',
-    paymentStatus: 'UP_TO_DATE'
+    paymentStatus: 'UP_TO_DATE',
   };
 
-  const [formData, setFormData] = useState<Partial<Associate>>(initialFormState);
+  const [formData, setFormData] =
+    useState<Partial<Associate>>(initialFormState);
   const [isCustomRole, setIsCustomRole] = useState(false);
 
   // --- Actions ---
@@ -84,16 +123,26 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
       phone: associate.phone,
       role: associate.role,
       status: associate.status,
-      paymentStatus: associate.paymentStatus
+      paymentStatus: associate.paymentStatus,
     });
-    const standardRoles = ['Presidente', 'Vice presidente', 'Tesoureiro(a)', 'Secretário(a)', 'Instrutor(a)', 'Bombeiro Civil', 'Recruta'];
+    const standardRoles = [
+      'Presidente',
+      'Vice presidente',
+      'Tesoureiro(a)',
+      'Secretário(a)',
+      'Instrutor(a)',
+      'Bombeiro Civil',
+      'Recruta',
+    ];
     setIsCustomRole(!standardRoles.includes(associate.role));
     setIsModalOpen(true);
   };
 
   const handleViewDetails = (associate: Associate) => {
     setSelectedAssociate(associate);
-    setAssociateNotes('Associado proativo, sempre disponível para escalas extras. Possui curso de APH atualizado.'); // Mock note
+    setAssociateNotes(
+      'Associado proativo, sempre disponível para escalas extras. Possui curso de APH atualizado.'
+    ); // Mock note
     setDetailsTab('OVERVIEW');
     setIsDetailsOpen(true);
   };
@@ -106,7 +155,9 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
       if (editingId) {
         await associatesService.update(editingId, formData);
       } else {
-        alert('Novos associados devem ser cadastrados via tela de login com um Código de Acesso.');
+        alert(
+          'Novos associados devem ser cadastrados via tela de login com um Código de Acesso.'
+        );
         return;
       }
 
@@ -120,43 +171,51 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja remover este associado permanentemente?')) {
+    if (
+      confirm('Tem certeza que deseja remover este associado permanentemente?')
+    ) {
       try {
         await associatesService.delete(id);
         await fetchAssociates();
       } catch (error) {
-        alert('Erro ao excluir associado. Note que perfis vinculados a autenticação podem exigir remoção via painel administrativo.');
+        alert(
+          'Erro ao excluir associado. Note que perfis vinculados a autenticação podem exigir remoção via painel administrativo.'
+        );
       }
     }
   };
 
   const handleExport = () => {
-    const csvContent = "data:text/csv;charset=utf-8,"
-      + "Nome,Email,Função,Status\n"
-      + associates.map(e => `${e.name},${e.email},${e.role},${e.status} `).join("\n");
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      'Nome,Email,Função,Status\n' +
+      associates
+        .map((e) => `${e.name},${e.email},${e.role},${e.status} `)
+        .join('\n');
     const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "associados_abcuna.csv");
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'associados_abcuna.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   const ROLE_HIERARCHY: Record<string, number> = {
-    'Presidente': 1,
+    Presidente: 1,
     'Vice presidente': 2,
     'Tesoureiro(a)': 3,
     'Secretário(a)': 4,
     'Instrutor(a)': 5,
     'Bombeiro Civil': 6,
-    'Recruta': 7
+    Recruta: 7,
   };
 
   const filtered = associates
-    .filter(a =>
-      a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.email.toLowerCase().includes(searchTerm.toLowerCase())
+    .filter(
+      (a) =>
+        a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.email.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       const rankA = ROLE_HIERARCHY[a.role] || 99;
@@ -180,8 +239,8 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
           state: {
             highlightOverdue: true,
             associateId: selectedAssociate!.id,
-            feeId
-          }
+            feeId,
+          },
         });
       }}
       canEdit={canEdit}
@@ -192,8 +251,12 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Quadro de Membros</h2>
-          <p className="text-slate-500 text-sm">Gestão de bombeiros, estagiários e diretoria da corporação.</p>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Quadro de Membros
+          </h2>
+          <p className="text-slate-500 text-sm">
+            Gestão de bombeiros, estagiários e diretoria da corporação.
+          </p>
         </div>
         <div className="flex items-center gap-3">
           {canExport && (
@@ -211,56 +274,95 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
 
       <Card className="p-4 flex flex-col md:flex-row gap-4 bg-white">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={16}
+          />
           <Input
             placeholder="Buscar por nome ou e-mail..."
             className="pl-10 h-10"
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </Card>
 
       <div className="md:hidden space-y-4">
         {loading ? (
-          [1, 2, 3].map(i => <Card key={i} className="h-24 w-full flex items-center px-4"><Skeleton className="h-16 w-full" /></Card>)
+          [1, 2, 3].map((i) => (
+            <Card key={i} className="h-24 w-full flex items-center px-4">
+              <Skeleton className="h-16 w-full" />
+            </Card>
+          ))
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">Nenhum associado encontrado.</div>
-        ) : filtered.map((associate) => (
-          <Card key={associate.id} className="p-4 flex flex-col gap-4" onClick={() => handleViewDetails(associate)}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar src={associate.avatar} alt={associate.name} fallback={associate.name.substring(0, 2)} size="md" />
-                <div>
-                  <p className="font-bold text-slate-900 leading-tight">{associate.name}</p>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{translateRole(associate.role)}</p>
+          <div className="p-12 text-center text-slate-400">
+            Nenhum associado encontrado.
+          </div>
+        ) : (
+          filtered.map((associate) => (
+            <Card
+              key={associate.id}
+              className="p-4 flex flex-col gap-4"
+              onClick={() => handleViewDetails(associate)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar
+                    src={associate.avatar}
+                    alt={associate.name}
+                    fallback={associate.name.substring(0, 2)}
+                    size="md"
+                  />
+                  <div>
+                    <p className="font-bold text-slate-900 leading-tight">
+                      {associate.name}
+                    </p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      {translateRole(associate.role)}
+                    </p>
+                  </div>
+                </div>
+                <Badge
+                  variant={
+                    associate.paymentStatus === 'UP_TO_DATE'
+                      ? 'success'
+                      : 'danger'
+                  }
+                >
+                  {translatePaymentStatus(associate.paymentStatus)}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+                <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold uppercase">
+                  {associate.status === 'ACTIVE' ? (
+                    <span className="flex items-center gap-1 text-emerald-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{' '}
+                      ATIVO
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">
+                      {translateStatus(associate.status)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {canEdit && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(associate);
+                      }}
+                      className="p-2 text-slate-400 hover:text-brand-600"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                  )}
+                  <ArrowRight size={16} className="text-slate-300" />
                 </div>
               </div>
-              <Badge variant={associate.paymentStatus === 'UP_TO_DATE' ? 'success' : 'danger'}>
-                {translatePaymentStatus(associate.paymentStatus)}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-              <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold uppercase">
-                {associate.status === 'ACTIVE' ? (
-                  <span className="flex items-center gap-1 text-emerald-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ATIVO
-                  </span>
-                ) : (
-                  <span className="text-slate-400">{translateStatus(associate.status)}</span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                {canEdit && (
-                  <button onClick={(e) => { e.stopPropagation(); handleEdit(associate); }} className="p-2 text-slate-400 hover:text-brand-600">
-                    <Edit2 size={16} />
-                  </button>
-                )}
-                <ArrowRight size={16} className="text-slate-300" />
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))
+        )}
       </div>
 
       <Card className="hidden md:block p-0 overflow-hidden">
@@ -268,94 +370,177 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-medium">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Membro</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Função</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Financeiro</th>
-                <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest">Ações</th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">
+                  Membro
+                </th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">
+                  Função
+                </th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">
+                  Financeiro
+                </th>
+                <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-slate-400"
+                  >
                     <div className="flex flex-col items-center gap-3">
-                      <Clock className="animate-spin text-brand-500" size={24} />
-                      <p className="font-bold text-xs uppercase tracking-widest">Sincronizando...</p>
+                      <Clock
+                        className="animate-spin text-brand-500"
+                        size={24}
+                      />
+                      <p className="font-bold text-xs uppercase tracking-widest">
+                        Sincronizando...
+                      </p>
                     </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-slate-400"
+                  >
                     Nenhum associado encontrado.
                   </td>
                 </tr>
-              ) : filtered.map((associate) => (
-                <tr key={associate.id} className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleViewDetails(associate)}>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        src={associate.avatar}
-                        alt={associate.name}
-                        fallback={associate.name.substring(0, 2)}
-                        size="md"
-                      />
-                      <div>
-                        <p className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{associate.name}</p>
-                        <p className="text-xs text-slate-500">{associate.email}</p>
+              ) : (
+                filtered.map((associate) => (
+                  <tr
+                    key={associate.id}
+                    className="hover:bg-slate-50 transition-colors group cursor-pointer"
+                    onClick={() => handleViewDetails(associate)}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          src={associate.avatar}
+                          alt={associate.name}
+                          fallback={associate.name.substring(0, 2)}
+                          size="md"
+                        />
+                        <div>
+                          <p className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors">
+                            {associate.name}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {associate.email}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <Badge variant="neutral">{translateRole(associate.role)}</Badge>
-                  </td>
-                  <td className="px-6 py-4">
-                    {associate.status === 'ACTIVE' ? (
-                      <span className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs uppercase tracking-wider">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Ativo
-                      </span>
-                    ) : (
-                      <Badge variant="warning">{translateStatus(associate.status)}</Badge>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <Badge variant={
-                      associate.paymentStatus === 'UP_TO_DATE' ? 'success' :
-                        associate.paymentStatus === 'LATE' ? 'danger' : 'warning'
-                    }>
-                      {translatePaymentStatus(associate.paymentStatus)}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center gap-2">
-                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleViewDetails(associate); }}>
-                        <FileText size={16} />
-                      </Button>
-                      {canEdit && (
-                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleEdit(associate); }}>
-                          <Edit2 size={16} />
-                        </Button>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge variant="neutral">
+                        {translateRole(associate.role)}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4">
+                      {associate.status === 'ACTIVE' ? (
+                        <span className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs uppercase tracking-wider">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>{' '}
+                          Ativo
+                        </span>
+                      ) : (
+                        <Badge variant="warning">
+                          {translateStatus(associate.status)}
+                        </Badge>
                       )}
-                      {canEdit && (
-                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(associate.id); }} className="text-red-400 hover:text-red-500">
-                          <Trash2 size={16} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge
+                        variant={
+                          associate.paymentStatus === 'UP_TO_DATE'
+                            ? 'success'
+                            : associate.paymentStatus === 'LATE'
+                              ? 'danger'
+                              : 'warning'
+                        }
+                      >
+                        {translatePaymentStatus(associate.paymentStatus)}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewDetails(associate);
+                          }}
+                        >
+                          <FileText size={16} />
                         </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(associate);
+                            }}
+                          >
+                            <Edit2 size={16} />
+                          </Button>
+                        )}
+                        {canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(associate.id);
+                            }}
+                            className="text-red-400 hover:text-red-500"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </Card>
 
       {/* Edit/Create Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? 'Editar Associado' : 'Novo Associado'} maxWidth="4xl">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingId ? 'Editar Associado' : 'Novo Associado'}
+        maxWidth="4xl"
+      >
         <form onSubmit={handleSave} className="space-y-4">
-          <Input label="Nome Completo" placeholder="Ex: João da Silva" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
-          <Input label="E-mail de Contato" type="email" placeholder="email@exemplo.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
+          <Input
+            label="Nome Completo"
+            placeholder="Ex: João da Silva"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+          <Input
+            label="E-mail de Contato"
+            type="email"
+            placeholder="email@exemplo.com"
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+            required
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
@@ -363,14 +548,18 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
               mask="phone"
               placeholder="(00) 00000-0000"
               value={formData.phone}
-              onChange={e => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
             />
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Cargo</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Cargo
+              </label>
               <select
                 className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base font-bold text-slate-700 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all"
                 value={isCustomRole ? 'CUSTOM' : formData.role}
-                onChange={e => {
+                onChange={(e) => {
                   if (e.target.value === 'CUSTOM') {
                     setIsCustomRole(true);
                     setFormData({ ...formData, role: '' });
@@ -394,11 +583,15 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Status</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Status
+              </label>
               <select
                 className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base font-bold text-slate-700 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all"
                 value={formData.status}
-                onChange={e => setFormData({ ...formData, status: e.target.value as any })}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value as any })
+                }
               >
                 <option value="ACTIVE">Ativo</option>
                 <option value="INACTIVE">Inativo</option>
@@ -413,50 +606,80 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                 label="Nome da Nova Função"
                 placeholder="Digite o cargo customizado"
                 value={formData.role === 'CUSTOM' ? '' : formData.role}
-                onChange={e => setFormData({ ...formData, role: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
                 required
               />
             </div>
           )}
 
-
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
-            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancelar
+            </Button>
             <Button type="submit">Salvar Alterações</Button>
           </div>
         </form>
       </Modal>
 
       {/* Details Modal */}
-      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} title="Detalhes do Associado" maxWidth="4xl">
+      <Modal
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        title="Detalhes do Associado"
+        maxWidth="4xl"
+      >
         {selectedAssociate && (
           <div className="space-y-6">
             <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg">
-              <Avatar src={selectedAssociate.avatar} alt={selectedAssociate.name} fallback={selectedAssociate.name.substring(0, 2)} size="lg" />
+              <Avatar
+                src={selectedAssociate.avatar}
+                alt={selectedAssociate.name}
+                fallback={selectedAssociate.name.substring(0, 2)}
+                size="lg"
+              />
               <div>
-                <h3 className="text-xl font-bold text-slate-900">{selectedAssociate.name}</h3>
-                <p className="text-sm text-slate-500">{translateRole(selectedAssociate.role)}</p>
-                <Badge variant={selectedAssociate.status === 'ACTIVE' ? 'success' : 'neutral'} className="mt-1">
+                <h3 className="text-xl font-bold text-slate-900">
+                  {selectedAssociate.name}
+                </h3>
+                <p className="text-sm text-slate-500">
+                  {translateRole(selectedAssociate.role)}
+                </p>
+                <Badge
+                  variant={
+                    selectedAssociate.status === 'ACTIVE'
+                      ? 'success'
+                      : 'neutral'
+                  }
+                  className="mt-1"
+                >
                   {translateStatus(selectedAssociate.status)}
                 </Badge>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4 p-1 bg-slate-100 rounded-lg">
-              {(['OVERVIEW', 'FINANCIAL', 'HISTORY'] as const).map(tab => (
+              {(['OVERVIEW', 'FINANCIAL', 'HISTORY'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setDetailsTab(tab)}
                   className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${detailsTab === tab ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                 >
-                  {tab === 'OVERVIEW' ? 'Perfil' : tab === 'FINANCIAL' ? 'Financeiro' : 'Histórico'}
+                  {tab === 'OVERVIEW'
+                    ? 'Perfil'
+                    : tab === 'FINANCIAL'
+                      ? 'Financeiro'
+                      : 'Histórico'}
                 </button>
               ))}
             </div>
 
-            <div className="min-h-[200px]">
-              {renderDetailsContent()}
-            </div>
+            <div className="min-h-[200px]">{renderDetailsContent()}</div>
 
             <div className="flex justify-end pt-4 border-t border-slate-100">
               <Button onClick={() => setIsDetailsOpen(false)}>Fechar</Button>

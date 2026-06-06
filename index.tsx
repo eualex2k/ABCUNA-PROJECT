@@ -5,7 +5,10 @@ import App from './App';
 import './index.css';
 
 // Simple Error Boundary to catch runtime errors
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: any }
+> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -16,7 +19,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
 
   componentDidCatch(error: any, errorInfo: any) {
-    console.error("Uncaught error:", error, errorInfo);
+    console.error('Uncaught error:', error, errorInfo);
   }
 
   render() {
@@ -24,8 +27,12 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
       return (
         <div className="p-8 bg-slate-50 min-h-screen text-center">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-lg mx-auto border-l-4 border-red-500">
-            <h1 className="text-xl font-bold text-red-600 mb-4">Algo deu errado no sistema</h1>
-            <p className="text-slate-600 mb-4">Um erro inesperado impediu o carregamento do componente.</p>
+            <h1 className="text-xl font-bold text-red-600 mb-4">
+              Algo deu errado no sistema
+            </h1>
+            <p className="text-slate-600 mb-4">
+              Um erro inesperado impediu o carregamento do componente.
+            </p>
             <pre className="text-xs bg-slate-100 p-4 rounded text-left overflow-auto max-h-40">
               {this.state.error?.message}
             </pre>
@@ -44,7 +51,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 }
 
 const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error("Could not find root element to mount to");
+if (!rootElement) throw new Error('Could not find root element to mount to');
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
@@ -58,11 +65,12 @@ root.render(
 // Registra o Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
         console.log('SW registrado com sucesso:', registration.scope);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Falha ao registrar SW:', err);
       });
   });

@@ -1,7 +1,18 @@
 import React, { useState, useRef } from 'react';
 import { User, UserRole, translateRole } from '../types';
 import { Card, Button, Input, Avatar, Badge } from '../components/ui';
-import { Camera, Save, Mail, Phone, MapPin, FileText, Activity, CreditCard, User as UserIcon, Bell } from 'lucide-react';
+import {
+  Camera,
+  Save,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
+  Activity,
+  CreditCard,
+  User as UserIcon,
+  Bell,
+} from 'lucide-react';
 import { notificationService } from '../services/notifications';
 import { profileService } from '../services/profile';
 import { pushNotificationService } from '../services/pushNotifications';
@@ -18,7 +29,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -44,7 +59,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
       if (newAvatarFile) {
         const { compressImage } = await import('../utils/imageCompression');
         const compressed = await compressImage(newAvatarFile, 400, 0.7); // Fotos de perfil não precisam ser grandes
-        
+
         const fileName = `avatar_${user.id}_${Date.now()}.jpg`;
         const { error: uploadError } = await supabase.storage
           .from('public-assets')
@@ -55,7 +70,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
         const { data } = supabase.storage
           .from('public-assets')
           .getPublicUrl(`avatars/${fileName}`);
-        
+
         avatarUrl = data.publicUrl;
       }
 
@@ -67,12 +82,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
         title: 'Perfil Atualizado',
         message: 'Suas informações foram salvas com sucesso.',
         type: 'SYSTEM',
-        link: '/profile'
+        link: '/profile',
       });
       alert('Perfil atualizado com sucesso!');
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      alert('Erro ao atualizar perfil: ' + (error.message || 'Erro desconhecido'));
+      alert(
+        'Erro ao atualizar perfil: ' + (error.message || 'Erro desconhecido')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -82,10 +99,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900">Meu Perfil</h1>
-          <p className="text-slate-500 text-sm">Gerencie suas informações pessoais e documentos.</p>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">
+            Meu Perfil
+          </h1>
+          <p className="text-slate-500 text-sm">
+            Gerencie suas informações pessoais e documentos.
+          </p>
         </div>
-        <Button onClick={handleSubmit} disabled={isLoading} className="flex items-center gap-2">
+        <Button
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="flex items-center gap-2"
+        >
           <Save size={18} /> {isLoading ? 'Salvando...' : 'Salvar Alterações'}
         </Button>
       </div>
@@ -122,31 +147,53 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
           {/* Informações Principais */}
           <div className="flex-1 text-center md:text-left space-y-3 w-full">
             <div>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{formData.name}</h3>
-              <p className="text-sm font-medium text-slate-500">{formData.email}</p>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                {formData.name}
+              </h3>
+              <p className="text-sm font-medium text-slate-500">
+                {formData.email}
+              </p>
             </div>
 
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
               <Badge variant="info">{translateRole(formData.role)}</Badge>
-              {formData.bloodType && <Badge variant="danger">{formData.bloodType}</Badge>}
+              {formData.bloodType && (
+                <Badge variant="danger">{formData.bloodType}</Badge>
+              )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 pt-2">
               <div className="p-2 sm:p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">CPF</p>
-                <p className="text-xs sm:text-sm font-black text-slate-900 font-mono tracking-tighter">{formData.cpf || '-'}</p>
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                  CPF
+                </p>
+                <p className="text-xs sm:text-sm font-black text-slate-900 font-mono tracking-tighter">
+                  {formData.cpf || '-'}
+                </p>
               </div>
               <div className="p-2 sm:p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Matrícula</p>
-                <p className="text-xs sm:text-sm font-black text-slate-900">{formData.registrationNumber || '-'}</p>
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                  Matrícula
+                </p>
+                <p className="text-xs sm:text-sm font-black text-slate-900">
+                  {formData.registrationNumber || '-'}
+                </p>
               </div>
               <div className="p-2 sm:p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Telefone</p>
-                <p className="text-xs sm:text-sm font-black text-slate-900">{formData.phone || '-'}</p>
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                  Telefone
+                </p>
+                <p className="text-xs sm:text-sm font-black text-slate-900">
+                  {formData.phone || '-'}
+                </p>
               </div>
               <div className="p-2 sm:p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cartão SUS</p>
-                <p className="text-xs sm:text-sm font-black text-slate-900 font-mono tracking-tighter">{formData.susNumber || '-'}</p>
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                  Cartão SUS
+                </p>
+                <p className="text-xs sm:text-sm font-black text-slate-900 font-mono tracking-tighter">
+                  {formData.susNumber || '-'}
+                </p>
               </div>
             </div>
           </div>
@@ -184,7 +231,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Biografia</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Biografia
+              </label>
               <textarea
                 name="bio"
                 rows={3}
@@ -200,7 +249,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
         {/* Informações Institucionais */}
         <Card className="p-6">
           <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-lg border-b border-slate-100 pb-3">
-            <FileText size={20} className="text-brand-600" /> Informações Institucionais
+            <FileText size={20} className="text-brand-600" /> Informações
+            Institucionais
           </h3>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -212,7 +262,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                 placeholder="Ex: 2024.001"
               />
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Tipo Sanguíneo</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Tipo Sanguíneo
+                </label>
                 <select
                   name="bloodType"
                   className="w-full h-12 px-5 bg-white border border-slate-300 rounded-lg text-base focus:outline-none focus:border-brand-500"
@@ -281,28 +333,39 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
         <Card className="p-6 md:col-span-2 border-brand-100 bg-brand-50/10">
           <div className="flex items-center justify-between mb-4 border-b border-brand-100 pb-3">
             <h3 className="font-bold text-slate-900 flex items-center gap-2 text-lg">
-              <Bell size={20} className="text-brand-600" /> Preferências de Notificação
+              <Bell size={20} className="text-brand-600" /> Preferências de
+              Notificação
             </h3>
-            <Badge variant={Notification.permission === 'granted' ? 'success' : 'warning'}>
-              {Notification.permission === 'granted' ? 'Ativado' : 'Não Ativado'}
+            <Badge
+              variant={
+                Notification.permission === 'granted' ? 'success' : 'warning'
+              }
+            >
+              {Notification.permission === 'granted'
+                ? 'Ativado'
+                : 'Não Ativado'}
             </Badge>
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex-1">
-              <p className="font-semibold text-slate-900">Notificações Push no Navegador</p>
+              <p className="font-semibold text-slate-900">
+                Notificações Push no Navegador
+              </p>
               <p className="text-sm text-slate-500 max-w-xl">
-                Receba alertas de novas escalas, materiais e eventos diretamente no seu dispositivo, mesmo com o sistema fechado.
+                Receba alertas de novas escalas, materiais e eventos diretamente
+                no seu dispositivo, mesmo com o sistema fechado.
                 {Notification.permission === 'denied' && (
                   <span className="block mt-2 text-red-600 font-bold">
-                    ⚠ Notificações bloqueadas pelo navegador. Por favor, redefina as permissões no cadeado da barra de endereço.
+                    ⚠ Notificações bloqueadas pelo navegador. Por favor,
+                    redefina as permissões no cadeado da barra de endereço.
                   </span>
                 )}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              {(typeof window !== 'undefined' && 'Notification' in window) && (
+              {typeof window !== 'undefined' && 'Notification' in window && (
                 <>
                   {Notification.permission === 'granted' ? (
                     <>
@@ -313,13 +376,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                             size="sm"
                             onClick={() => {
                               if ('serviceWorker' in navigator) {
-                                navigator.serviceWorker.ready.then(registration => {
-                                  registration.showNotification('Teste Local', {
-                                    body: 'Se você está vendo isso, o seu navegador suporta notificações e o Service Worker está funcionando!',
-                                    icon: '/logo.svg',
-                                    requireInteraction: true
-                                  });
-                                });
+                                navigator.serviceWorker.ready.then(
+                                  (registration) => {
+                                    registration.showNotification(
+                                      'Teste Local',
+                                      {
+                                        body: 'Se você está vendo isso, o seu navegador suporta notificações e o Service Worker está funcionando!',
+                                        icon: '/logo.svg',
+                                        requireInteraction: true,
+                                      }
+                                    );
+                                  }
+                                );
                               }
                             }}
                             className="text-brand-600 border-brand-200"
@@ -331,25 +399,38 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                             size="sm"
                             onClick={async () => {
                               try {
-                                const { data: res, error } = await supabase.functions.invoke('send-push-notification', {
-                                  body: {
-                                    notificationId: 'fd393f4d-b8a4-4e43-a4c2-284dcda7ff87', // Um ID de notificação existente para teste
-                                    userIds: [user.id]
-                                  }
-                                });
+                                const { data: res, error } =
+                                  await supabase.functions.invoke(
+                                    'send-push-notification',
+                                    {
+                                      body: {
+                                        notificationId:
+                                          'fd393f4d-b8a4-4e43-a4c2-284dcda7ff87', // Um ID de notificação existente para teste
+                                        userIds: [user.id],
+                                      },
+                                    }
+                                  );
                                 console.log('Push Result:', res);
                                 console.log('Push Error:', error);
 
                                 if (error) {
-                                  alert(`Erro de conexão com servidor: ${JSON.stringify(error)}`);
+                                  alert(
+                                    `Erro de conexão com servidor: ${JSON.stringify(error)}`
+                                  );
                                 } else if (res && res.success === false) {
-                                  alert(`Erro na função do servidor: ${res.error}`);
+                                  alert(
+                                    `Erro na função do servidor: ${res.error}`
+                                  );
                                 } else {
-                                  alert(`Resultado do servidor: ${JSON.stringify(res)}`);
+                                  alert(
+                                    `Resultado do servidor: ${JSON.stringify(res)}`
+                                  );
                                 }
                               } catch (err: any) {
                                 console.error('Erro na chamada:', err);
-                                alert('Erro ao chamar servidor: ' + err.message);
+                                alert(
+                                  'Erro ao chamar servidor: ' + err.message
+                                );
                               }
                             }}
                             className="text-slate-600 border-slate-200"
@@ -374,9 +455,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                       variant="primary"
                       onClick={async () => {
                         try {
-                          const sub = await pushNotificationService.subscribeUser(user.id);
+                          const sub =
+                            await pushNotificationService.subscribeUser(
+                              user.id
+                            );
                           if (sub) {
-                            alert('Notificações ativadas com sucesso neste dispositivo!');
+                            alert(
+                              'Notificações ativadas com sucesso neste dispositivo!'
+                            );
                             window.location.reload();
                           }
                         } catch (err) {
@@ -385,7 +471,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                       }}
                       disabled={Notification.permission === 'denied'}
                     >
-                      {Notification.permission === 'denied' ? 'Bloqueado no Navegador' : 'Ativar Notificações'}
+                      {Notification.permission === 'denied'
+                        ? 'Bloqueado no Navegador'
+                        : 'Ativar Notificações'}
                     </Button>
                   )}
                 </>

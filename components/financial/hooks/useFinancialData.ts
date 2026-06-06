@@ -17,7 +17,9 @@ interface UseFinancialDataReturn {
   canExport: boolean;
 }
 
-export const useFinancialData = (options: UseFinancialDataOptions): UseFinancialDataReturn => {
+export const useFinancialData = (
+  options: UseFinancialDataOptions
+): UseFinancialDataReturn => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [associates, setAssociates] = useState<Associate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,19 +27,21 @@ export const useFinancialData = (options: UseFinancialDataOptions): UseFinancial
 
   const { user } = options;
 
-  const canEdit = [user?.role].includes('ADMIN') || [user?.role].includes('FINANCIAL');
-  const canExport = [user?.role].includes('ADMIN') || [user?.role].includes('FINANCIAL');
+  const canEdit =
+    [user?.role].includes('ADMIN') || [user?.role].includes('FINANCIAL');
+  const canExport =
+    [user?.role].includes('ADMIN') || [user?.role].includes('FINANCIAL');
 
   const loadData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const [transactionsData, associatesData] = await Promise.all([
         financialService.getAll(),
-        associatesService.getAll()
+        associatesService.getAll(),
       ]);
-      
+
       setTransactions(transactionsData);
       setAssociates(associatesData);
     } catch (err: any) {
@@ -59,6 +63,6 @@ export const useFinancialData = (options: UseFinancialDataOptions): UseFinancial
     error,
     refreshData: loadData,
     canEdit,
-    canExport
+    canExport,
   };
 };

@@ -34,14 +34,16 @@ export const useFeesData = (options: UseFeesDataOptions): UseFeesDataReturn => {
 
   const deriveFees = () => {
     const derivedFees: FeeRecord[] = transactions
-      .filter(tx => 
-        tx.category === 'Mensalidade' || 
-        tx.category === 'Mensalidades' || 
-        tx.category === 'Taxa de Inscrição' ||
-        (tx.category === 'Geral' && tx.description.toLowerCase().includes('mensalidade'))
+      .filter(
+        (tx) =>
+          tx.category === 'Mensalidade' ||
+          tx.category === 'Mensalidades' ||
+          tx.category === 'Taxa de Inscrição' ||
+          (tx.category === 'Geral' &&
+            tx.description.toLowerCase().includes('mensalidade'))
       )
-      .map(tx => {
-        const assoc = associates.find(a => a.id === tx.payer_id);
+      .map((tx) => {
+        const assoc = associates.find((a) => a.id === tx.payer_id);
         const dObj = new Date(tx.date + 'T12:00:00');
         const isOverdue = tx.status === 'PENDING' && dObj < new Date();
 
@@ -50,20 +52,29 @@ export const useFeesData = (options: UseFeesDataOptions): UseFeesDataReturn => {
           monthRef = 'Inscrição';
         } else {
           try {
-            const d = new Date(tx.date + 'T12:00:00'); 
-            const m = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            const d = new Date(tx.date + 'T12:00:00');
+            const m = d.toLocaleDateString('pt-BR', {
+              month: 'long',
+              year: 'numeric',
+            });
             monthRef = m.charAt(0).toUpperCase() + m.slice(1);
-          } catch (e) { }
+          } catch (e) {}
         }
 
         return {
           id: tx.id,
           associateId: tx.payer_id || '',
-          associateName: assoc ? assoc.name : (tx.custom_payer || (tx.description.includes('-') ? tx.description.split('-')[1].trim() : 'Externo')),
+          associateName: assoc
+            ? assoc.name
+            : tx.custom_payer ||
+              (tx.description.includes('-')
+                ? tx.description.split('-')[1].trim()
+                : 'Externo'),
           dueDate: tx.date,
           amount: tx.amount,
-          status: tx.status === 'COMPLETED' ? 'PAID' : (isOverdue ? 'LATE' : 'OPEN'),
-          monthRef: monthRef
+          status:
+            tx.status === 'COMPLETED' ? 'PAID' : isOverdue ? 'LATE' : 'OPEN',
+          monthRef: monthRef,
         };
       });
     setFeesList(derivedFees);
@@ -73,7 +84,7 @@ export const useFeesData = (options: UseFeesDataOptions): UseFeesDataReturn => {
     deriveFees();
   }, [transactions, associates]);
 
-  const overdueFees = feesList.filter(f => f.status === 'LATE');
+  const overdueFees = feesList.filter((f) => f.status === 'LATE');
   const overdueCount = overdueFees.length;
 
   const refreshFees = () => {
@@ -85,6 +96,6 @@ export const useFeesData = (options: UseFeesDataOptions): UseFeesDataReturn => {
     overdueFees,
     overdueCount,
     loading,
-    refreshFees
+    refreshFees,
   };
 };

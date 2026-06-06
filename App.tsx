@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import {
+  HashRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from 'react-router-dom';
 import { Lock, ChevronLeft } from 'lucide-react';
 import { Layout } from './components/Layout';
 import { Button } from './components/ui';
@@ -38,7 +44,11 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ user, allowedRoles, children }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  user,
+  allowedRoles,
+  children,
+}) => {
   if (!user) return <Navigate to="/auth" replace />;
   if (!allowedRoles.includes(user.role)) {
     return <AccessDenied />;
@@ -58,7 +68,9 @@ const App: React.FC = () => {
   // Handler para quando o usuário fica inativo
   const handleInactive = () => {
     if (user) {
-      console.log('Usuário inativo detectado. Mostrando modal de confirmação...');
+      console.log(
+        'Usuário inativo detectado. Mostrando modal de confirmação...'
+      );
       setShowInactivityModal(true);
     }
   };
@@ -67,7 +79,7 @@ const App: React.FC = () => {
   const { updateActivity } = useUserActivity({
     onInactive: handleInactive,
     inactivityTimeout: INACTIVITY_TIMEOUT_MS, // 30 minutos sem atividade
-    enabled: !!user
+    enabled: !!user,
   });
 
   // Handler para confirmar que o usuário está presente
@@ -93,24 +105,31 @@ const App: React.FC = () => {
       try {
         // Força atualização do Service Worker
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(registrations => {
-            for (let registration of registrations) {
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            for (const registration of registrations) {
               registration.update();
               console.log('Service Worker atualizado manualmente');
             }
           });
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
         if (session?.user) {
           // Verificar se é uma sessão de recuperação ANTES de aplicar as travas de segurança
-          const isRecoveryInUrl = window.location.hash.includes('type=recovery') || window.location.href.includes('type=recovery');
-          const isRecoveryInSession = session.user.app_metadata?.recovery === true;
+          const isRecoveryInUrl =
+            window.location.hash.includes('type=recovery') ||
+            window.location.href.includes('type=recovery');
+          const isRecoveryInSession =
+            session.user.app_metadata?.recovery === true;
 
           if (isRecoveryInUrl || isRecoveryInSession) {
-             console.log('Sessão de recuperação detectada - Ignorando travas de segurança.');
-             // Durante a recuperação, apenas pulamos para o carregamento do perfil ou reset
+            console.log(
+              'Sessão de recuperação detectada - Ignorando travas de segurança.'
+            );
+            // Durante a recuperação, apenas pulamos para o carregamento do perfil ou reset
           } else {
             // Verificar se houve logout manual - se sim, não restaurar sessão
             const wasManualLogout = localStorage.getItem('manualLogout');
@@ -127,7 +146,9 @@ const App: React.FC = () => {
 
             if (!lastLoginTime) {
               // Sessão antiga sem timestamp - fazer logout
-              console.log('Sessão sem timestamp. Fazendo logout para exibir landing page...');
+              console.log(
+                'Sessão sem timestamp. Fazendo logout para exibir landing page...'
+              );
               await supabase.auth.signOut();
               setIsSessionLoading(false);
               return;
@@ -136,7 +157,10 @@ const App: React.FC = () => {
             // Verificar inatividade usando o timestamp mais recente
             const lastActivityTime = localStorage.getItem('lastActivityTime');
             const referenceTime = lastActivityTime
-              ? Math.max(parseInt(lastActivityTime, 10), parseInt(lastLoginTime, 10))
+              ? Math.max(
+                  parseInt(lastActivityTime, 10),
+                  parseInt(lastLoginTime, 10)
+                )
               : parseInt(lastLoginTime, 10);
 
             const timeSinceActivity = Date.now() - referenceTime;
@@ -173,11 +197,13 @@ const App: React.FC = () => {
               susNumber: profile.sus_number,
               registrationNumber: profile.registration_number,
               bloodType: profile.blood_type,
-              address: profile.address
+              address: profile.address,
             };
             setUser(appUser);
             notificationService.setCurrentUser(profile.id);
-            pushNotificationService.subscribeUser(profile.id, true).catch(console.error);
+            pushNotificationService
+              .subscribeUser(profile.id, true)
+              .catch(console.error);
 
             // Atualiza atividade ao restaurar sessão
             updateActivity();
@@ -193,15 +219,21 @@ const App: React.FC = () => {
     checkSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('App Auth Event:', event);
 
       // Se for um evento de recuperação ou login via recuperação
-      const isRecovery = event === 'PASSWORD_RECOVERY' || 
-                        (event === 'SIGNED_IN' && window.location.hash.includes('type=recovery'));
+      const isRecovery =
+        event === 'PASSWORD_RECOVERY' ||
+        (event === 'SIGNED_IN' &&
+          window.location.hash.includes('type=recovery'));
 
       if (isRecovery) {
-        console.log('Detectado fluxo de recuperação de senha. Redirecionando com segurança...');
+        console.log(
+          'Detectado fluxo de recuperação de senha. Redirecionando com segurança...'
+        );
         // Não usamos window.location.hash direto para não matar os tokens antes da hora
         setTimeout(() => {
           setIsSessionLoading(false);
@@ -221,11 +253,14 @@ const App: React.FC = () => {
       }
     });
 
-    // Verificação imediata: se tivermos um token de recuperação no hash bruto, 
+    // Verificação imediata: se tivermos um token de recuperação no hash bruto,
     // PRECISAMOS deixar o Supabase ler primeiro antes de navegar.
-    if (window.location.hash.includes('type=recovery') && !window.location.hash.includes('reset-password')) {
-       console.log('Aguardando Supabase processar token de recuperação...');
-       // Não faz nada, deixa o onAuthStateChange acima cuidar do redirecionamento
+    if (
+      window.location.hash.includes('type=recovery') &&
+      !window.location.hash.includes('reset-password')
+    ) {
+      console.log('Aguardando Supabase processar token de recuperação...');
+      // Não faz nada, deixa o onAuthStateChange acima cuidar do redirecionamento
     }
 
     return () => {
@@ -254,7 +289,9 @@ const App: React.FC = () => {
     // Limpar flag de logout manual
     localStorage.removeItem('manualLogout');
     notificationService.setCurrentUser(loggedInUser.id);
-    pushNotificationService.subscribeUser(loggedInUser.id, true).catch(console.error);
+    pushNotificationService
+      .subscribeUser(loggedInUser.id, true)
+      .catch(console.error);
   };
 
   const handleLogout = async () => {
@@ -277,99 +314,285 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Dashboard user={user} />} />
 
-            <Route path="/associates" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <AssociatesPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/associates"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <AssociatesPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/financial" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <FinancialPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/financial"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <FinancialPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
             <Route path="/ai-assistant" element={<Navigate to="/" replace />} />
 
-            <Route path="/settings" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <SettingsPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <SettingsPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/settings/codes" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <SettingsPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/settings/codes"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <SettingsPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/settings/landing-page" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <SettingsPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/settings/landing-page"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <SettingsPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/settings/notifications" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <SettingsPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/settings/notifications"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <SettingsPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/company" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <CompanyPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/company"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <CompanyPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/inventory" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <InventoryPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/inventory"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <InventoryPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/events" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <EventsManagerPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/events"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <EventsManagerPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/events/schedule" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <EventsManagerPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/events/schedule"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <EventsManagerPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/events/calendar" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <EventsManagerPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/events/calendar"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <EventsManagerPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/events/list" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <EventsManagerPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/events/list"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <EventsManagerPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Rota legada redirecionando para a nova */}
-            <Route path="/schedule" element={<Navigate to="/events/schedule" replace />} />
+            <Route
+              path="/schedule"
+              element={<Navigate to="/events/schedule" replace />}
+            />
 
-            <Route path="/audit" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.ASSOCIATE, UserRole.INSTRUCTOR, UserRole.CANDIDATE]}>
-                <AuditPage user={user} />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/audit"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.ASSOCIATE,
+                    UserRole.INSTRUCTOR,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <AuditPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/classroom" element={
-              <ProtectedRoute user={user} allowedRoles={[UserRole.ADMIN, UserRole.FINANCIAL, UserRole.SECRETARY, UserRole.INSTRUCTOR, UserRole.ASSOCIATE, UserRole.CANDIDATE]}>
-                <ClassroomPage user={user} />
-              </ProtectedRoute>
-            } />
-
-
+            <Route
+              path="/classroom"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={[
+                    UserRole.ADMIN,
+                    UserRole.FINANCIAL,
+                    UserRole.SECRETARY,
+                    UserRole.INSTRUCTOR,
+                    UserRole.ASSOCIATE,
+                    UserRole.CANDIDATE,
+                  ]}
+                >
+                  <ClassroomPage user={user} />
+                </ProtectedRoute>
+              }
+            />
 
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/profile" element={<ProfilePage user={user} onUpdate={handleUpdateUser} />} />
+            <Route
+              path="/profile"
+              element={<ProfilePage user={user} onUpdate={handleUpdateUser} />}
+            />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

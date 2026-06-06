@@ -1,6 +1,11 @@
 import React from 'react';
 import { Card } from '../ui';
-import { ArrowUpCircle, ArrowDownCircle, TrendingUp, AlertTriangle } from 'lucide-react';
+import {
+  ArrowUpCircle,
+  ArrowDownCircle,
+  TrendingUp,
+  AlertTriangle,
+} from 'lucide-react';
 
 interface FinanceStatsProps {
   totalBalance: number;
@@ -19,10 +24,13 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
   incomeTrend,
   expenseTrend,
   overdueCount,
-  loading
+  loading,
 }) => {
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(val);
   };
 
   const formatTrend = (trend: number) => {
@@ -38,8 +46,10 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
   };
 
   const getTrendIcon = (trend: number) => {
-    if (trend > 0) return <ArrowUpCircle className="text-emerald-600" size={16} />;
-    if (trend < 0) return <ArrowDownCircle className="text-rose-600" size={16} />;
+    if (trend > 0)
+      return <ArrowUpCircle className="text-emerald-600" size={16} />;
+    if (trend < 0)
+      return <ArrowDownCircle className="text-rose-600" size={16} />;
     return <TrendingUp className="text-slate-600" size={16} />;
   };
 
@@ -65,7 +75,9 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <span className="text-sm font-bold text-slate-700">Saldo Total</span>
           <TrendingUp size={16} className="text-slate-400" />
         </div>
-        <div className={`text-2xl font-black ${totalBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'} tracking-tight`}>
+        <div
+          className={`text-2xl font-black ${totalBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'} tracking-tight`}
+        >
           {formatCurrency(totalBalance)}
         </div>
       </Card>
@@ -90,7 +102,9 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <span className="text-sm font-bold text-slate-700">Despesas Mês</span>
           <div className="flex items-center gap-1">
             {getTrendIcon(expenseTrend)}
-            <span className={`text-xs font-bold ${getTrendColor(expenseTrend)}`}>
+            <span
+              className={`text-xs font-bold ${getTrendColor(expenseTrend)}`}
+            >
               {formatTrend(expenseTrend)}
             </span>
           </div>
@@ -102,7 +116,9 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
 
       <Card className="p-6 border-l-4 border-l-amber-500">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-bold text-slate-700">Inadimplência</span>
+          <span className="text-sm font-bold text-slate-700">
+            Inadimplência
+          </span>
           <AlertTriangle className="text-amber-600" size={16} />
         </div>
         <div className="text-2xl font-black text-amber-600 tracking-tight">
