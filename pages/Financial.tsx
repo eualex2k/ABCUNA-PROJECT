@@ -22,7 +22,7 @@ interface FinancialPageProps {
   user: User;
 }
 
-type ModalStep = 'MENU' | 'INCOME' | 'EXPENSE' | 'FEES';
+type ModalStep = 'MENU' | 'INCOME' | 'EXPENSE' | 'FEES' | 'DETAILS';
 
 const incomeCategories = [
   'Doação',
@@ -71,6 +71,9 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const [isRegistrationManagerOpen, setIsRegistrationManagerOpen] = useState(false);
   const [isOverduePreviewOpen, setIsOverduePreviewOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  const [comprovantesHistory, setComprovantesHistory] = useState<FinancialComprovante[]>([]);
+  const [isLoadingComprovantes, setIsLoadingComprovantes] = useState(false);
   const [feePaymentStep, setFeePaymentStep] = useState<'LIST' | 'PAYMENT' | 'EDIT'>('LIST');
   const [selectedFee, setSelectedFee] = useState<FeeRecord | null>(null);
   const [filterAssociateId, setFilterAssociateId] = useState('ALL');
@@ -226,11 +229,16 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   const processFeePayment = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedFee) return;
+    if (feeFile && feeFile.size > 5 * 1024 * 1024) {
+      showToast('O comprovante não pode ter mais que 5MB.', 'info');
+      return;
+    }
 
     setIsUploading(true);
     try {
       await financialService.update(selectedFee.id, {
         status: 'COMPLETED',
+        date: paymentForm.date,
         description: `${selectedFee.monthRef} - ${selectedFee.associateName} (Pago em ${paymentForm.date.split('-').reverse().join('/')})`,
         notes: paymentForm.observation.trim() ? `Pagamento via ${paymentForm.method}: ${paymentForm.observation.trim()}` : `Pagamento via ${paymentForm.method}`,
       });
@@ -344,6 +352,17 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       return;
     }
 
+    const remainingAmount = Math.max(0, registration.target_amount - registration.total_paid);
+    if (amount > remainingAmount) {
+      showToast(`O pagamento não pode ultrapassar o saldo de ${formatCurrency(remainingAmount)}.`, 'info');
+      return;
+    }
+
+    if (regPaymentFile && regPaymentFile.size > 5 * 1024 * 1024) {
+      showToast('O comprovante não pode ter mais que 5MB.', 'info');
+      return;
+    }
+
     setIsUploading(true);
     try {
       const matchedAssociate = associates.find(associate => associate.name.toLowerCase().trim() === registration.full_name.toLowerCase().trim());
@@ -419,6 +438,9 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     setFeeForm(previous => ({ ...previous, amount: '30.00', quantity: 1 }));
     setFeeFile(null);
     setRegPaymentFile(null);
+    setEditingTransactionId(null);
+    setComprovantesHistory([]);
+    setIsLoadingComprovantes(false);
     setIsUploading(false);
   };
 
@@ -539,11 +561,13 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         notes: incomeForm.notes.trim() || undefined,
       };
 
-      const created = await financialService.create(txData);
+      const saved = editingTransactionId
+        ? await financialService.update(editingTransactionId, txData)
+        : await financialService.create(txData);
 
       if (incomeFile) {
         const filePath = await financialService.uploadComprovante(incomeFile);
-        await financialService.attachComprovante(created.id, filePath);
+        await financialService.attachComprovante(saved.id, filePath);
       }
 
       await refreshData();
@@ -610,11 +634,13 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
         notes: expenseForm.notes.trim() || undefined,
       };
 
-      const created = await financialService.create(txData);
+      const saved = editingTransactionId
+        ? await financialService.update(editingTransactionId, txData)
+        : await financialService.create(txData);
 
       if (expenseFile) {
         const filePath = await financialService.uploadComprovante(expenseFile);
-        await financialService.attachComprovante(created.id, filePath);
+        await financialService.attachComprovante(saved.id, filePath);
       }
 
       await refreshData();
@@ -724,9 +750,165 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
-  // Funções simplificadas (manter apenas as essenciais para o componente principal)
+  const canModifyTransaction = (transaction: Transaction) => {
+    if (user.role === UserRole.ADMIN) return true;
+    const createdTime = new Date(transaction.createdAt || transaction.date).getTime();
+    if (Number.isNaN(createdTime)) return false;
+    return (Date.now() - createdTime) / (1000 * 60 * 60) <= 24;
+  };
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    if (!canModifyTransaction(transaction)) {
+      showToast('Esta movimentação só pode ser alterada pelo administrador após 24 horas.', 'info');
+      return;
+    }
+
+    const incomeIsCustom = transaction.type === 'INCOME' && !incomeCategories.includes(transaction.category);
+    const expenseIsCustom = transaction.type === 'EXPENSE' && !expenseCategories.includes(transaction.category);
+    setEditingTransactionId(transaction.id);
+    setModalStep(transaction.type === 'INCOME' ? 'INCOME' : 'EXPENSE');
+
+    if (transaction.type === 'INCOME') {
+      setIncomeForm({
+        title: transaction.description,
+        amount: transaction.amount.toString(),
+        date: transaction.date,
+        category: incomeIsCustom ? '' : transaction.category,
+        customCategory: incomeIsCustom ? transaction.category : '',
+        payerId: transaction.payer_id || '',
+        customPayer: transaction.custom_payer || '',
+        notes: transaction.notes || '',
+        isCustomCategory: incomeIsCustom,
+        isCustomPayer: !!transaction.custom_payer,
+      });
+    } else {
+      setExpenseForm({
+        title: transaction.description,
+        amount: transaction.amount.toString(),
+        date: transaction.date,
+        category: expenseIsCustom ? '' : transaction.category,
+        customCategory: expenseIsCustom ? transaction.category : '',
+        recipientId: transaction.recipient_id || '',
+        customRecipient: transaction.custom_recipient || '',
+        notes: transaction.notes || '',
+        isCustomCategory: expenseIsCustom,
+        isCustomRecipient: !!transaction.custom_recipient,
+      });
+    }
+
+    setIsModalOpen(true);
+  };
+
+  const loadComprovantes = async (transactionId: string) => {
+    setIsLoadingComprovantes(true);
+    try {
+      setComprovantesHistory(await financialService.getComprovantes(transactionId));
+    } catch (error) {
+      console.error('Erro ao carregar comprovantes:', error);
+      showToast('Não foi possível carregar os comprovantes.', 'error');
+    } finally {
+      setIsLoadingComprovantes(false);
+    }
+  };
+
+  const handleViewComprovantes = async (transaction: Transaction) => {
+    setEditingTransactionId(transaction.id);
+    setModalStep('DETAILS');
+    setIsModalOpen(true);
+    await loadComprovantes(transaction.id);
+  };
+
+  const handleOpenComprovante = async (comprovante: FinancialComprovante) => {
+    try {
+      const url = await financialService.getSignedUrl(comprovante.file_path);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Erro ao abrir comprovante:', error);
+      showToast('Não foi possível abrir o comprovante.', 'error');
+    }
+  };
+
+  const handleDeleteComprovante = async (comprovante: FinancialComprovante) => {
+    if (!confirm('Tem certeza que deseja excluir este comprovante?')) return;
+    try {
+      await financialService.deleteComprovante(comprovante);
+      if (editingTransactionId) await loadComprovantes(editingTransactionId);
+      await refreshData();
+      showToast('Comprovante excluído com sucesso!', 'success');
+    } catch (error) {
+      console.error('Erro ao excluir comprovante:', error);
+      showToast('Erro ao excluir comprovante.', 'error');
+    }
+  };
+
+  const handleDeleteTransaction = async (transaction?: Transaction) => {
+    const target = transaction || transactions.find(item => item.id === editingTransactionId);
+    if (!target) return;
+    if (!canModifyTransaction(target)) {
+      showToast('Esta movimentação só pode ser excluída pelo administrador após 24 horas.', 'info');
+      return;
+    }
+    if (!confirm(`Tem certeza que deseja excluir "${target.description}"?`)) return;
+
+    try {
+      await financialService.delete(target.id);
+      await refreshData();
+      setIsModalOpen(false);
+      resetForms();
+      showToast('Movimentação excluída com sucesso!', 'success');
+    } catch (error) {
+      console.error('Erro ao excluir movimentação:', error);
+      showToast('Erro ao excluir movimentação.', 'error');
+    }
+  };
+
   const handleExportPDF = () => {
-    alert('Função de exportação PDF será implementada');
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload = () => {
+      const autoTableScript = document.createElement('script');
+      autoTableScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js';
+      autoTableScript.onload = () => {
+        const { jsPDF } = (window as any).jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.text('Relatório Financeiro - ABCUNA', 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+        doc.text(`Saldo Total: ${formatCurrency(totalBalance)}`, 14, 40);
+        doc.text(`Entradas: ${formatCurrency(totalIncome)} | Saídas: ${formatCurrency(totalExpense)}`, 14, 46);
+
+        const rows = completedTransactions.map(transaction => {
+          const person = transaction.type === 'INCOME'
+            ? (transaction.payer_id ? associates.find(associate => associate.id === transaction.payer_id)?.name : transaction.custom_payer) || 'DIVERSOS'
+            : (transaction.recipient_id ? associates.find(associate => associate.id === transaction.recipient_id)?.name : transaction.custom_recipient) || 'DIVERSOS';
+          const [year, month, day] = transaction.date.split('-');
+          return [
+            `${day}/${month}/${year}`,
+            transaction.description,
+            person.toUpperCase(),
+            transaction.category,
+            transaction.type === 'INCOME' ? 'Entrada' : 'Saída',
+            formatCurrency(transaction.amount),
+          ];
+        });
+
+        (doc as any).autoTable({
+          startY: 55,
+          head: [['Data', 'Descrição', 'Pagador/Beneficiário', 'Categoria', 'Tipo', 'Valor']],
+          body: rows,
+          headStyles: { fillColor: [15, 23, 42], fontSize: 8 },
+          bodyStyles: { fontSize: 8 },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+        });
+        doc.save(`financeiro-abcuna-${new Date().toISOString().split('T')[0]}.pdf`);
+        showToast('PDF gerado com sucesso!', 'success');
+      };
+      document.body.appendChild(autoTableScript);
+    };
+    document.body.appendChild(script);
+    showToast('Iniciando geração do PDF...', 'info');
   };
 
   const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
@@ -742,7 +924,28 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   };
 
   const confirmNotifyOverdue = async () => {
-    alert('Função de notificação será implementada');
+    const targetUserIds = Array.from(new Set(overdueFees.map(fee => fee.associateId))).filter(Boolean);
+    try {
+      if (targetUserIds.length > 0) {
+        await notificationService.add({
+          title: 'Mensalidade em Atraso',
+          message: 'Identificamos mensalidades pendentes no sistema. Por favor, regularize assim que possível.',
+          type: 'FINANCIAL',
+          targetUserIds,
+        });
+      }
+
+      await notificationService.add({
+        title: 'Cobrança de Atrasados',
+        message: `${targetUserIds.length} associados foram notificados sobre mensalidades pendentes.`,
+        type: 'FINANCIAL',
+      });
+      setIsOverduePreviewOpen(false);
+      showToast(`Lembretes enviados para ${targetUserIds.length} associados.`, 'success');
+    } catch (error) {
+      console.error('Erro ao enviar notificações:', error);
+      showToast('Erro ao enviar notificações.', 'error');
+    }
   };
 
   // Auto-hide toast
@@ -772,7 +975,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             </Button>
           )}
           {canEdit && (
-            <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
+            <Button onClick={handleOpenModal} className="flex items-center gap-2">
               <Plus size={18} /> Novo Lançamento
             </Button>
           )}
@@ -867,20 +1070,9 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
 
       <TransactionTable
         transactions={completedTransactions}
-        onEdit={(tx) => {
-          // Implementar lógica de edição futuramente
-          alert(`Editar transação: ${tx.description}`);
-        }}
-        onDelete={(tx) => {
-          // Implementar lógica de exclusão futuramente
-          if (tx && confirm(`Tem certeza que deseja excluir "${tx.description}"?`)) {
-            alert(`Excluir transação: ${tx.description}`);
-          }
-        }}
-        onViewComprovantes={(tx) => {
-          // Implementar lógica de visualização futuramente
-          alert(`Ver comprovantes de: ${tx.description}`);
-        }}
+        onEdit={handleEditTransaction}
+        onDelete={handleDeleteTransaction}
+        onViewComprovantes={handleViewComprovantes}
         onExport={canExport ? handleExportPDF : undefined}
         loading={loading}
         canEdit={canEdit}
@@ -893,10 +1085,55 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
           setIsModalOpen(false);
           resetForms();
         }}
-        title={modalStep === 'MENU' ? 'Nova Movimentação' : modalStep === 'INCOME' ? 'Nova Entrada' : modalStep === 'EXPENSE' ? 'Nova Saída' : 'Gerar Mensalidades'}
+        title={modalStep === 'DETAILS' ? 'Detalhes da Movimentação' : modalStep === 'MENU' ? 'Nova Movimentação' : modalStep === 'INCOME' ? (editingTransactionId ? 'Editar Entrada' : 'Nova Entrada') : modalStep === 'EXPENSE' ? (editingTransactionId ? 'Editar Saída' : 'Nova Saída') : 'Gerar Mensalidades'}
         maxWidth="5xl"
       >
-        {modalStep === 'MENU' ? (
+        {modalStep === 'DETAILS' ? (
+          <div className="space-y-5">
+            {(() => {
+              const transaction = transactions.find(item => item.id === editingTransactionId);
+              if (!transaction) return <p className="text-sm text-slate-500">Movimentação não encontrada.</p>;
+              return (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 rounded-xl p-4">
+                    <div><span className="text-xs text-slate-400">Descrição</span><p className="font-bold text-slate-900">{transaction.description}</p></div>
+                    <div><span className="text-xs text-slate-400">Valor</span><p className={`font-bold ${transaction.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(transaction.amount)}</p></div>
+                    <div><span className="text-xs text-slate-400">Data</span><p className="font-medium text-slate-900">{new Date(`${transaction.date}T12:00:00`).toLocaleDateString('pt-BR')}</p></div>
+                    <div><span className="text-xs text-slate-400">Categoria</span><p className="font-medium text-slate-900">{transaction.category}</p></div>
+                    {transaction.notes && <div className="md:col-span-2"><span className="text-xs text-slate-400">Observações</span><p className="text-sm text-slate-700">{transaction.notes}</p></div>}
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-slate-900 mb-3">Comprovantes</h4>
+                    {isLoadingComprovantes ? (
+                      <p className="text-sm text-slate-500">Carregando comprovantes...</p>
+                    ) : comprovantesHistory.length === 0 ? (
+                      <p className="text-sm text-slate-500 bg-slate-50 rounded-lg p-4">Nenhum comprovante anexado.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {comprovantesHistory.map(comprovante => (
+                          <div key={comprovante.id} className="flex items-center justify-between gap-3 border border-slate-100 rounded-lg p-3">
+                            <div className="min-w-0"><p className="text-sm font-medium text-slate-800 truncate">{comprovante.file_path}</p><p className="text-xs text-slate-400">{comprovante.user_name || 'Usuário'} · {new Date(comprovante.created_at).toLocaleDateString('pt-BR')}</p></div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Button type="button" variant="outline" size="sm" onClick={() => handleOpenComprovante(comprovante)}><FileText size={14} className="mr-1" /> Abrir</Button>
+                              {canEdit && <Button type="button" variant="ghost" size="sm" onClick={() => handleDeleteComprovante(comprovante)} className="text-red-600"><Trash2 size={14} /></Button>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-slate-100">
+                    {canModifyTransaction(transaction) && <Button type="button" variant="outline" onClick={() => handleEditTransaction(transaction)} className="flex-1"><Edit3 size={16} className="mr-2" /> Editar dados</Button>}
+                    {canModifyTransaction(transaction) && <Button type="button" variant="outline" onClick={() => handleDeleteTransaction(transaction)} className="flex-1 text-red-600 hover:text-red-700"><Trash2 size={16} className="mr-2" /> Excluir</Button>}
+                    <Button type="button" onClick={() => { setIsModalOpen(false); resetForms(); }} className="flex-1">Fechar</Button>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        ) : modalStep === 'MENU' ? (
           <div className="space-y-4">
             <button
               type="button"
