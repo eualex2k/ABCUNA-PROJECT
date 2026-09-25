@@ -38,7 +38,6 @@ export const useFeesData = (options: UseFeesDataOptions): UseFeesDataReturn => {
         (tx) =>
           tx.category === 'Mensalidade' ||
           tx.category === 'Mensalidades' ||
-          tx.category === 'Taxa de Inscrição' ||
           (tx.category === 'Geral' &&
             tx.description.toLowerCase().includes('mensalidade'))
       )
@@ -48,17 +47,15 @@ export const useFeesData = (options: UseFeesDataOptions): UseFeesDataReturn => {
         const isOverdue = tx.status === 'PENDING' && dObj < new Date();
 
         let monthRef = 'N/A';
-        if (tx.category === 'Taxa de Inscrição') {
-          monthRef = 'Inscrição';
-        } else {
-          try {
-            const d = new Date(tx.date + 'T12:00:00');
-            const m = d.toLocaleDateString('pt-BR', {
-              month: 'long',
-              year: 'numeric',
-            });
-            monthRef = m.charAt(0).toUpperCase() + m.slice(1);
-          } catch (e) {}
+        try {
+          const d = new Date(tx.date + 'T12:00:00');
+          const m = d.toLocaleDateString('pt-BR', {
+            month: 'long',
+            year: 'numeric',
+          });
+          monthRef = m.charAt(0).toUpperCase() + m.slice(1);
+        } catch (e) {
+          monthRef = 'N/A';
         }
 
         return {
