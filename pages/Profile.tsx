@@ -17,6 +17,7 @@ import { notificationService } from '../services/notifications';
 import { profileService } from '../services/profile';
 import { pushNotificationService } from '../services/pushNotifications';
 import { supabase } from '../lib/supabase';
+import { ImageCropEditor } from '../components/ImageCropEditor';
 
 interface ProfilePageProps {
   user: User;
@@ -26,6 +27,8 @@ interface ProfilePageProps {
 export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
   const [formData, setFormData] = useState<User>(user);
   const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
+  const [selectedCropFile, setSelectedCropFile] = useState<File | null>(null);
+  const [isCropEditorOpen, setIsCropEditorOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,15 +40,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Mostrar preview imediato
-      const previewUrl = URL.createObjectURL(file);
-      setFormData({ ...formData, avatar: previewUrl });
-      // Guardar arquivo para upload no submit
-      setNewAvatarFile(file);
+    if (file && file.type.startsWith('image/')) {
+      setSelectedCropFile(file);
+      setIsCropEditorOpen(true);
     }
+    e.target.value = '';
+  };
+
+  const handleConfirmCroppedAvatar = (croppedFile: File) => {
+    const previewUrl = URL.createObjectURL(croppedFile);
+    setFormData({ ...formData, avatar: previewUrl });
+    setNewAvatarFile(croppedFile);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -482,6 +489,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
           </div>
         </Card>
       </div>
+
+      <ImageCropEditor
+        isOpen={isCropEditorOpen}
+        onClose={() => setIsCropEditorOpen(false)}
+        file={selectedCropFile}
+        onConfirm={handleConfirmCroppedAvatar}
+        title="Ajustar Foto do Perfil"
+        aspectRatio={1}
+        cropShape="round"
+      />
     </div>
   );
 };

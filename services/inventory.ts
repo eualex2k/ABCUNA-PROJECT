@@ -63,6 +63,30 @@ export const inventoryService = {
       throw error;
     }
   },
+
+  async uploadImage(file: File): Promise<string> {
+    const { compressImage } = await import('../utils/imageCompression');
+    const compressedFile = await compressImage(file, 1200, 0.85);
+
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const fileName = `inventory_${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+    const filePath = `inventory/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('public-assets')
+      .upload(filePath, compressedFile);
+
+    if (uploadError) {
+      console.error('Error uploading inventory image:', uploadError);
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('public-assets')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  },
 };
 
 function mapToFrontend(row: any): InventoryItem {
@@ -80,6 +104,7 @@ function mapToFrontend(row: any): InventoryItem {
     description: row.description,
     expirationDate: row.expiration_date,
     itemType: row.item_type as any, // DB uses 'item_type'
+    image: row.image || row.image_url || undefined,
   };
 }
 
@@ -99,5 +124,6 @@ function mapToDb(item: Partial<InventoryItem>): any {
   if (item.expirationDate !== undefined)
     dbRow.expiration_date = item.expirationDate;
   if (item.itemType !== undefined) dbRow.item_type = item.itemType;
+  if (item.image !== undefined) dbRow.image = item.image;
   return dbRow;
 }
