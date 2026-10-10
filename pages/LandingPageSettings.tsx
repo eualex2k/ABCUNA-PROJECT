@@ -16,6 +16,7 @@ import { Card, Button, Input, Textarea } from '../components/ui';
 import { landingPageService } from '../services/landingPage';
 import { LandingPageConfig, User, UserRole } from '../types';
 import { notificationService } from '../services/notifications';
+import { ImageCropEditor } from '../components/ImageCropEditor';
 
 // --- Componentes Auxiliares (DEFINIDOS FORA DO COMPONENTE PRINCIPAL PARA EVITAR TREMOR) ---
 
@@ -213,7 +214,11 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Estados para o Editor de Imagens
+  const [selectedCropFile, setSelectedCropFile] = useState<File | null>(null);
+  const [cropEditorMode, setCropEditorMode] = useState<'HERO' | 'GALLERY' | null>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -222,67 +227,57 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({
       return;
     }
 
-    try {
-      setUploading(true);
-      const url = await landingPageService.uploadImage(file);
-      setConfig({ ...config, hero_image_url: url });
-
-      notificationService.add({
-        title: 'Imagem Enviada',
-        message: 'Imagem carregada com sucesso.',
-        type: 'SYSTEM',
-      });
-    } catch (error) {
-      console.error('Failed to upload image:', error);
-      notificationService.add({
-        title: 'Erro no Upload',
-        message: 'Falha ao enviar imagem.',
-        type: 'SYSTEM',
-      });
-    } finally {
-      setUploading(false);
-    }
+    setSelectedCropFile(file);
+    setCropEditorMode('HERO');
+    e.target.value = '';
   };
 
-  const handleGalleryUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const file = files[0];
+    if (file && file.type.startsWith('image/')) {
+      setSelectedCropFile(file);
+      setCropEditorMode('GALLERY');
+    }
+    e.target.value = '';
+  };
+
+  const handleConfirmCroppedImage = async (croppedFile: File) => {
     try {
       setUploading(true);
-      const newImages: string[] = [];
+      const url = await landingPageService.uploadImage(croppedFile);
 
-      // Upload each file
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (file.type.startsWith('image/')) {
-          const url = await landingPageService.uploadImage(file);
-          newImages.push(url);
-        }
+      if (cropEditorMode === 'HERO') {
+        setConfig((prev) => ({ ...prev, hero_image_url: url }));
+        notificationService.add({
+          title: 'Imagem Enviada',
+          message: 'Imagem de fundo carregada com sucesso.',
+          type: 'SYSTEM',
+        });
+      } else if (cropEditorMode === 'GALLERY') {
+        setConfig((prev) => ({
+          ...prev,
+          gallery_images: [...(prev.gallery_images || []), url],
+        }));
+        notificationService.add({
+          title: 'Galeria Atualizada',
+          message: 'Imagem adicionada à galeria com sucesso.',
+          type: 'SYSTEM',
+        });
       }
-
-      const currentImages = config.gallery_images || [];
-      setConfig({
-        ...config,
-        gallery_images: [...currentImages, ...newImages],
-      });
-
-      notificationService.add({
-        title: 'Galeria Atualizada',
-        message: `${newImages.length} imagem(ns) adicionada(s) com sucesso.`,
-        type: 'SYSTEM',
-      });
     } catch (error) {
-      console.error('Failed to upload gallery images:', error);
+      console.error('Failed to upload cropped image:', error);
       notificationService.add({
         title: 'Erro no Upload',
-        message: 'Falha ao enviar algumas imagens.',
+        message: 'Falha ao enviar imagem editada.',
         type: 'SYSTEM',
       });
     } finally {
       setUploading(false);
+      setCropEditorMode(null);
+      setSelectedCropFile(null);
     }
   };
 
@@ -746,6 +741,19 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({
           </p>
         </div>
       </SectionCard>
+
+      <ImageCropEditor
+        isOpen={!!cropEditorMode}
+        onClose={() => {
+          setCropEditorMode(null);
+          setSelectedCropFile(null);
+        }}
+        file={selectedCropFile}
+        onConfirm={handleConfirmCroppedImage}
+        title={cropEditorMode === 'HERO' ? 'Ajustar Imagem de Fundo (Hero)' : 'Ajustar Foto da Galeria'}
+        aspectRatio={cropEditorMode === 'HERO' ? 16 / 9 : 16 / 9}
+        cropShape="rect"
+      />
     </div>
   );
 };

@@ -290,6 +290,7 @@ export interface InventoryItem {
   expirationDate?: string;
   entryDate?: string;
   itemType?: 'REUSABLE' | 'DISPOSABLE';
+  image?: string;
 }
 
 export interface Event {

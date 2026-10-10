@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Button, Badge } from '../ui';
 import { Transaction } from '../../types';
-import { Download, Edit3, Trash2, FileText } from 'lucide-react';
+import { Download, Trash2, FileText } from 'lucide-react';
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -115,7 +115,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
               <th className="pb-3">Tipo</th>
               <th className="pb-3 text-right">Valor</th>
               <th className="pb-3">Status</th>
-              {canEdit && <th className="pb-3 w-24">Ações</th>}
+              {canEdit && <th className="pb-3 text-center min-w-[120px] w-32">Ações</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -174,33 +174,22 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                 <td className="py-4">{getStatusBadge(transaction.status)}</td>
                 {canEdit && (
                   <td className="py-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <Button
                         variant="ghost"
-                        size="sm"
                         onClick={() => onViewComprovantes(transaction)}
-                        className="p-1.5 h-8 w-8 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-                        title="Ver comprovantes"
+                        className="!h-[44px] !w-[44px] !p-0 shrink-0 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition-colors"
+                        title="Ver detalhes"
                       >
-                        <FileText size={14} />
+                        <FileText size={20} />
                       </Button>
                       <Button
                         variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(transaction)}
-                        className="p-1.5 h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        title="Editar"
-                      >
-                        <Edit3 size={14} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
                         onClick={() => onDelete(transaction)}
-                        className="p-1.5 h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="!h-[44px] !w-[44px] !p-0 shrink-0 rounded-xl text-rose-600 hover:text-rose-700 hover:bg-rose-50 flex items-center justify-center transition-colors"
                         title="Excluir"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={20} />
                       </Button>
                     </div>
                   </td>
