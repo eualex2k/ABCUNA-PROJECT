@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PieChart, Download, Users, ChevronLeft, Calendar, Wallet, BellRing, CheckCircle2, AlertTriangle, X, CreditCard, Filter, Send, Edit3, Plus, RotateCcw, ArrowUpRight, Shield, Trash2, Clock, FileText, ChevronRight, Info, TrendingUp, DollarSign } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input, Avatar, Textarea, StatCard } from '../components/ui';
+import { useToast } from '../components/ToastContext';
 import { Transaction, Associate, User, UserRole, FinancialComprovante } from '../types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { notificationService } from '../services/notifications';
@@ -108,9 +109,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   });
   const [editingRegistrationId, setEditingRegistrationId] = useState<string | null>(null);
   const [regPaymentFile, setRegPaymentFile] = useState<File | null>(null);
-  const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'info' | 'error' }>({
-    visible: false, message: '', type: 'info'
-  });
+  const { showToast } = useToast();
   const [incomeForm, setIncomeForm] = useState({
     title: '',
     amount: '',
@@ -230,7 +229,7 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     event.preventDefault();
     if (!selectedFee) return;
     if (feeFile && feeFile.size > 5 * 1024 * 1024) {
-      showToast('O comprovante não pode ter mais que 5MB.', 'info');
+      showToast('O comprovante não pode ter mais que 5MB.', 'error');
       return;
     }
 
@@ -911,9 +910,6 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     showToast('Iniciando geração do PDF...', 'info');
   };
 
-  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
-    setToast({ visible: true, message, type });
-  };
 
   const handleNotifyOverdueClick = () => {
     if (overdueCount === 0) {
@@ -947,14 +943,6 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       showToast('Erro ao enviar notificações.', 'error');
     }
   };
-
-  // Auto-hide toast
-  React.useEffect(() => {
-    if (toast.visible) {
-      const timer = setTimeout(() => setToast({ ...toast, visible: false }), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast.visible]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -1512,7 +1500,21 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             <Textarea label="Observação (opcional)" rows={3} value={paymentForm.observation} onChange={(event) => setPaymentForm({ ...paymentForm, observation: event.target.value })} />
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1.5">Comprovante (opcional)</label>
-              <input type="file" accept="image/*,.pdf" onChange={(event) => setFeeFile(event.target.files?.[0] || null)} className="block w-full text-sm text-slate-600" />
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] || null;
+                  if (file && file.size > 5 * 1024 * 1024) {
+                    showToast('O comprovante não pode ter mais que 5MB.', 'error');
+                    event.target.value = '';
+                    setFeeFile(null);
+                    return;
+                  }
+                  setFeeFile(file);
+                }}
+                className="block w-full text-sm text-slate-600"
+              />
             </div>
             <Button type="submit" className="w-full" disabled={isUploading}>{isUploading ? 'Processando...' : 'Confirmar recebimento'}</Button>
           </form>
@@ -1616,19 +1618,6 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
           </div>
         </div>
       </Modal>
-
-      {toast.visible && (
-        <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom-5">
-          <div className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white'
-            }`}>
-            {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-            <span className="text-sm font-medium">{toast.message}</span>
-            <button onClick={() => setToast({ ...toast, visible: false })} className="hover:opacity-75">
-              <X size={16} />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

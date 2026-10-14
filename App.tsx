@@ -31,6 +31,7 @@ import { notificationService } from './services/notifications';
 import { pushNotificationService } from './services/pushNotifications';
 import { InactivityModal } from './components/InactivityModal';
 import { useUserActivity } from './hooks/useUserActivity';
+import { ToastProvider } from './components/ToastContext';
 
 // Importar utilitários de teste apenas em desenvolvimento
 if (import.meta.env.DEV) {
@@ -308,7 +309,8 @@ const App: React.FC = () => {
   };
 
   return (
-    <HashRouter>
+    <ToastProvider>
+      <HashRouter>
       {user ? (
         <Layout user={user} onLogout={handleLogout}>
           <Routes>
@@ -614,6 +616,7 @@ const App: React.FC = () => {
         </Routes>
       )}
     </HashRouter>
+    </ToastProvider>
   );
 };
 

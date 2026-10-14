@@ -754,3 +754,6 @@ export const Modal: React.FC<ModalProps> = ({
     document.body
   );
 };
+
+export { ToastProvider, useToast, toast } from './ToastContext';
+export type { ToastType, ToastItem } from './ToastContext';

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { User, UserRole, translateRole } from '../types';
 import { Card, Button, Input, Avatar, Badge } from '../components/ui';
 import {
@@ -18,6 +18,7 @@ import { profileService } from '../services/profile';
 import { pushNotificationService } from '../services/pushNotifications';
 import { supabase } from '../lib/supabase';
 import { ImageCropEditor } from '../components/ImageCropEditor';
+import { useToast } from '../components/ToastContext';
 
 interface ProfilePageProps {
   user: User;
@@ -25,12 +26,61 @@ interface ProfilePageProps {
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
+  const toast = useToast();
   const [formData, setFormData] = useState<User>(user);
   const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
   const [selectedCropFile, setSelectedCropFile] = useState<File | null>(null);
   const [isCropEditorOpen, setIsCropEditorOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const canEditAdminData = [UserRole.ADMIN, UserRole.SECRETARY].includes(user.role);
+
+  // Sincroniza formulário caso user prop seja atualizado
+  useEffect(() => {
+    setFormData(user);
+  }, [user]);
+
+  // Carrega dados mais recentes diretamente do banco ao montar
+  useEffect(() => {
+    let isMounted = true;
+    const loadFreshProfile = async () => {
+      if (!user?.id) return;
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (!error && profile && isMounted) {
+          const freshUser: User = {
+            id: profile.id,
+            name: profile.full_name || profile.email || 'Usuário',
+            email: profile.email || '',
+            role: profile.role || user.role,
+            avatar: profile.avatar_url,
+            phone: profile.phone,
+            cpf: profile.cpf,
+            bio: profile.bio,
+            birthDate: profile.birth_date,
+            susNumber: profile.sus_number,
+            registrationNumber: profile.registration_number,
+            bloodType: profile.blood_type,
+            address: profile.address,
+          };
+          setFormData(freshUser);
+          onUpdate(freshUser);
+        }
+      } catch (err) {
+        console.error('Error loading fresh profile in ProfilePage:', err);
+      }
+    };
+    loadFreshProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, [user.id]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -91,10 +141,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
         type: 'SYSTEM',
         link: '/profile',
       });
-      alert('Perfil atualizado com sucesso!');
+      toast.success('Perfil atualizado com sucesso!');
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      alert(
+      toast.error(
         'Erro ao atualizar perfil: ' + (error.message || 'Erro desconhecido')
       );
     } finally {
@@ -266,6 +316,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdate }) => {
                 name="registrationNumber"
                 value={formData.registrationNumber || ''}
                 onChange={handleInputChange}
+                disabled={!canEditAdminData}
+                className={!canEditAdminData ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}
                 placeholder="Ex: 2024.001"
               />
               <div>
