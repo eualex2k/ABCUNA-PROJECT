@@ -163,13 +163,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
 
           const appUser: User = {
             id: profile.id,
-            name: profile.full_name || profile.email,
-            email: profile.email,
-            role: profile.role,
+            name: profile.full_name || profile.email || 'Usuário',
+            email: profile.email || data.user.email || '',
+            role: profile.role || 'ASSOCIATE',
             avatar: profile.avatar_url,
             phone: profile.phone,
             cpf: profile.cpf,
             bio: profile.bio,
+            birthDate: profile.birth_date,
+            susNumber: profile.sus_number,
+            registrationNumber: profile.registration_number,
+            bloodType: profile.blood_type,
+            address: profile.address,
           };
 
           onLogin(appUser);
