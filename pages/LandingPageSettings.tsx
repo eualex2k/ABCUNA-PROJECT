@@ -214,9 +214,9 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({
     }
   };
 
-  // Estados para o Editor de Imagens
+  // Estados para o Editor de Imagens (Hero)
   const [selectedCropFile, setSelectedCropFile] = useState<File | null>(null);
-  const [cropEditorMode, setCropEditorMode] = useState<'HERO' | 'GALLERY' | null>(null);
+  const [cropEditorMode, setCropEditorMode] = useState<'HERO' | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -232,16 +232,59 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({
     e.target.value = '';
   };
 
-  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const file = files[0];
-    if (file && file.type.startsWith('image/')) {
-      setSelectedCropFile(file);
-      setCropEditorMode('GALLERY');
-    }
+    const fileList = Array.from(files);
     e.target.value = '';
+
+    // Validar apenas formatos JPG e PNG
+    const validImageTypes = ['image/jpeg', 'image/png'];
+    const validFiles = fileList.filter((f) => validImageTypes.includes(f.type));
+
+    if (validFiles.length === 0) {
+      notificationService.add({
+        title: 'Formato Inválido',
+        message: 'Por favor, selecione apenas imagens nos formatos JPG ou PNG.',
+        type: 'SYSTEM',
+      });
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const uploadedUrls: string[] = [];
+
+      for (const file of validFiles) {
+        // Enviar imagem diretamente sem editor, recorte automático ou compressão
+        const url = await landingPageService.uploadGalleryImage(file);
+        uploadedUrls.push(url);
+      }
+
+      setConfig((prev) => ({
+        ...prev,
+        gallery_images: [...(prev.gallery_images || []), ...uploadedUrls],
+      }));
+
+      notificationService.add({
+        title: 'Galeria Atualizada',
+        message:
+          uploadedUrls.length === 1
+            ? 'Imagem adicionada à galeria com sucesso.'
+            : `${uploadedUrls.length} imagens adicionadas à galeria com sucesso.`,
+        type: 'SYSTEM',
+      });
+    } catch (error) {
+      console.error('Failed to upload gallery images:', error);
+      notificationService.add({
+        title: 'Erro no Upload',
+        message: 'Falha ao enviar imagem(ns) da galeria.',
+        type: 'SYSTEM',
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleConfirmCroppedImage = async (croppedFile: File) => {
@@ -254,16 +297,6 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({
         notificationService.add({
           title: 'Imagem Enviada',
           message: 'Imagem de fundo carregada com sucesso.',
-          type: 'SYSTEM',
-        });
-      } else if (cropEditorMode === 'GALLERY') {
-        setConfig((prev) => ({
-          ...prev,
-          gallery_images: [...(prev.gallery_images || []), url],
-        }));
-        notificationService.add({
-          title: 'Galeria Atualizada',
-          message: 'Imagem adicionada à galeria com sucesso.',
           type: 'SYSTEM',
         });
       }
@@ -696,7 +729,7 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({
             {config.gallery_images?.map((img, idx) => (
               <div
                 key={idx}
-                className="relative group aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200"
+                className="relative group aspect-[12/5] bg-slate-100 rounded-lg overflow-hidden border border-slate-200"
               >
                 <img
                   src={img}
@@ -718,14 +751,14 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({
             ))}
 
             {isAdmin && (
-              <label className="cursor-pointer border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center p-4 hover:border-red-400 hover:bg-red-50 transition-colors aspect-video">
+              <label className="cursor-pointer border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center p-4 hover:border-red-400 hover:bg-red-50 transition-colors aspect-[12/5]">
                 <Upload size={24} className="text-slate-400 mb-2" />
                 <span className="text-xs font-medium text-slate-600 text-center">
                   {uploading ? 'Enviando...' : 'Adicionar Fotos'}
                 </span>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png"
                   multiple
                   onChange={handleGalleryUpload}
                   className="hidden"
@@ -750,8 +783,8 @@ export const LandingPageSettings: React.FC<LandingPageSettingsProps> = ({
         }}
         file={selectedCropFile}
         onConfirm={handleConfirmCroppedImage}
-        title={cropEditorMode === 'HERO' ? 'Ajustar Imagem de Fundo (Hero)' : 'Ajustar Foto da Galeria'}
-        aspectRatio={cropEditorMode === 'HERO' ? 16 / 9 : 16 / 9}
+        title="Ajustar Imagem de Fundo (Hero)"
+        aspectRatio={16 / 9}
         cropShape="rect"
       />
     </div>

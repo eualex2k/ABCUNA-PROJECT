@@ -62,4 +62,22 @@ export const landingPageService = {
 
     return data.publicUrl;
   },
+
+  async uploadGalleryImage(file: File): Promise<string> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `landing-page/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('public-assets')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('public-assets')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  },
 };
