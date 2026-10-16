@@ -350,6 +350,7 @@ function mapToFrontend(row: any): Transaction {
     custom_recipient: row.custom_recipient,
     notes: row.notes,
     registration_id: row.registration_id,
+    shift_id: row.shift_id,
     has_comprovantes:
       row.financial_comprovantes && row.financial_comprovantes.length > 0,
     createdAt: row.created_at,
@@ -372,5 +373,7 @@ function mapToDb(tx: Partial<Transaction>): any {
   if (tx.notes !== undefined) dbRow.notes = tx.notes;
   if (tx.registration_id !== undefined)
     dbRow.registration_id = tx.registration_id;
+  if (tx.shift_id !== undefined)
+    dbRow.shift_id = tx.shift_id;
   return dbRow;
 }

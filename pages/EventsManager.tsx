@@ -28,11 +28,9 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
       setActiveTab('schedule');
     } else if (path.endsWith('/calendar')) {
       setActiveTab('calendar');
-    } else if (path === '/events' || path.endsWith('/list')) {
-      setActiveTab('events');
     } else {
-      // Default to calendar as requested for the new dashboard
-      setActiveTab('calendar');
+      // Default to Lista de Eventos as requested
+      setActiveTab('events');
     }
   }, [location]);
 
@@ -63,8 +61,19 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
 
         {/* Main Action Bar */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
-          {/* Tabs Navigation */}
+          {/* Tabs Navigation: 1. Lista de Eventos, 2. Calendário de Eventos, 3. Plantão Operacional */}
           <div className="flex gap-1 p-1 bg-white rounded-2xl border border-slate-200 shadow-sm w-fit">
+            <button
+              onClick={() => handleTabChange('events')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                activeTab === 'events'
+                  ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <CalendarDays size={18} />
+              Lista de Eventos
+            </button>
             <button
               onClick={() => handleTabChange('calendar')}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
@@ -86,17 +95,6 @@ export const EventsManagerPage: React.FC<EventsManagerProps> = ({ user }) => {
             >
               <RefreshCcw size={18} />
               Plantão Operacional
-            </button>
-            <button
-              onClick={() => handleTabChange('events')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
-                activeTab === 'events'
-                  ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <CalendarDays size={18} />
-              Lista de Eventos
             </button>
           </div>
 

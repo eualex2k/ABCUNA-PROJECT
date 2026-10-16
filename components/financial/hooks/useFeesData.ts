@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Transaction, Associate } from '../../../types';
 import { financialService } from '../../../services/financial';
+import { computeFeeStatus } from '../../../services/feeStatus';
 
 export interface FeeRecord {
   id: string;
@@ -8,7 +9,9 @@ export interface FeeRecord {
   associateName: string;
   dueDate: string;
   amount: number;
-  status: 'LATE' | 'OPEN' | 'PAID' | 'PARTIAL';
+  status: 'LATE' | 'OPEN' | 'PAID' | 'PENDING' | 'PARTIAL';
+  statusLabel?: string;
+  badgeVariant?: 'success' | 'info' | 'warning' | 'danger';
   monthRef: string;
 }
 
@@ -43,8 +46,8 @@ export const useFeesData = (options: UseFeesDataOptions): UseFeesDataReturn => {
       )
       .map((tx) => {
         const assoc = associates.find((a) => a.id === tx.payer_id);
-        const dObj = new Date(tx.date + 'T12:00:00');
-        const isOverdue = tx.status === 'PENDING' && dObj < new Date();
+        const isPaid = tx.status === 'COMPLETED';
+        const statusInfo = computeFeeStatus(tx.date, isPaid);
 
         let monthRef = 'N/A';
         try {
@@ -69,8 +72,9 @@ export const useFeesData = (options: UseFeesDataOptions): UseFeesDataReturn => {
                 : 'Externo'),
           dueDate: tx.date,
           amount: tx.amount,
-          status:
-            tx.status === 'COMPLETED' ? 'PAID' : isOverdue ? 'LATE' : 'OPEN',
+          status: isPaid ? 'PAID' : (statusInfo.status as 'LATE' | 'OPEN' | 'PENDING'),
+          statusLabel: statusInfo.label,
+          badgeVariant: statusInfo.badgeVariant,
           monthRef: monthRef,
         };
       });
@@ -81,7 +85,7 @@ export const useFeesData = (options: UseFeesDataOptions): UseFeesDataReturn => {
     deriveFees();
   }, [transactions, associates]);
 
-  const overdueFees = feesList.filter((f) => f.status === 'LATE');
+  const overdueFees = feesList.filter((f) => f.status === 'LATE' || f.status === 'PENDING');
   const overdueCount = overdueFees.length;
 
   const refreshFees = () => {

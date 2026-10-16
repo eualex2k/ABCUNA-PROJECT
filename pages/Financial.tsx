@@ -35,6 +35,7 @@ const incomeCategories = [
 ];
 
 const expenseCategories = [
+  'Plantão Operacional',
   'Manutenção',
   'Equipamento',
   'Aluguel',
@@ -109,6 +110,12 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
   });
   const [editingRegistrationId, setEditingRegistrationId] = useState<string | null>(null);
   const [regPaymentFile, setRegPaymentFile] = useState<File | null>(null);
+  const [isPendingPaymentModalOpen, setIsPendingPaymentModalOpen] = useState(false);
+  const [pendingTxToPay, setPendingTxToPay] = useState<Transaction | null>(null);
+  const [pendingPaymentDate, setPendingPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [pendingPaymentMethod, setPendingPaymentMethod] = useState('PIX');
+  const [pendingPaymentObservation, setPendingPaymentObservation] = useState('');
+  const [pendingPaymentFile, setPendingPaymentFile] = useState<File | null>(null);
   const { showToast } = useToast();
   const [incomeForm, setIncomeForm] = useState({
     title: '',
@@ -238,8 +245,10 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       await financialService.update(selectedFee.id, {
         status: 'COMPLETED',
         date: paymentForm.date,
-        description: `${selectedFee.monthRef} - ${selectedFee.associateName} (Pago em ${paymentForm.date.split('-').reverse().join('/')})`,
-        notes: paymentForm.observation.trim() ? `Pagamento via ${paymentForm.method}: ${paymentForm.observation.trim()}` : `Pagamento via ${paymentForm.method}`,
+        description: `${selectedFee.monthRef} - ${selectedFee.associateName}`,
+        notes: paymentForm.observation.trim()
+          ? `Pagamento via ${paymentForm.method}: ${paymentForm.observation.trim()}`
+          : `Pagamento via ${paymentForm.method}`,
       });
 
       if (feeFile) {
@@ -255,6 +264,59 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
       showToast('Erro ao processar pagamento.', 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleOpenPayPending = (transaction: Transaction) => {
+    setPendingTxToPay(transaction);
+    setPendingPaymentDate(new Date().toISOString().split('T')[0]);
+    setPendingPaymentMethod('PIX');
+    setPendingPaymentObservation('');
+    setPendingPaymentFile(null);
+    setIsPendingPaymentModalOpen(true);
+  };
+
+  const processPendingPayment = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!pendingTxToPay || isUploading) return;
+
+    if (!pendingPaymentFile) {
+      showToast('O comprovante é obrigatório para confirmar a liquidação financeira.', 'error');
+      return;
+    }
+
+    if (pendingPaymentFile.size > 5 * 1024 * 1024) {
+      showToast('O comprovante não pode ter mais que 5MB.', 'error');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // 1. Fazer upload do comprovante primeiro
+      const filePath = await financialService.uploadComprovante(pendingPaymentFile);
+      await financialService.attachComprovante(pendingTxToPay.id, filePath);
+
+      // 2. Marcar como COMPLETED após confirmação do comprovante
+      const currentNotes = pendingTxToPay.notes || '';
+      const paymentNote = `Pago em ${pendingPaymentDate.split('-').reverse().join('/')} via ${pendingPaymentMethod}${pendingPaymentObservation.trim() ? `: ${pendingPaymentObservation.trim()}` : ''}`;
+      const finalNotes = currentNotes ? `${currentNotes} | ${paymentNote}` : paymentNote;
+
+      await financialService.update(pendingTxToPay.id, {
+        status: 'COMPLETED',
+        date: pendingPaymentDate,
+        notes: finalNotes,
+      });
+
+      await refreshData();
+      setIsPendingPaymentModalOpen(false);
+      setPendingTxToPay(null);
+      setPendingPaymentFile(null);
+      showToast('Pagamento liquidado e comprovante anexado com sucesso!', 'success');
+    } catch (error: any) {
+      console.error('Erro ao liquidar pagamento:', error);
+      showToast('Erro ao liquidar pagamento: ' + (error?.message || ''), 'error');
     } finally {
       setIsUploading(false);
     }
@@ -664,6 +726,21 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       return (b.createdAt || '').localeCompare(a.createdAt || '');
     });
 
+  // Todas as transações visíveis na tabela (excluindo mensalidades pendentes — essas ficam na aba Mensalidades)
+  const isMensalidadePending = (t: Transaction) =>
+    (t.category === 'Mensalidade' || t.category === 'Mensalidades') &&
+    t.status === 'PENDING';
+
+  const displayTransactions = [...transactions]
+    .filter(t => !isMensalidadePending(t))
+    .sort((a, b) => {
+      // Pendentes primeiro para chamar atenção da tesoureira
+      if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+      if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+      if (b.date !== a.date) return b.date.localeCompare(a.date);
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+
   const totalBalance = completedTransactions.reduce((acc, tx) => tx.type === 'INCOME' ? acc + tx.amount : acc - tx.amount, 0);
   
   // Cálculos de dados para gráficos
@@ -1057,10 +1134,11 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
       </div>
 
       <TransactionTable
-        transactions={completedTransactions}
+        transactions={displayTransactions}
         onEdit={handleEditTransaction}
         onDelete={handleDeleteTransaction}
         onViewComprovantes={handleViewComprovantes}
+        onPayPending={handleOpenPayPending}
         onExport={canExport ? handleExportPDF : undefined}
         loading={loading}
         canEdit={canEdit}
@@ -1617,6 +1695,128 @@ export const FinancialPage: React.FC<FinancialPageProps> = ({ user }) => {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Modal de Liquidação de Obrigação / Diária de Plantão com Comprovante Obrigatório */}
+      <Modal
+        isOpen={isPendingPaymentModalOpen}
+        onClose={() => {
+          if (!isUploading) {
+            setIsPendingPaymentModalOpen(false);
+            setPendingTxToPay(null);
+            setPendingPaymentFile(null);
+          }
+        }}
+        title="💳 Liquidar Obrigação Financeira"
+        maxWidth="lg"
+      >
+        {pendingTxToPay && (
+          <form onSubmit={processPendingPayment} className="space-y-4">
+            {/* Informações pré-preenchidas e conferência */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Beneficiário / Destinatário
+              </span>
+              <p className="text-base font-bold text-slate-900 mt-0.5">
+                {(() => {
+                  const match = associates.find((a) => a.id === pendingTxToPay.recipient_id);
+                  return match ? match.name : pendingTxToPay.custom_recipient || 'Não especificado';
+                })()}
+              </p>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
+                <span className="text-xs text-slate-500 font-medium">
+                  {pendingTxToPay.description}
+                </span>
+                <span className="text-lg font-black text-rose-600">
+                  {formatCurrency(pendingTxToPay.amount)}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Data do Pagamento *"
+                type="date"
+                required
+                value={pendingPaymentDate}
+                onChange={(e) => setPendingPaymentDate(e.target.value)}
+              />
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                  Forma de Pagamento *
+                </label>
+                <select
+                  className="w-full h-12 px-4 bg-white border border-slate-300 rounded-lg text-base shadow-sm focus:outline-none focus:border-brand-500"
+                  value={pendingPaymentMethod}
+                  onChange={(e) => setPendingPaymentMethod(e.target.value)}
+                >
+                  <option value="PIX">PIX</option>
+                  <option value="TRANSFERÊNCIA">Transferência Bancária</option>
+                  <option value="DINHEIRO">Dinheiro em Espécie</option>
+                  <option value="CARTÃO">Cartão Débito/Crédito</option>
+                </select>
+              </div>
+            </div>
+
+            <Textarea
+              label="Observação Contábil / Detalhes"
+              rows={2}
+              value={pendingPaymentObservation}
+              onChange={(e) => setPendingPaymentObservation(e.target.value)}
+              placeholder="Ex: Chave PIX utilizada ou código de autenticação bancária..."
+            />
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                Comprovante de Pagamento (Obrigatório) *
+              </label>
+              <input
+                type="file"
+                required
+                accept="image/*,.pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  if (file && file.size > 5 * 1024 * 1024) {
+                    showToast('O comprovante não pode ter mais que 5MB.', 'error');
+                    e.target.value = '';
+                    setPendingPaymentFile(null);
+                    return;
+                  }
+                  setPendingPaymentFile(file);
+                }}
+                className="block w-full text-sm text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer"
+              />
+              {pendingPaymentFile && (
+                <p className="mt-2 text-xs text-slate-500">
+                  Arquivo selecionado: <span className="font-bold text-slate-700">{pendingPaymentFile.name}</span>
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={isUploading}
+                onClick={() => {
+                  setIsPendingPaymentModalOpen(false);
+                  setPendingTxToPay(null);
+                  setPendingPaymentFile(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUploading || !pendingPaymentFile}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+              >
+                {isUploading ? 'Processando saída...' : 'Confirmar Saída Financeira'}
+              </Button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );

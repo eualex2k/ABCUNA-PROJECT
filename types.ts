@@ -47,11 +47,12 @@ export const translateStatus = (status: string): string => {
     case 'VOLUNTEER':
       return 'Voluntário';
     case 'PAID':
-      return 'Pago';
+    case 'UP_TO_DATE':
+      return 'Em Dia';
     case 'OPEN':
       return 'Aberto';
     case 'LATE':
-      return 'Em Atraso';
+      return 'Atrasado';
     case 'CANCELLED':
       return 'Cancelado';
     default:
@@ -63,10 +64,12 @@ export const translatePaymentStatus = (status: string): string => {
   switch (status) {
     case 'UP_TO_DATE':
       return 'Em Dia';
-    case 'LATE':
-      return 'Em Atraso';
+    case 'OPEN':
+      return 'Aberto';
     case 'PENDING':
       return 'Pendente';
+    case 'LATE':
+      return 'Atrasado';
     default:
       return status;
   }
@@ -185,7 +188,7 @@ export interface Associate {
   status: 'ACTIVE' | 'INACTIVE' | 'PENDING';
   joinDate: string;
   avatar?: string;
-  paymentStatus: 'UP_TO_DATE' | 'LATE' | 'PENDING';
+  paymentStatus: 'UP_TO_DATE' | 'LATE' | 'PENDING' | 'OPEN';
 }
 
 export interface FinancialMetric {
@@ -217,6 +220,7 @@ export interface Transaction {
   custom_recipient?: string;
   notes?: string;
   registration_id?: string;
+  shift_id?: string;
   has_comprovantes?: boolean;
   createdAt?: string;
 }

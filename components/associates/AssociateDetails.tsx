@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Badge, Card, Button } from '../ui';
 import { Transaction, Shift, Associate } from '../../types';
+import { computeFeeStatus, computeAssociateFeeStatus } from '../../services/feeStatus';
 
 interface AssociateDetailsProps {
   associate: Associate;
@@ -91,6 +92,7 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
   }
 
   if (tab === 'FINANCIAL') {
+    const summary = computeAssociateFeeStatus(associate.id, transactions);
     const associateFees = transactions
       .filter(
         (tx) =>
@@ -104,15 +106,8 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
       .sort((a, b) => b.date.localeCompare(a.date));
 
     const pendingFees = associateFees.filter((f) => f.status === 'PENDING');
-    const overduePayments = pendingFees.filter((f) => {
-      const dObj = new Date(f.date + 'T12:00:00');
-      return dObj < new Date();
-    });
-
-    const oldestOverdue =
-      overduePayments.length > 0
-        ? overduePayments[overduePayments.length - 1]
-        : null;
+    const oldestPending =
+      pendingFees.length > 0 ? pendingFees[pendingFees.length - 1] : null;
 
     return (
       <div className="space-y-4 animate-in fade-in duration-300">
@@ -122,29 +117,39 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
               Situação Financeira Geral
             </p>
             <p className="text-xl font-black">
-              {overduePayments.length > 0
-                ? 'PENDÊNCIA IDENTIFICADA'
-                : pendingFees.length > 0
-                  ? 'PRÓXIMO VENCIMENTO'
-                  : 'CONTA EM DIA'}
+              {summary.paymentStatus === 'LATE'
+                ? 'EM ATRASO'
+                : summary.paymentStatus === 'PENDING'
+                  ? 'PENDÊNCIA IDENTIFICADA'
+                  : summary.paymentStatus === 'OPEN'
+                    ? 'MENSALIDADE EM ABERTO'
+                    : 'CONTA EM DIA'}
             </p>
-            {oldestOverdue && (
+            {summary.lateCount > 0 ? (
               <p className="text-xs text-rose-400 mt-1 font-bold">
-                {overduePayments.length} parcela(s) em atraso.
+                {summary.lateCount} parcela(s) em atraso (+10 dias).
               </p>
-            )}
+            ) : summary.pendingCount > 0 ? (
+              <p className="text-xs text-amber-400 mt-1 font-bold">
+                {summary.pendingCount} parcela(s) pendente(s) (5 a 10 dias após vencimento).
+              </p>
+            ) : summary.openCount > 0 ? (
+              <p className="text-xs text-blue-300 mt-1 font-bold">
+                {summary.openCount} parcela(s) em aberto para pagamento.
+              </p>
+            ) : null}
           </div>
           <div className="flex items-center gap-4">
-            {oldestOverdue && canEdit && (
+            {oldestPending && canEdit && (
               <Button
-                onClick={() => onPayFee(oldestOverdue.id)}
+                onClick={() => onPayFee(oldestPending.id)}
                 className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-900/20"
               >
                 <DollarSign size={16} className="mr-2" /> Pagar Agora
               </Button>
             )}
             <div
-              className={`p-3 rounded-xl bg-white/10 ${overduePayments.length === 0 ? 'text-emerald-400' : 'text-rose-400'}`}
+              className={`p-3 rounded-xl bg-white/10 ${summary.paymentStatus === 'UP_TO_DATE' ? 'text-emerald-400' : summary.paymentStatus === 'LATE' ? 'text-rose-400' : 'text-amber-400'}`}
             >
               <DollarSign size={24} />
             </div>
@@ -185,9 +190,7 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
                   </tr>
                 ) : (
                   associateFees.map((fee) => {
-                    const isFeeOverdue =
-                      fee.status === 'PENDING' &&
-                      new Date(fee.date + 'T12:00:00') < new Date();
+                    const feeStatus = computeFeeStatus(fee.date, fee.status === 'COMPLETED');
                     const isRegistration = fee.category === 'Taxa de Inscrição';
 
                     return (
@@ -215,20 +218,8 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
                           </div>
                         </td>
                         <td className="px-5 py-4">
-                          <Badge
-                            variant={
-                              fee.status === 'COMPLETED'
-                                ? 'success'
-                                : isFeeOverdue
-                                  ? 'danger'
-                                  : 'warning'
-                            }
-                          >
-                            {fee.status === 'COMPLETED'
-                              ? 'PAGO'
-                              : isFeeOverdue
-                                ? 'ATRASADO'
-                                : 'PENDENTE'}
+                          <Badge variant={feeStatus.badgeVariant}>
+                            {feeStatus.label}
                           </Badge>
                         </td>
                         <td className="px-5 py-4 text-right font-black text-slate-900">
@@ -261,14 +252,15 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
     const associateShifts = shifts.filter(
       (s) =>
         s.members.some(
-          (m) => m.name === associate.name && m.status === 'CONFIRMED'
+          (m) =>
+            (m.userId === associate.id || m.name.toLowerCase().trim() === associate.name.toLowerCase().trim()) &&
+            ((m.status as string) === 'CONFIRMED' || (m.status as string) === 'FINISHED')
         ) &&
-        new Date(s.fullDate) < today &&
-        s.status === 'CONFIRMED'
+        (s.status === 'FINISHED' || (s.status === 'CONFIRMED' && new Date(s.fullDate) <= today))
     );
 
     const totalRemuneration = associateShifts.reduce(
-      (sum, s) => sum + s.amount,
+      (sum, s) => sum + Number(s.amount || 0),
       0
     );
 
@@ -348,8 +340,32 @@ export const AssociateDetails: React.FC<AssociateDetailsProps> = ({
                             </p>
                           </div>
                         </div>
-                        <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[11px] font-black">
-                          {formatCurrency(shift.amount)}
+                        <div className="flex flex-col items-end gap-1">
+                          <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[11px] font-black">
+                            {formatCurrency(shift.amount)}
+                          </div>
+                          {(() => {
+                            const shiftTx = transactions.find(
+                              (t) =>
+                                t.recipient_id === associate.id &&
+                                (t.shift_id === shift.id ||
+                                  (t.category === 'Plantão Operacional' &&
+                                    t.notes?.includes(shift.team)))
+                            );
+                            if (!shiftTx) return null;
+                            const isPaid = shiftTx.status === 'COMPLETED';
+                            return (
+                              <span
+                                className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                  isPaid
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-amber-100 text-amber-700'
+                                }`}
+                              >
+                                {isPaid ? 'Diária Paga' : 'Diária a Pagar'}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>

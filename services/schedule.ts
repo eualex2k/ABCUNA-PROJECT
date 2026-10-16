@@ -352,43 +352,78 @@ export const scheduleService = {
       .eq('id', shiftId)
       .single();
 
-    if (!shift) throw new Error('Plantão não encontrado');
-    if (shift.status === 'FINISHED')
-      throw new Error('Este plantão já foi finalizado.');
+    // Invocar a RPC atômica transacional no PostgreSQL
+    const { data: result, error } = await supabase.rpc('finalize_shift_atomic', {
+      p_shift_id: shiftId,
+    });
 
-    const members: ShiftMember[] = shift.confirmed_members || [];
-
-    // 2. Filter CONFIRMED members to update stats
-    const participants = members.filter(
-      (m) => m.status === 'CONFIRMED' && m.userId
-    );
-
-    for (const p of participants) {
-      // Incrementar contador de plantões do usuário
-      await supabase.rpc('increment_shift_count', { user_id: p.userId });
-
-      // Atualizar data do ultimo plantão
-      await supabase
-        .from('profiles')
-        .update({ last_shift_date: new Date().toISOString() })
-        .eq('id', p.userId);
+    if (error) {
+      console.error('Erro ao finalizar plantão de forma atômica:', error);
+      throw new Error(error.message || 'Erro ao finalizar plantão.');
     }
 
-    // 3. Update Status to FINISHED
-    const { error } = await supabase
+    // Notificar participantes confirmados a partir dos IDs retornados pela RPC
+    const notifiedUserIds: string[] = Array.isArray(result?.participant_ids)
+      ? result.participant_ids
+      : [];
+
+    if (notifiedUserIds.length > 0) {
+      await notificationService.add({
+        title: 'Plantão Finalizado',
+        message: `O plantão "${result?.shift_title || 'Operacional'}" foi encerrado e contabilizado.`,
+        type: 'SCHEDULE',
+        targetUserIds: notifiedUserIds,
+      });
+    }
+  },
+
+  /**
+   * Reabre um plantão que estava finalizado (requer papel ADMIN e justificativa).
+   * Não apaga transações já pagas (COMPLETED) para preservar histórico contábil.
+   * Cancela apenas obrigações ainda pendentes (PENDING).
+   */
+  async reopenShift(shiftId: string, justification: string): Promise<void> {
+    if (!justification || justification.trim().length < 5) {
+      throw new Error('Justificativa obrigatória para reabertura (mínimo 5 caracteres).');
+    }
+
+    const { data: shift, error: fetchError } = await supabase
       .from('schedules')
-      .update({ status: 'FINISHED' }) // FINISHED status
+      .select('*')
+      .eq('id', shiftId)
+      .single();
+
+    if (fetchError || !shift) throw new Error('Plantão não encontrado.');
+    if (shift.status !== 'FINISHED') {
+      throw new Error('Apenas plantões finalizados podem ser reabertos.');
+    }
+
+    // 1. Atualizar status de volta para CONFIRMED
+    const { error: updateError } = await supabase
+      .from('schedules')
+      .update({ status: 'CONFIRMED' })
       .eq('id', shiftId);
 
-    if (error) throw error;
+    if (updateError) throw updateError;
 
-    // Notificar participantes
-    await notificationService.add({
-      title: 'Plantão Finalizado',
-      message: `O plantão "${shift.title}" foi encerrado e contabilizado.`,
-      type: 'SCHEDULE',
-      targetUserIds: participants.map((p) => p.userId),
-    });
+    // 2. Remover apenas transações ainda PENDING criadas automaticamente para evitar dívidas duplicadas ao finalizar de novo
+    await supabase
+      .from('financial_transactions')
+      .delete()
+      .eq('shift_id', shiftId)
+      .eq('status', 'PENDING');
+
+    // 3. Notificar participantes
+    const members: ShiftMember[] = shift.confirmed_members || [];
+    const participants = members.filter((m) => m.status === 'CONFIRMED' && m.userId);
+    if (participants.length > 0) {
+      await notificationService.add({
+        title: 'Plantão Reaberto',
+        message: `O plantão "${shift.title}" foi reaberto pela administração. Motivo: ${justification}`,
+        type: 'SCHEDULE',
+        targetUserIds: participants.map((p) => p.userId),
+      });
+    }
   },
 };
 

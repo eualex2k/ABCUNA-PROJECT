@@ -42,6 +42,7 @@ import { associatesService } from '../services/associates';
 import { scheduleService } from '../services/schedule';
 import { financialService } from '../services/financial';
 import { AssociateDetails } from '../components/associates/AssociateDetails';
+import { computeAssociateFeeStatus } from '../services/feeStatus';
 
 interface AssociatesPageProps {
   user: User;
@@ -65,7 +66,14 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
         scheduleService.getAll(),
         financialService.getAll(),
       ]);
-      setAssociates(assocData);
+      const updatedAssociates = assocData.map((assoc) => {
+        const feeSummary = computeAssociateFeeStatus(assoc.id, financialData);
+        return {
+          ...assoc,
+          paymentStatus: feeSummary.paymentStatus,
+        };
+      });
+      setAssociates(updatedAssociates);
       setAllShifts(shiftsData);
       setAllTransactions(financialData);
     } catch (error) {
@@ -326,7 +334,11 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                   variant={
                     associate.paymentStatus === 'UP_TO_DATE'
                       ? 'success'
-                      : 'danger'
+                      : associate.paymentStatus === 'OPEN'
+                        ? 'info'
+                        : associate.paymentStatus === 'PENDING'
+                          ? 'warning'
+                          : 'danger'
                   }
                 >
                   {translatePaymentStatus(associate.paymentStatus)}
@@ -461,9 +473,11 @@ export const AssociatesPage: React.FC<AssociatesPageProps> = ({ user }) => {
                         variant={
                           associate.paymentStatus === 'UP_TO_DATE'
                             ? 'success'
-                            : associate.paymentStatus === 'LATE'
-                              ? 'danger'
-                              : 'warning'
+                            : associate.paymentStatus === 'OPEN'
+                              ? 'info'
+                              : associate.paymentStatus === 'PENDING'
+                                ? 'warning'
+                                : 'danger'
                         }
                       >
                         {translatePaymentStatus(associate.paymentStatus)}

@@ -19,7 +19,9 @@ interface FeeRecord {
   associateName: string;
   dueDate: string;
   amount: number;
-  status: 'LATE' | 'OPEN' | 'PAID' | 'PARTIAL';
+  status: 'LATE' | 'OPEN' | 'PAID' | 'PENDING' | 'PARTIAL';
+  statusLabel?: string;
+  badgeVariant?: 'success' | 'info' | 'warning' | 'danger';
   monthRef: string;
 }
 
@@ -58,9 +60,17 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
   canEdit,
   loading = false,
 }) => {
+  const statusPriority: Record<string, number> = {
+    LATE: 0,
+    PENDING: 1,
+    OPEN: 2,
+    PAID: 3,
+  };
+
   const sortedFees = [...fees].sort((a, b) => {
-    if (a.status === 'LATE' && b.status !== 'LATE') return -1;
-    if (a.status !== 'LATE' && b.status === 'LATE') return 1;
+    const pA = statusPriority[a.status] ?? 2;
+    const pB = statusPriority[b.status] ?? 2;
+    if (pA !== pB) return pA - pB;
     return a.dueDate.localeCompare(b.dueDate);
   });
 
@@ -185,10 +195,19 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                       {fee.associateName}
                     </span>
                     <Badge
-                      variant={fee.status === 'LATE' ? 'danger' : 'warning'}
+                      variant={
+                        fee.badgeVariant ||
+                        (fee.status === 'LATE'
+                          ? 'danger'
+                          : fee.status === 'PENDING'
+                            ? 'warning'
+                            : fee.status === 'OPEN'
+                              ? 'info'
+                              : 'success')
+                      }
                       className="text-[8px] font-bold px-1.5 py-0.5 uppercase tracking-wider"
                     >
-                      {translateStatus(fee.status)}
+                      {fee.statusLabel || translateStatus(fee.status)}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-3 text-[9px] font-medium text-slate-400 uppercase tracking-widest">

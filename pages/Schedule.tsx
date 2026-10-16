@@ -24,6 +24,7 @@ import {
   UserPlus,
   Search,
   Info,
+  RotateCcw,
 } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input, Avatar } from '../components/ui';
 import { notificationService } from '../services/notifications';
@@ -52,6 +53,7 @@ export const SchedulePage = React.forwardRef<
   SchedulePageProps
 >(({ user }, ref) => {
   const canEdit = [UserRole.ADMIN, UserRole.SECRETARY].includes(user.role);
+  const canFinalizeShift = [UserRole.ADMIN, UserRole.FINANCIAL].includes(user.role);
   const [shifts, setShifts] = useState<Shift[]>(INITIAL_SHIFTS);
   const [loading, setLoading] = useState(false);
 
@@ -143,6 +145,9 @@ export const SchedulePage = React.forwardRef<
   const [previewMembers, setPreviewMembers] = useState<ShiftMember[]>([]);
   const [previewShiftId, setPreviewShiftId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isActionInProgress, setIsActionInProgress] = useState(false);
+  const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
+  const [reopenJustification, setReopenJustification] = useState('');
 
   const initialFormState: Partial<Shift> = {
     team: '',
@@ -345,6 +350,21 @@ export const SchedulePage = React.forwardRef<
       });
       await scheduleService.updateMembers(shift.id, updatedMembers);
 
+      // Verificar se a escala ficou completa após a aprovação e avançar o status automaticamente
+      const confirmedCount = updatedMembers.filter(
+        (m) => m.status === 'CONFIRMED'
+      ).length;
+      const isFull = shift.vacancies != null && confirmedCount >= shift.vacancies;
+      const needsStatusUpdate =
+        isFull &&
+        (shift.status === 'AWAITING_CONFIRMATION' ||
+          shift.status === 'OPEN' ||
+          shift.status === 'PENDING');
+
+      if (needsStatusUpdate) {
+        await scheduleService.update(shift.id, { status: 'CONFIRMED' });
+      }
+
       // Notificar o voluntário sobre a aprovação
       await notificationService.add({
         title: 'Inscrição Aprovada!',
@@ -463,19 +483,68 @@ export const SchedulePage = React.forwardRef<
   };
 
   const handleFinalizeShift = async (shift: Shift) => {
+    if (isActionInProgress) return;
+    if (!canFinalizeShift) {
+      alert('Apenas Administradores e Tesoureiros têm permissão para finalizar plantões e gerar obrigações financeiras.');
+      return;
+    }
+    const confirmedCount = (shift.members || []).filter((m) => m.status === 'CONFIRMED').length;
+    const individualAmount = Number(shift.amount || 0);
+    const totalAmount = confirmedCount * individualAmount;
+
+    const formattedTotal = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(totalAmount);
+
+    const formattedIndividual = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(individualAmount);
+
     if (
       confirm(
-        `ATENÇÃO: Deseja finalizar o plantão "${shift.team}"?\n\nIsso irá:\n1. Consolidar a lista de presença\n2. Incrementar o contador de plantões de quem participou\n3. Atualizar a data do último plantão\n\nEssa ação não pode ser desfeita.`
+        `ATENÇÃO: Deseja finalizar o plantão "${shift.team}"?\n\nIsso irá:\n1. Consolidar a lista de presença (${confirmedCount} confirmados)\n2. Incrementar o contador de plantões de quem participou\n3. Atualizar a data do último plantão\n4. Gerar ${confirmedCount} obrigações financeiras individuais de ${formattedIndividual} cada (Total a pagar: ${formattedTotal})\n\nDeseja confirmar o encerramento?`
       )
     ) {
       try {
+        setIsActionInProgress(true);
         await scheduleService.finalizeShift(shift.id);
         await loadShifts();
         setIsDetailsOpen(false);
-        alert('Plantão finalizado e estatísticas atualizadas com sucesso!');
+        alert('Plantão finalizado com sucesso! As diárias individuais foram lançadas no módulo Financeiro.');
       } catch (error: any) {
-        alert('Erro: ' + error.message);
+        alert('Erro ao finalizar plantão: ' + error.message);
+      } finally {
+        setIsActionInProgress(false);
       }
+    }
+  };
+
+  const handleReopenShift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedShift || isActionInProgress) return;
+    if (user.role !== UserRole.ADMIN) {
+      alert('Apenas Administradores podem reabrir plantões.');
+      return;
+    }
+    if (!reopenJustification.trim() || reopenJustification.trim().length < 5) {
+      alert('Por favor, informe uma justificativa válida com no mínimo 5 caracteres.');
+      return;
+    }
+
+    try {
+      setIsActionInProgress(true);
+      await scheduleService.reopenShift(selectedShift.id, reopenJustification);
+      await loadShifts();
+      setIsReopenModalOpen(false);
+      setReopenJustification('');
+      setIsDetailsOpen(false);
+      alert('Plantão reaberto com sucesso!');
+    } catch (error: any) {
+      alert('Erro ao reabrir plantão: ' + error.message);
+    } finally {
+      setIsActionInProgress(false);
     }
   };
 
@@ -1228,13 +1297,27 @@ export const SchedulePage = React.forwardRef<
                     </Button>
                   )}
 
-                {canEdit && selectedShift.status === 'CONFIRMED' && (
+                {canFinalizeShift && selectedShift.status === 'CONFIRMED' && (
                   <Button
                     onClick={() => handleFinalizeShift(selectedShift)}
-                    className="flex-1 sm:flex-none h-14 bg-slate-900 hover:bg-black text-white px-10 rounded-2xl shadow-xl shadow-slate-200 font-black uppercase text-sm tracking-widest"
+                    disabled={isActionInProgress}
+                    className="flex-1 sm:flex-none h-14 bg-slate-900 hover:bg-black text-white px-10 rounded-2xl shadow-xl shadow-slate-200 font-black uppercase text-sm tracking-widest disabled:opacity-50"
                   >
                     <Shield size={20} className="mr-3 text-brand-400" />{' '}
-                    Finalizar Plantão
+                    {isActionInProgress ? 'Finalizando...' : 'Finalizar Plantão'}
+                  </Button>
+                )}
+
+                {user.role === UserRole.ADMIN && selectedShift.status === 'FINISHED' && (
+                  <Button
+                    onClick={() => {
+                      setReopenJustification('');
+                      setIsReopenModalOpen(true);
+                    }}
+                    disabled={isActionInProgress}
+                    className="flex-1 sm:flex-none h-14 bg-amber-600 hover:bg-amber-700 text-white px-8 rounded-2xl shadow-xl shadow-amber-200 font-black uppercase text-xs tracking-widest disabled:opacity-50"
+                  >
+                    <RotateCcw size={18} className="mr-2" /> Reabrir Plantão
                   </Button>
                 )}
                 <Button
@@ -1248,6 +1331,58 @@ export const SchedulePage = React.forwardRef<
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Modal de Reabertura com Justificativa */}
+      <Modal
+        isOpen={isReopenModalOpen}
+        onClose={() => {
+          if (!isActionInProgress) setIsReopenModalOpen(false);
+        }}
+        title="⚠️ Reabertura de Plantão Finalizado"
+        maxWidth="lg"
+      >
+        <form onSubmit={handleReopenShift} className="space-y-4">
+          <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 text-xs">
+            <p className="font-bold mb-1">Atenção, Administrador:</p>
+            <p>
+              A reabertura retornará o plantão para o status de confirmação. As obrigações financeiras pendentes que foram geradas automaticamente serão canceladas para evitar duplicidades caso o plantão seja finalizado novamente. Pagamentos já concluídos com comprovante serão preservados.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">
+              Justificativa Obrigatória *
+            </label>
+            <textarea
+              required
+              rows={4}
+              value={reopenJustification}
+              onChange={(e) => setReopenJustification(e.target.value)}
+              placeholder="Explique o motivo da reabertura deste plantão (mínimo 5 caracteres)..."
+              className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-xs font-medium focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-3 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isActionInProgress}
+              className="flex-1 h-12 text-[10px] font-black uppercase tracking-widest"
+              onClick={() => setIsReopenModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isActionInProgress || reopenJustification.trim().length < 5}
+              className="flex-1 h-12 bg-amber-600 hover:bg-amber-700 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-200 disabled:opacity-50"
+            >
+              {isActionInProgress ? 'Reabrindo...' : 'Confirmar Reabertura'}
+            </Button>
+          </div>
+        </form>
       </Modal>
 
       {/* Create Modal */}

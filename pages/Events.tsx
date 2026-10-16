@@ -17,11 +17,20 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
+  HardHat,
 } from 'lucide-react';
 import { Card, Button, Input, Modal, Badge } from '../components/ui';
 import { notificationService } from '../services/notifications';
 import { eventsService } from '../services/events';
-import { Event, User, UserRole } from '../types';
+import { scheduleService } from '../services/schedule';
+import { Event, User, UserRole, Shift } from '../types';
+
+// Unified display item: either a real Event or a Shift mapped to Event shape
+interface DisplayEvent extends Event {
+  _isShift?: boolean;
+  _shiftStatus?: string;
+  _shiftMembers?: number;
+}
 
 interface EventsPageProps {
   user: User;
@@ -43,7 +52,7 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
       initialView
     );
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [events, setEvents] = useState<Event[]>([]);
+    const [events, setEvents] = useState<DisplayEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState<string | null>(null);
     const navigate = useNavigate();
@@ -56,11 +65,35 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
       setActiveTab(initialView);
     }, [initialView]);
 
+    // Map a Shift to a DisplayEvent for unified rendering
+    const shiftToDisplayEvent = (shift: Shift): DisplayEvent => ({
+      id: `shift-${shift.id}`,
+      title: shift.team,
+      description: shift.description || `Organizado por: ${shift.organizer}. Líder: ${shift.leader || 'A definir'}. Vagas: ${shift.vacancies ?? '-'}.`,
+      date: shift.fullDate,
+      time: shift.startTime,
+      location: shift.location,
+      type: 'OPERATION',
+      confirmed: shift.members?.filter(m => m.status === 'CONFIRMED' || m.status === 'VOLUNTEER_APPROVED').length || 0,
+      status: shift.status === 'FINISHED' ? 'FINISHED' : 'ACTIVE',
+      visibility: 'PUBLIC',
+      _isShift: true,
+      _shiftStatus: shift.status,
+      _shiftMembers: shift.members?.length || 0,
+    });
+
     const loadEvents = async () => {
       try {
         setLoading(true);
-        const data = await eventsService.getAll();
-        setEvents(data || []);
+        const [eventsData, shiftsData] = await Promise.all([
+          eventsService.getAll(),
+          scheduleService.getAll(),
+        ]);
+        const shiftEvents = (shiftsData || []).map(shiftToDisplayEvent);
+        const combined = [...(eventsData || []), ...shiftEvents].sort((a, b) =>
+          a.date.localeCompare(b.date)
+        );
+        setEvents(combined as DisplayEvent[]);
       } catch (error) {
         console.error('Failed to load events', error);
       } finally {
@@ -185,7 +218,7 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
       }
     };
 
-    const handleFinish = async (event: Event) => {
+    const handleFinish = async (event: DisplayEvent) => {
       if (confirm(`Deseja marcar o evento "${event.title}" como concluído?`)) {
         try {
           await eventsService.update(event.id, { status: 'FINISHED' });
@@ -212,6 +245,21 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
       if (e.visibility === 'PUBLIC') return true;
       return user.role === UserRole.ADMIN || user.role === UserRole.SECRETARY;
     });
+
+    // Render badge for event type (includes OPERATION/shift differentiation)
+    const renderTypeBadge = (event: DisplayEvent) => {
+      if (event._isShift) {
+        return (
+          <Badge className="flex items-center gap-1 bg-orange-50 text-orange-600 border-orange-100 text-[10px]">
+            <HardHat size={10} /> Plantão Operacional
+          </Badge>
+        );
+      }
+      if (event.type === 'TRAINING') return <Badge className="flex items-center gap-1 bg-sky-50 text-sky-600 border-sky-100 text-[10px]">Treinamento</Badge>;
+      if (event.type === 'MEETING') return <Badge className="flex items-center gap-1 bg-indigo-50 text-indigo-600 border-indigo-100 text-[10px]">Reunião</Badge>;
+      if (event.type === 'OPERATION') return <Badge className="flex items-center gap-1 bg-orange-50 text-orange-600 border-orange-100 text-[10px]">Operação</Badge>;
+      return null;
+    };
 
     return (
       <div className="space-y-6 animate-in fade-in duration-500">
@@ -279,7 +327,7 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
                   }).map((_, i) => {
                     const day = i + 1;
                     const dayStr = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                    const dayEvents = events.filter((e) => e.date === dayStr);
+                    const dayEvents = events.filter((e) => e.date === dayStr || (e._isShift && e.date === dayStr));
                     const dayHolidays = holidays.filter(
                       (h) => h.date === dayStr
                     );
@@ -309,13 +357,19 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
                           {dayEvents.map((e, idx) => (
                             <div
                               key={idx}
-                              onClick={(e) => {
-                                e.stopPropagation();
+                              onClick={(ev) => {
+                                ev.stopPropagation();
                                 navigate('/events/list');
                               }}
-                              className={`cursor-pointer hover:scale-105 transition-all text-[8px] font-black uppercase px-2 py-0.5 rounded-full truncate border ${e.visibility === 'BOARD' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}
+                              className={`cursor-pointer hover:scale-105 transition-all text-[8px] font-black uppercase px-2 py-0.5 rounded-full truncate border ${
+                                e._isShift
+                                  ? 'bg-orange-50 text-orange-600 border-orange-100'
+                                  : e.visibility === 'BOARD'
+                                  ? 'bg-blue-50 text-blue-600 border-blue-100'
+                                  : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                              }`}
                             >
-                              {e.title}
+                              {e._isShift ? '🦺 ' : ''}{e.title}
                             </div>
                           ))}
                         </div>
@@ -507,7 +561,7 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
                     <div className="flex-1 p-6 space-y-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3
                               className={`text-xl font-black transition-colors ${event.status === 'FINISHED' ? 'text-slate-500 line-through' : 'text-slate-900 group-hover:text-brand-600'}`}
                             >
@@ -521,7 +575,7 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
                                 <CheckCircle size={10} /> Concluído
                               </Badge>
                             )}
-                            {event.visibility === 'BOARD' && (
+                            {!event._isShift && event.visibility === 'BOARD' && (
                               <Badge
                                 variant="info"
                                 className="flex items-center gap-1 bg-blue-50 text-blue-600 border-blue-100"
@@ -529,12 +583,14 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
                                 <Shield size={10} /> Diretoria
                               </Badge>
                             )}
+                            {renderTypeBadge(event)}
                           </div>
                           <p className="text-sm text-slate-500 leading-relaxed max-w-2xl mt-1">
                             {event.description}
                           </p>
                         </div>
-                        {canEdit && (
+                        {/* Shifts are read-only here; edit them in Plantão Operacional tab */}
+                        {canEdit && !event._isShift && (
                           <div className="flex gap-2">
                             <Button
                               variant="outline"
@@ -565,26 +621,44 @@ export const EventsPage = React.forwardRef<EventsPageRef, EventsPageProps>(
                             </Button>
                           </div>
                         )}
+                        {event._isShift && canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-orange-500 border border-orange-100 hover:bg-orange-50 h-9 text-xs"
+                            onClick={() => navigate('/events/schedule')}
+                            title="Gerenciar no Plantão Operacional"
+                          >
+                            <HardHat size={14} className="mr-1" /> Gerenciar
+                          </Button>
+                        )}
                       </div>
 
                       <div className="flex flex-wrap gap-4 pt-2">
                         <div className="flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
                           <MapPin size={14} className="text-brand-500" />{' '}
-                          {event.location}
+                          {event.location || 'Local a definir'}
                         </div>
-                        <div
-                          className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-lg border ${event.visibility === 'BOARD' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}
-                        >
-                          {event.visibility === 'BOARD' ? (
-                            <>
-                              <Shield size={14} /> Apenas Diretoria
-                            </>
-                          ) : (
-                            <>
-                              <Globe size={14} /> Aberto a Todos
-                            </>
-                          )}
-                        </div>
+                        {!event._isShift && (
+                          <div
+                            className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-lg border ${event.visibility === 'BOARD' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}
+                          >
+                            {event.visibility === 'BOARD' ? (
+                              <>
+                                <Shield size={14} /> Apenas Diretoria
+                              </>
+                            ) : (
+                              <>
+                                <Globe size={14} /> Aberto a Todos
+                              </>
+                            )}
+                          </div>
+                        )}
+                        {event._isShift && event._shiftMembers !== undefined && (
+                          <div className="flex items-center gap-2 text-xs font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100">
+                            <Users size={14} /> {event.confirmed} confirmados / {event._shiftMembers} inscritos
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
